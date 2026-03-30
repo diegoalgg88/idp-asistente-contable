@@ -1,0 +1,103 @@
+
+{
+  "$schema": "https://repomix.com/schemas/latest/schema.json",
+  "ai": {
+    "provider": "nvidia",
+    "model": "qwen/qwen3-coder-480b-a35b-instruct",
+    "apiKey": "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",
+    "baseURL": "https://integrate.api.nvidia.com/v1",
+    "temperature": 0.1,
+    "maxTokens": 4096
+  },
+  "input": {
+    "maxFileSize": 52428800,
+    "maxTotalSize": 1073741824
+  },
+  "output": {
+    "filePath": "frontend_codebase.md",
+    "style": "markdown",
+    "parsableStyle": true,
+    "headerText": "This file is a Project Codebase Map.This structured markdown file contains the complete source code, configuration, and relevant documentation for AI-driven analysis and modification. Generated on: ${date}",
+    "fileSummary": true,
+    "directoryStructure": true,
+    "files": true,
+    "removeComments": false,
+    "removeEmptyLines": true,
+    "compress": false,
+    "topFilesLength": 100,
+    "showLineNumbers": false,
+    "truncateBase64": true,
+    "copyToClipboard": false,
+    "tokenCountTree": "detailed",
+    "git": {
+      "sortByChanges": true,
+      "sortByChangesMaxCommits": 100,
+      "includeDiffs": false,
+      "includeLogs": false,
+      "includeLogsCount": 50
+    }
+  },
+  "include": [
+    "**/*"
+  ],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "// === Directorios de Dependencias y Entornos ===",
+      "node_modules/", "vendor/", "bower_components/",
+      "venv/", ".venv/", "env/", ".env/", "ENV/", "virtualenv/",
+      ".conda/", ".pyenv/", "playwright-results/",
+      
+      "// === Directorios de Build y Caché ===",
+      "build/", "dist/", "out/", "target/", "public/",
+      "__pycache__/", ".pytest_cache/", ".mypy_cache/", ".ruff_cache/",
+      ".cache/", ".next/", ".nuxt/", ".svelte-kit/", "coverage/", ".nyc_output/",
+      ".idea/", ".vscode/", ".settings/",
+      
+      "// === Archivos de Log y Temporales ===",
+      "*.log", "*.log.*", "npm-debug.log", "yarn-error.log",
+      "*.tmp", "*.temp", "*.bak", "*.backup", "*.swp", "*.swo",
+      
+      "// === Archivos del Sistema Operativo ===",
+      ".DS_Store", "Thumbs.db", "desktop.ini",
+      
+      "// === Archivos Binarios y Compilados ===",
+      "*.pyc", "*.pyo", "*.pyd", "*.so", "*.dll", "*.exe", "*.o", "*.a", "*.lib",
+      "*.class", "*.jar", "*.war", "*.ear",
+      
+      "// === Archivos Multimedia y Activos ===",
+      "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.ico", "*.icns",
+      "*.svg", "*.webp",
+      "*.mp3", "*.wav", "*.ogg",
+      "*.mp4", "*.webm", "*.mov", "*.avi",
+      "*.pdf", "*.doc", "*.docx", "*.xls", "*.xlsx", "*.ppt", "*.pptx",
+      "*.zip", "*.tar", "*.gz", "*.rar", "*.7z",
+      "*.eot", "*.ttf", "*.woff", "*.woff2",
+      
+      "// === Archivos de Configuración Local y Secretos ===",
+      ".env", ".env.*", "*.env", "secrets.json", "*.pem", "*.key",
+      "*.local",
+      
+      "// === Documentación y Recursos (si no son código) ===",
+      "docs/", "documentation/", "resources/", "assets/",
+      
+      "// === Bases de Datos ===",
+      "*.db", "*.sqlite", "*.sqlite3", "*.sql",
+      
+      "// === Lockfiles (ya que useGitignore es true, pero por si acaso) ===",
+      "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Pipfile.lock"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": false,
+    "patterns": [
+      "(?:api|client|secret)[_-]?(?:key|token|secret)|password|auth_token",
+      "BEGIN (?:RSA|OPENSSH|DSA|EC) PRIVATE KEY",
+      "-----BEGIN (?:RSA|OPENSSH|DSA|EC) PRIVATE KEY-----"
+    ]
+  },
+  "tokenCount": {
+    "encoding": "o200k_base"
+  }
+}

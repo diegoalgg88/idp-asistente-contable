@@ -1,0 +1,127 @@
+version: '3.8'
+
+services:
+  # Redis - Rate Limiting & Cache
+  redis:
+    image: redis:7-alpine
+    container_name: idp-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - idp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: idp-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-idp_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-idp_password}
+      POSTGRES_DB: ${POSTGRES_DB:-idp_contable}
+    volumes:
+      - ./data/pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - idp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-idp_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ChromaDB Vector Store
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: idp-chromadb
+    environment:
+      - ALLOW_RESET=TRUE
+      - IS_PERSISTENT=TRUE
+    volumes:
+      - ./data/chroma_data:/chroma/chroma
+    ports:
+      - "8000:8000"
+    networks:
+      - idp-network
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: idp-backend
+    environment:
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://idp_user:idp_password@db:5432/idp_contable}
+      - CHROMA_DB_HOST=${CHROMA_DB_HOST:-chromadb}
+      - CHROMA_DB_PORT=${CHROMA_DB_PORT:-8000}
+      - SECRET_KEY=${SECRET_KEY}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+    networks:
+      - idp-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  # React Frontend (Development - Vite)
+  frontend-dev:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: idp-frontend-dev
+    environment:
+      - VITE_BACKEND_URL=${BACKEND_URL:-http://localhost:8000}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - idp-network
+    command: npm run dev -- --host 0.0.0.0
+    profiles:
+      - dev
+
+  # React Frontend (Production - Nginx)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: idp-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - idp-network
+    profiles:
+      - prod
+      - ""
+
+networks:
+  idp-network:
+    driver: bridge

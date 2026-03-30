@@ -1,0 +1,615 @@
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
+import { useState, useRef, useCallback, useEffect, Suspense, lazy } from 'react'
+import {
+  LayoutDashboard,
+  Calculator,
+  FileText,
+  Settings,
+  ShieldCheck,
+  Search,
+  Bell,
+  CheckCircle2,
+  Database,
+  Cloud,
+  Users,
+  Wallet,
+  Receipt,
+  PieChart,
+  Target,
+  Bot,
+  X,
+  Crown,
+  LogOut,
+  UserCircle,
+  Zap,
+} from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from '@/components/ui/resizable'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/hooks/useAuth'
+import { useModulesStore } from '@/store/modules.store'
+import { useAppStore } from '@/store'
+import LoadingSpinner from './LoadingSpinner'
+
+// Lazy load Chat - solo se carga cuando se muestra el asistente
+const Chat = lazy(() => import('./Chat'))
+
+// ─── Activity Bar Items ───
+const activityBarItems = [
+  { id: 'workspace', name: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
+  { id: 'documents', name: 'Documentos', icon: FileText, href: '/documents' },
+  { id: 'clients', name: 'Clientes', icon: Users, href: '/clients' },
+  { id: 'fiscal', name: 'Fiscal', icon: Calculator, href: '/fiscal' },
+  { id: 'payroll', name: 'Nómina', icon: Receipt, href: '/payroll' },
+  { id: 'finance', name: 'Finanzas', icon: PieChart, href: '/finance' },
+  { id: 'expenses', name: 'Gastos', icon: Target, href: '/expenses' },
+]
+
+// ─── Sidebar Views per Module ───
+const sidebarViews: Record<string, { label: string; items: { id: string; name: string }[] }> = {
+  workspace: {
+    label: 'WORKSPACE',
+    items: [
+      { id: 'general', name: 'General' },
+      { id: 'impuestos', name: 'Impuestos Mensuales' },
+      { id: 'reportes-cfdi', name: 'Reportes CFDI' },
+      { id: 'calendario', name: 'Calendario Fiscal' },
+      { id: 'metricas-ia', name: 'Métricas IA' },
+    ],
+  },
+  documents: {
+    label: 'EXPLORADOR',
+    items: [
+      { id: 'todos', name: 'Todos los Documentos' },
+      { id: 'emitidas', name: 'Facturas Emitidas' },
+      { id: 'recibidas', name: 'Facturas Recibidas' },
+      { id: 'nominas', name: 'Nóminas' },
+    ],
+  },
+  clients: {
+    label: 'CLIENTES',
+    items: [
+      { id: 'morales', name: 'Personas Morales' },
+      { id: 'fisicas', name: 'Personas Físicas' },
+      { id: 'prospectos', name: 'Prospectos' },
+      { id: 'expedientes', name: 'Expedientes KYC' },
+    ],
+  },
+  fiscal: {
+    label: 'CUMPLIMIENTO',
+    items: [
+      { id: 'mensuales', name: 'Decl. Mensuales' },
+      { id: 'anuales', name: 'Decl. Anuales' },
+      { id: 'opinion', name: 'Opinión del Cumplimiento' },
+      { id: 'coeficiente', name: 'Coeficiente CU' },
+    ],
+  },
+  payroll: {
+    label: 'NÓMINAS',
+    items: [
+      { id: 'periodo', name: 'Periodo Actual' },
+      { id: 'ptu', name: 'PTU / Aguinaldos' },
+      { id: 'incidencias', name: 'Incidencias' },
+      { id: 'sua', name: 'SUA / IMSS' },
+    ],
+  },
+  finance: {
+    label: 'REPORTES',
+    items: [
+      { id: 'bancos', name: 'Bancos / Conciliación' },
+      { id: 'balance', name: 'Balance General' },
+      { id: 'resultados', name: 'Estado de Resultados' },
+      { id: 'flujo', name: 'Flujo de Efectivo' },
+    ],
+  },
+  expenses: {
+    label: 'GASTOS',
+    items: [
+      { id: 'clasificacion', name: 'Clasificación IA' },
+      { id: 'deducibles', name: 'Deducibles' },
+      { id: 'no-deducibles', name: 'No Deducibles' },
+      { id: 'presupuesto', name: 'Presupuesto' },
+    ],
+  },
+}
+
+// ─── Tab type ───
+interface TabItem {
+  id: string
+  name: string
+  icon: typeof LayoutDashboard
+  href: string
+}
+
+export default function Layout() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
+  const { theme } = useAppStore()
+  const { fetchFiscalProfiles, fetchSubscription, fiscalProfiles, subscription } = useModulesStore()
+
+  // ─── Tab State ───
+  const [openTabs, setOpenTabs] = useState<TabItem[]>(() => {
+    const match = activityBarItems.find(item => item.href === location.pathname)
+    if (match) return [{ id: match.id, name: match.name, icon: match.icon, href: match.href }]
+    if (location.pathname === '/settings') return [{ id: 'settings', name: 'Configuración', icon: Settings, href: '/settings' }]
+    return []
+  })
+
+  const [activeSideBar, setActiveSideBar] = useState(
+    activityBarItems.find(item => item.href === location.pathname)?.id || 'workspace'
+  )
+
+  const [activeView, setActiveView] = useState<Record<string, string>>({
+    workspace: 'general',
+    documents: 'todos',
+    clients: 'morales',
+    fiscal: 'mensuales',
+    payroll: 'periodo',
+    finance: 'bancos',
+    expenses: 'clasificacion',
+  })
+
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
+  const [isAssistantVisible, setIsAssistantVisible] = useState(true)
+  const sidebarRef = useRef<any>(null)
+  const assistantRef = useRef<any>(null)
+
+  // ─── Dialogs ───
+  const [showFiscalProfiles, setShowFiscalProfiles] = useState(false)
+  const [showSubscription, setShowSubscription] = useState(false)
+
+  // ─── Tab Management ───
+  const openTab = useCallback((item: { id: string; name: string; icon: any; href: string }) => {
+    setOpenTabs(prev => {
+      const exists = prev.find(t => t.id === item.id)
+      if (exists) return prev
+      return [...prev, { id: item.id, name: item.name, icon: item.icon, href: item.href }]
+    })
+    navigate(item.href)
+  }, [navigate])
+
+  const closeTab = useCallback((tabId: string, e?: React.MouseEvent) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    setOpenTabs(prev => {
+      const newTabs = prev.filter(t => t.id !== tabId)
+      const closedTab = prev.find(t => t.id === tabId)
+      // If closing the active tab, navigate to next or empty
+      if (closedTab && closedTab.href === location.pathname) {
+        if (newTabs.length > 0) {
+          navigate(newTabs[newTabs.length - 1].href)
+        } else {
+          navigate('/')
+        }
+      }
+      return newTabs
+    })
+  }, [location.pathname, navigate])
+
+  const toggleSidebar = () => {
+    const sidebar = sidebarRef.current
+    if (sidebar) {
+      if (sidebar.isCollapsed()) {
+        sidebar.expand()
+        setIsSidebarVisible(true)
+      } else {
+        sidebar.collapse()
+        setIsSidebarVisible(false)
+      }
+    }
+  }
+
+  const toggleAssistant = () => {
+    const assistant = assistantRef.current
+    if (assistant) {
+      if (assistant.isCollapsed()) {
+        assistant.expand()
+        setIsAssistantVisible(true)
+      } else {
+        assistant.collapse()
+        setIsAssistantVisible(false)
+      }
+    }
+  }
+
+  // ─── Keyboard Shortcuts ───
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.altKey && e.key === 'a') {
+        e.preventDefault()
+        toggleAssistant()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  // ─── Dialog Fetchers ───
+  const openFiscalProfilesDialog = useCallback(async () => {
+    await fetchFiscalProfiles()
+    setShowFiscalProfiles(true)
+  }, [fetchFiscalProfiles])
+
+  const openSubscriptionDialog = useCallback(async () => {
+    await fetchSubscription()
+    setShowSubscription(true)
+  }, [fetchSubscription])
+
+  const currentActiveTab = openTabs.find(t => t.href === location.pathname)
+  const sidebarData = sidebarViews[activeSideBar]
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <div className={`${theme} h-screen w-full bg-background text-foreground overflow-hidden flex flex-col font-sans transition-colors duration-300`}>
+
+        {/* MAIN WORKBENCH */}
+        <div className="flex-1 flex overflow-hidden">
+
+          {/* 1. ACTIVITY BAR */}
+          <div className="w-[60px] flex flex-col items-center py-4 bg-sidebar/40 backdrop-blur-xl border-r border-sidebar-border z-20 shrink-0 h-full">
+            <div className="mb-8 p-3 rounded-2xl bg-primary shadow-glow group hover:scale-110 transition-transform cursor-pointer">
+              <Zap className="w-6 h-6 text-primary-foreground" />
+            </div>
+
+            <div className="flex-1 w-full space-y-4 px-2">
+              {activityBarItems.map((item) => {
+                const isActive = activeSideBar === item.id
+                return (
+                  <Tooltip key={item.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => {
+                          if (activeSideBar === item.id) {
+                            toggleSidebar()
+                          } else {
+                            setActiveSideBar(item.id)
+                            const sidebar = sidebarRef.current
+                            if (sidebar && sidebar.isCollapsed()) {
+                              sidebar.expand()
+                              setIsSidebarVisible(true)
+                            }
+                          }
+                          openTab(item)
+                        }}
+                        className={`w-full aspect-square flex items-center justify-center rounded-2xl transition-all relative group ${isActive
+                          ? 'bg-primary/10 text-primary shadow-inner shadow-primary/5'
+                          : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'}`}
+                      >
+                        <item.icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        {isActive && (
+                          <div className="absolute left-0 w-1 h-6 bg-primary rounded-full" />
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="bg-popover text-popover-foreground border-border shadow-xl">
+                      <p className="text-xs font-bold uppercase tracking-widest">{item.name}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            </div>
+
+            {/* Bottom Activity Icons */}
+            <div className="flex flex-col items-center gap-4 mb-2 w-full px-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={() => {
+                      setActiveSideBar('settings')
+                      openTab({ id: 'settings', name: 'Configuración', icon: Settings, href: '/settings' })
+                    }}
+                    className={`w-full aspect-square flex items-center justify-center rounded-2xl transition-all relative group ${activeSideBar === 'settings'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'}`}
+                  >
+                    <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-popover text-popover-foreground border-border shadow-xl">
+                  <p className="text-xs font-bold uppercase tracking-widest">Configuración</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    onClick={toggleAssistant}
+                    className={`w-full aspect-square flex items-center justify-center rounded-2xl transition-all relative group ${isAssistantVisible
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'}`}
+                  >
+                    <Bot className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="bg-popover text-popover-foreground border-border shadow-xl">
+                  <p className="text-xs font-bold uppercase tracking-widest">{isAssistantVisible ? 'Ocultar Agente' : 'Mostrar Agente'}</p>
+                </TooltipContent>
+              </Tooltip>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex h-10 w-10 items-center justify-center rounded-full overflow-hidden hover:ring-2 hover:ring-primary transition-all outline-none" data-testid="user-menu">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-black uppercase">
+                        {user?.full_name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="right" className="w-64 bg-card/60 backdrop-blur-xl border-border/40 text-foreground ml-2 premium-shadow">
+                  <div className="px-4 py-3 border-b border-border/40 mb-1">
+                    <p className="text-sm font-black text-foreground uppercase italic tracking-tighter">{user?.full_name || 'Diego Gzz'}</p>
+                    <p className="text-[10px] text-muted-foreground truncate uppercase font-bold tracking-widest opacity-60">{user?.email || 'diego@accounting.idp'}</p>
+                  </div>
+                  <DropdownMenuItem onClick={openFiscalProfilesDialog} className="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 focus:bg-primary/10 cursor-pointer">
+                    <UserCircle className="h-4 w-4 mr-3 text-primary" /> Perfiles Fiscales
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openSubscriptionDialog} className="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest hover:bg-primary/10 focus:bg-primary/10 cursor-pointer">
+                    <Crown className="h-4 w-4 mr-3 text-yellow-500" /> Suscripción Pro
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="bg-border/40" />
+                  <DropdownMenuItem onClick={logout} className="px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 focus:bg-red-500/10 cursor-pointer" data-testid="logout-button">
+                    <LogOut className="h-4 w-4 mr-3" /> Cerrar sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* 2. MAIN RESIZABLE GROUP */}
+          <ResizablePanelGroup
+            key="idp-workbench"
+            direction="horizontal"
+            className="flex-1"
+          >
+
+            {/* SIDE BAR */}
+            <ResizablePanel
+              ref={sidebarRef}
+              id="sidebar"
+              collapsible={true}
+              collapsedSize="0%"
+              defaultSize="20%"
+              minSize="0%"
+              maxSize="30%"
+              className="bg-sidebar/20 backdrop-blur-md border-r border-sidebar-border flex flex-col"
+            >
+              <div className="h-14 px-6 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground border-b border-sidebar-border italic">
+                <span>{sidebarData?.label || activeSideBar.toUpperCase()}</span>
+                <div className="flex items-center gap-3">
+                  <Search className="h-4 w-4 cursor-pointer hover:text-primary transition-colors opacity-40 hover:opacity-100" />
+                  <button
+                    className="p-1 hover:bg-primary/10 rounded-md transition-all group"
+                    onClick={toggleSidebar}
+                  >
+                    <div className={`text-base leading-none transition-transform duration-500 ${isSidebarVisible ? '' : 'rotate-180'}`}>
+                      ‹
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar">
+                {sidebarData && (
+                  <div className="space-y-4">
+                    <div className="px-3 py-1 text-[9px] font-black text-muted-foreground tracking-[0.2em] opacity-40">MENÚ DE CONTROL</div>
+                    <div className="space-y-1">
+                      {sidebarData.items.map((item) => {
+                        const isActive = activeView[activeSideBar] === item.id
+                        return (
+                          <button
+                            key={item.id}
+                            onClick={() => setActiveView(prev => ({ ...prev, [activeSideBar]: item.id }))}
+                            className={`w-full flex items-center px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all relative group ${isActive
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-muted-foreground hover:bg-primary/5 hover:text-primary'}`}
+                          >
+                            {isActive && <div className="absolute left-0 w-1 h-4 bg-primary rounded-full" />}
+                            <span className={`transition-transform group-hover:translate-x-1 ${isActive ? 'translate-x-1' : ''}`}>
+                              {item.name}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+                {activeSideBar === 'settings' && (
+                  <div className="space-y-4">
+                    <div className="px-3 py-1 text-[9px] font-black text-muted-foreground tracking-[0.2em] opacity-40">PREFERENCIAS</div>
+                    <div className="space-y-1">
+                      {['Perfil', 'Idioma', 'Notificaciones', 'Apariencia'].map((item) => (
+                        <button key={item} className="w-full flex items-center px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-wider text-muted-foreground hover:bg-primary/5 hover:text-primary transition-all group">
+                          <span className="transition-transform group-hover:translate-x-1">{item}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle className="bg-border hover:bg-primary/50 shadow-sm" />
+
+            {/* EDITOR AREA */}
+            <ResizablePanel
+              id="editor"
+              defaultSize="45%"
+              minSize="30%"
+              maxSize="80%"
+              className="bg-background"
+            >
+              <div className="h-full flex flex-col">
+                {/* Tab Bar */}
+                {openTabs.length > 0 && (
+                  <div className="h-9 bg-card/40 backdrop-blur-md flex items-center px-0 border-b border-border/40 shrink-0 overflow-x-auto custom-scrollbar">
+                    {openTabs.map((tab) => {
+                      const isActive = tab.href === location.pathname
+                      const TabIcon = tab.icon
+                      return (
+                        <Link
+                          key={tab.id}
+                          to={tab.href}
+                          className={`h-full px-4 flex items-center gap-2.5 text-[10px] min-w-[140px] max-w-[200px] group relative shrink-0 transition-all font-black uppercase tracking-wider ${isActive
+                            ? 'bg-background border-t-2 border-t-primary text-foreground'
+                            : 'bg-transparent border-t-2 border-t-transparent text-muted-foreground/60 hover:text-foreground hover:bg-primary/5'
+                            }`}
+                        >
+                          <TabIcon className={`h-3.5 w-3.5 transition-colors ${isActive ? 'text-primary' : 'text-muted-foreground/40'}`} />
+                          <span className="truncate">{tab.name}</span>
+                          <button
+                            onClick={(e) => closeTab(tab.id, e)}
+                            className="ml-auto p-1 rounded-md hover:bg-primary/10 opacity-0 group-hover:opacity-100 transition-all"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                          {isActive && <div className="absolute bottom-0 left-0 w-full h-[1px] bg-background" />}
+                        </Link>
+                      )
+                    })}
+                    <div className="flex-1 h-full bg-transparent border-b border-border/40"></div>
+                  </div>
+                )}
+                <main className="flex-1 overflow-y-auto relative custom-scrollbar">
+                  <Outlet context={{ activeView: activeView[activeSideBar] || 'general' }} />
+                </main>
+              </div>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle className="bg-border hover:bg-primary/50 shadow-sm" />
+
+            {/* AUXILIARY BAR (Agent) */}
+            <ResizablePanel
+              ref={assistantRef}
+              id="assistant"
+              collapsible={true}
+              collapsedSize="0%"
+              defaultSize="35%"
+              minSize="0%"
+              maxSize="60%"
+              className="bg-card border-l border-border shadow-xl overflow-hidden"
+            >
+              <Suspense fallback={<LoadingSpinner className="h-full" size="lg" />}>
+                <Chat isEmbedded={true} onClose={toggleAssistant} />
+              </Suspense>
+            </ResizablePanel>
+
+          </ResizablePanelGroup>
+        </div>
+
+        {/* 3. STATUS BAR */}
+        <footer className="h-6 bg-primary text-primary-foreground flex items-center px-4 justify-between text-[11px] font-medium z-50 shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1 cursor-pointer hover:bg-white/10 px-2 h-full transition-colors">
+              <Database className="h-3 w-3" />
+              <span>Conectado: Backend Local</span>
+            </div>
+            <div className="flex items-center gap-1 cursor-pointer hover:bg-white/10 px-2 h-full transition-colors">
+              <Cloud className="h-3 w-3" />
+              <span>Sincronización: Al día</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 h-full">
+            <div className="flex items-center gap-1 cursor-pointer hover:bg-white/10 px-2 h-full transition-colors">
+              <Bell className="h-3 w-3" />
+              <span>0</span>
+            </div>
+            <div className="flex items-center gap-1.5 cursor-pointer hover:bg-white/10 px-2 h-full transition-colors">
+              <CheckCircle2 className="h-3 w-3" />
+              <span>Prettier: OK</span>
+            </div>
+            <div className="px-2">UTF-8</div>
+            <div className="px-2">Accounting-JS</div>
+          </div>
+        </footer>
+
+        {/* ─── Fiscal Profiles Dialog ─── */}
+        <Dialog open={showFiscalProfiles} onOpenChange={setShowFiscalProfiles}>
+          <DialogContent className="bg-card border-border text-foreground max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold">Perfiles Fiscales</DialogTitle>
+              <DialogDescription className="text-slate-400 text-xs">
+                Perfiles vinculados a tu cuenta
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-3 mt-4">
+              {fiscalProfiles.map((fp: any) => (
+                <div key={fp.id} className="p-4 bg-muted border border-border rounded flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-bold text-foreground">{fp.name}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{fp.rfc}</p>
+                    <p className="text-[10px] text-muted-foreground">{fp.regime}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge className={fp.status === 'Activo' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
+                      {fp.status}
+                    </Badge>
+                    {fp.is_default && <span className="text-[9px] text-blue-400">Principal</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ─── Subscription Dialog ─── */}
+        <Dialog open={showSubscription} onOpenChange={setShowSubscription}>
+          <DialogContent className="bg-card border-border text-foreground max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                <Crown className="h-5 w-5 text-yellow-500" /> Suscripción
+              </DialogTitle>
+            </DialogHeader>
+            {subscription && (
+              <div className="space-y-4 mt-4">
+                <div className="p-4 bg-gradient-to-br from-primary/20 to-secondary/20 border border-primary/30 rounded-lg">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-xl font-black text-foreground">{subscription.plan}</span>
+                    <Badge className="bg-green-500/10 text-green-500">{subscription.status}</Badge>
+                  </div>
+                  <p className="text-sm text-foreground font-bold">{subscription.price}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Vence: {subscription.expires}</p>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-muted-foreground uppercase">Funcionalidades incluidas</p>
+                  {subscription.features.map((f: string, i: number) => (
+                    <div key={i} className="flex items-center gap-2 text-xs text-foreground">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+      </div>
+    </TooltipProvider>
+  )
+}

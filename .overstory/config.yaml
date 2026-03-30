@@ -35,9 +35,39 @@ mulch:
 merge:
   aiResolveEnabled: true
   reimagineEnabled: false
+
+# =============================================================================
+# PROVIDERS CONFIGURATION
+# =============================================================================
+# - nvidia: Gateway para scouts/monitors/orchestrator (Llama 3.1, ultra-fast)
+# - google: Gateway para builders/reviewers/mergers (Gemini 2.0, excelente para código)
+# =============================================================================
 providers:
-  anthropic:
-    type: native
+  # NVIDIA NIM (Gateway) - Para scouts/monitors/orchestrator (ultra-fast, económico)
+  # Modelos: meta/llama-3.1-70b-instruct, meta/llama-3.1-405b-instruct
+  # Precios: ~$1.5/$3 por 1M tokens
+  # Velocidad: Fast (~500 tokens/s)
+  # API Key: https://build.nvidia.com
+  nvidia:
+    type: gateway
+    baseUrl: https://integrate.api.nvidia.com/v1
+    authTokenEnv: NVIDIA_API_KEY
+
+  # Google AI / Gemini (Gateway) - Para builders/reviewers/mergers
+  # Modelos: gemini-2.0-flash, gemini-2.0-pro, gemini-1.5-pro
+  # Precios: ~$0.30/$1.50 por 1M tokens (gemini-2.0-flash)
+  # Velocidad: Ultra-fast (hasta 1M tokens contexto)
+  # API Key: https://aistudio.google.com/app/apikey
+  google:
+    type: gateway
+    baseUrl: https://generativelanguage.googleapis.com/v1beta/openai
+    authTokenEnv: GOOGLE_API_KEY
+
+  qwen:
+    type: gateway
+    baseUrl: https://dashscope.aliyuncs.com/compatible-mode/v1
+    authTokenEnv: DASHSCOPE_API_KEY
+
 watchdog:
   tier0Enabled: true
   tier0IntervalMs: 30000
@@ -51,16 +81,47 @@ coordinator:
     allAgentsDone: false
     taskTrackerEmpty: false
     onShutdownSignal: false
+
+# =============================================================================
+# MODELS CONFIGURATION
+# =============================================================================
+# Estrategia:
+# - coordinator/lead: NVIDIA Llama 3.1 70B (inteligencia alta, económico)
+# - builder/reviewer/merger: Google Gemini 2.0 Flash (excelente para código, 10x más barato)
+# - scout/monitor/orchestrator: NVIDIA Llama 3.1 70B (rápido y económico)
+# =============================================================================
 models:
+  # Coordinator/Lead usan NVIDIA Llama 3.1 70B (alta inteligencia, ~$1.5/1M tokens)
+  coordinator: nvidia/meta/llama-3.1-70b-instruct
+  lead: nvidia/meta/llama-3.1-70b-instruct
+
+  # Builders/reviewers usan Google Gemini (excelente para código, ~$0.30/1M tokens)
+  builder: qwen3-coder-flash
+  reviewer: qwen3-coder-flash
+  merger: qwen3-coder-flash
+
+  # Scouts/monitors/orchestrator usan NVIDIA (Llama 3.1, rápido y económico)
+  scout: nvidia/meta/llama-3.1-70b-instruct
+  monitor: nvidia/meta/llama-3.1-70b-instruct
+  orchestrator: nvidia/meta/llama-3.1-70b-instruct
+
 logging:
   verbose: false
   redactSecrets: true
+
+ warnings:
+   disableToolUseVerification: true
+
+
 runtime:
+  # Runtime por defecto (Claude Code como interfaz, pero usando gateways)
   default: claude
   shellInitDelayMs: 0
+  # Nota: Pi runtime configurado para usar Google Gemini como provider
   pi:
-    provider: anthropic
+    provider: google
     modelMap:
-      opus: anthropic/claude-opus-4-6
-      sonnet: anthropic/claude-sonnet-4-6
-      haiku: anthropic/claude-haiku-4-5
+      # Usando Gemini 2.0 Flash para todos los aliases
+      opus: google/google/gemini-2.0-flash
+      sonnet: google/google/gemini-2.0-flash
+      haiku: google/google/gemini-2.0-flash

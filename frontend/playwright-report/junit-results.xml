@@ -1,0 +1,1238 @@
+<testsuites id="" name="" tests="288" failures="0" skipped="288" errors="0" time="0.766319">
+<testsuite name="specs\accessibility\axe.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="chromium" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Accesibilidad (axe-core) › 1. Login sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 2. Dashboard sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 3. Chat sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 4. Documentos sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 5. Navegación con teclado funcional" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 6. Skip links y landmarks ARIA (test adicional)" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\auth\login.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="chromium" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Authentication › Login › ✅ login exitoso con credenciales válidas" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con email inválido" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con contraseña inválida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con campos vacíos" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › 🔄 refresh de token automático y persistencia de sesión" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › ✅ logout exitoso" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › 🚫 no se puede acceder a rutas protegidas sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔒 redirigir a login al acceder a ruta protegida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔓 permitir acceso a ruta pública sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Auth State Persistence › 💾 persistir sesión entre navegaciones" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\chat\conversation.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 1. Enviar mensaje y recibir respuesta" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 2. Streaming de respuesta (token por token)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 3. Historial de chat persiste después de refresh" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 4. Crear nueva conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 5. Cambiar entre conversaciones" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 6. Eliminar conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 7. Manejo de error de red (reintentar)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 8. Mensaje de error cuando backend no responde" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\dashboard\dashboard.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="chromium" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Dashboard › 1. Cargar dashboard con estadísticas" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 2. Visualizar Tax Health Score (semáforo)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 3. Visualizar gráficas de impuestos" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 4. Actualización en tiempo real (SSE)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 5. Exportar dashboard a PDF" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\idp\document-upload.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="chromium" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 1. Upload exitoso de archivo PDF (&lt; 10MB)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 2. Upload exitoso de archivo XML" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 3. Upload fallido con archivo &gt; 10MB" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 4. Upload fallido con formato no soportado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 5. Upload múltiple (batch de 5 documentos)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 6. Visualización de documento procesado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 7. Eliminación de documento" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 8. Re-intento de upload fallido" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\reconciliation\matching.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="chromium" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Conciliación (Matching) › 1. Upload de estado de cuenta (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 2. Visualización de matches sugeridos (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 3. Confirmar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 4. Rechazar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 5. Filtrar matches por tipo (exact/fuzzy/llm)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 6. Exportar reporte de conciliación" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\responsive\mobile.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="chromium" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Responsividad Mobile › iPhone 13 › 1. Login responsive en iPhone 13" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Pixel 5 › 2. Dashboard responsive en Pixel 5" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPhone SE › 3. Chat responsive en iPhone SE" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPad Pro › 4. Documentos responsive en iPad" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Tests Cross-Device › 5. Navegación táctil funcional en todos los dispositivos" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\accessibility\axe.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="firefox" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Accesibilidad (axe-core) › 1. Login sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 2. Dashboard sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 3. Chat sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 4. Documentos sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 5. Navegación con teclado funcional" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 6. Skip links y landmarks ARIA (test adicional)" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\auth\login.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="firefox" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Authentication › Login › ✅ login exitoso con credenciales válidas" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con email inválido" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con contraseña inválida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con campos vacíos" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › 🔄 refresh de token automático y persistencia de sesión" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › ✅ logout exitoso" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › 🚫 no se puede acceder a rutas protegidas sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔒 redirigir a login al acceder a ruta protegida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔓 permitir acceso a ruta pública sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Auth State Persistence › 💾 persistir sesión entre navegaciones" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\chat\conversation.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="firefox" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 1. Enviar mensaje y recibir respuesta" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 2. Streaming de respuesta (token por token)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 3. Historial de chat persiste después de refresh" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 4. Crear nueva conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 5. Cambiar entre conversaciones" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 6. Eliminar conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 7. Manejo de error de red (reintentar)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 8. Mensaje de error cuando backend no responde" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\dashboard\dashboard.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="firefox" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Dashboard › 1. Cargar dashboard con estadísticas" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 2. Visualizar Tax Health Score (semáforo)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 3. Visualizar gráficas de impuestos" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 4. Actualización en tiempo real (SSE)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 5. Exportar dashboard a PDF" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\idp\document-upload.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="firefox" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 1. Upload exitoso de archivo PDF (&lt; 10MB)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 2. Upload exitoso de archivo XML" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 3. Upload fallido con archivo &gt; 10MB" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 4. Upload fallido con formato no soportado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 5. Upload múltiple (batch de 5 documentos)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 6. Visualización de documento procesado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 7. Eliminación de documento" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 8. Re-intento de upload fallido" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\reconciliation\matching.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="firefox" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Conciliación (Matching) › 1. Upload de estado de cuenta (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 2. Visualización de matches sugeridos (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 3. Confirmar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 4. Rechazar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 5. Filtrar matches por tipo (exact/fuzzy/llm)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 6. Exportar reporte de conciliación" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\responsive\mobile.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="firefox" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Responsividad Mobile › iPhone 13 › 1. Login responsive en iPhone 13" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Pixel 5 › 2. Dashboard responsive en Pixel 5" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPhone SE › 3. Chat responsive en iPhone SE" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPad Pro › 4. Documentos responsive en iPad" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Tests Cross-Device › 5. Navegación táctil funcional en todos los dispositivos" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\accessibility\axe.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="webkit" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Accesibilidad (axe-core) › 1. Login sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 2. Dashboard sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 3. Chat sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 4. Documentos sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 5. Navegación con teclado funcional" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 6. Skip links y landmarks ARIA (test adicional)" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\auth\login.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="webkit" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Authentication › Login › ✅ login exitoso con credenciales válidas" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con email inválido" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con contraseña inválida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con campos vacíos" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › 🔄 refresh de token automático y persistencia de sesión" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › ✅ logout exitoso" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › 🚫 no se puede acceder a rutas protegidas sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔒 redirigir a login al acceder a ruta protegida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔓 permitir acceso a ruta pública sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Auth State Persistence › 💾 persistir sesión entre navegaciones" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\chat\conversation.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="webkit" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 1. Enviar mensaje y recibir respuesta" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 2. Streaming de respuesta (token por token)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 3. Historial de chat persiste después de refresh" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 4. Crear nueva conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 5. Cambiar entre conversaciones" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 6. Eliminar conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 7. Manejo de error de red (reintentar)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 8. Mensaje de error cuando backend no responde" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\dashboard\dashboard.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="webkit" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Dashboard › 1. Cargar dashboard con estadísticas" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 2. Visualizar Tax Health Score (semáforo)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 3. Visualizar gráficas de impuestos" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 4. Actualización en tiempo real (SSE)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 5. Exportar dashboard a PDF" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\idp\document-upload.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="webkit" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 1. Upload exitoso de archivo PDF (&lt; 10MB)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 2. Upload exitoso de archivo XML" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 3. Upload fallido con archivo &gt; 10MB" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 4. Upload fallido con formato no soportado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 5. Upload múltiple (batch de 5 documentos)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 6. Visualización de documento procesado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 7. Eliminación de documento" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 8. Re-intento de upload fallido" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\reconciliation\matching.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="webkit" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Conciliación (Matching) › 1. Upload de estado de cuenta (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 2. Visualización de matches sugeridos (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 3. Confirmar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 4. Rechazar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 5. Filtrar matches por tipo (exact/fuzzy/llm)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 6. Exportar reporte de conciliación" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\responsive\mobile.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="webkit" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Responsividad Mobile › iPhone 13 › 1. Login responsive en iPhone 13" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Pixel 5 › 2. Dashboard responsive en Pixel 5" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPhone SE › 3. Chat responsive en iPhone SE" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPad Pro › 4. Documentos responsive en iPad" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Tests Cross-Device › 5. Navegación táctil funcional en todos los dispositivos" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\accessibility\axe.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Chrome" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Accesibilidad (axe-core) › 1. Login sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 2. Dashboard sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 3. Chat sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 4. Documentos sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 5. Navegación con teclado funcional" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 6. Skip links y landmarks ARIA (test adicional)" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\auth\login.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Chrome" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Authentication › Login › ✅ login exitoso con credenciales válidas" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con email inválido" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con contraseña inválida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con campos vacíos" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › 🔄 refresh de token automático y persistencia de sesión" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › ✅ logout exitoso" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › 🚫 no se puede acceder a rutas protegidas sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔒 redirigir a login al acceder a ruta protegida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔓 permitir acceso a ruta pública sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Auth State Persistence › 💾 persistir sesión entre navegaciones" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\chat\conversation.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Chrome" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 1. Enviar mensaje y recibir respuesta" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 2. Streaming de respuesta (token por token)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 3. Historial de chat persiste después de refresh" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 4. Crear nueva conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 5. Cambiar entre conversaciones" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 6. Eliminar conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 7. Manejo de error de red (reintentar)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 8. Mensaje de error cuando backend no responde" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\dashboard\dashboard.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Chrome" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Dashboard › 1. Cargar dashboard con estadísticas" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 2. Visualizar Tax Health Score (semáforo)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 3. Visualizar gráficas de impuestos" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 4. Actualización en tiempo real (SSE)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 5. Exportar dashboard a PDF" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\idp\document-upload.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Chrome" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 1. Upload exitoso de archivo PDF (&lt; 10MB)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 2. Upload exitoso de archivo XML" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 3. Upload fallido con archivo &gt; 10MB" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 4. Upload fallido con formato no soportado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 5. Upload múltiple (batch de 5 documentos)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 6. Visualización de documento procesado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 7. Eliminación de documento" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 8. Re-intento de upload fallido" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\reconciliation\matching.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Chrome" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Conciliación (Matching) › 1. Upload de estado de cuenta (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 2. Visualización de matches sugeridos (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 3. Confirmar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 4. Rechazar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 5. Filtrar matches por tipo (exact/fuzzy/llm)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 6. Exportar reporte de conciliación" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\responsive\mobile.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Chrome" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Responsividad Mobile › iPhone 13 › 1. Login responsive en iPhone 13" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Pixel 5 › 2. Dashboard responsive en Pixel 5" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPhone SE › 3. Chat responsive en iPhone SE" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPad Pro › 4. Documentos responsive en iPad" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Tests Cross-Device › 5. Navegación táctil funcional en todos los dispositivos" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\accessibility\axe.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Safari" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Accesibilidad (axe-core) › 1. Login sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 2. Dashboard sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 3. Chat sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 4. Documentos sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 5. Navegación con teclado funcional" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 6. Skip links y landmarks ARIA (test adicional)" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\auth\login.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Safari" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Authentication › Login › ✅ login exitoso con credenciales válidas" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con email inválido" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con contraseña inválida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con campos vacíos" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › 🔄 refresh de token automático y persistencia de sesión" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › ✅ logout exitoso" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › 🚫 no se puede acceder a rutas protegidas sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔒 redirigir a login al acceder a ruta protegida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔓 permitir acceso a ruta pública sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Auth State Persistence › 💾 persistir sesión entre navegaciones" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\chat\conversation.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Safari" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 1. Enviar mensaje y recibir respuesta" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 2. Streaming de respuesta (token por token)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 3. Historial de chat persiste después de refresh" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 4. Crear nueva conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 5. Cambiar entre conversaciones" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 6. Eliminar conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 7. Manejo de error de red (reintentar)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 8. Mensaje de error cuando backend no responde" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\dashboard\dashboard.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Safari" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Dashboard › 1. Cargar dashboard con estadísticas" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 2. Visualizar Tax Health Score (semáforo)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 3. Visualizar gráficas de impuestos" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 4. Actualización en tiempo real (SSE)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 5. Exportar dashboard a PDF" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\idp\document-upload.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Safari" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 1. Upload exitoso de archivo PDF (&lt; 10MB)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 2. Upload exitoso de archivo XML" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 3. Upload fallido con archivo &gt; 10MB" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 4. Upload fallido con formato no soportado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 5. Upload múltiple (batch de 5 documentos)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 6. Visualización de documento procesado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 7. Eliminación de documento" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 8. Re-intento de upload fallido" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\reconciliation\matching.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Safari" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Conciliación (Matching) › 1. Upload de estado de cuenta (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 2. Visualización de matches sugeridos (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 3. Confirmar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 4. Rechazar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 5. Filtrar matches por tipo (exact/fuzzy/llm)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 6. Exportar reporte de conciliación" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\responsive\mobile.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="Mobile Safari" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Responsividad Mobile › iPhone 13 › 1. Login responsive en iPhone 13" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Pixel 5 › 2. Dashboard responsive en Pixel 5" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPhone SE › 3. Chat responsive en iPhone SE" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPad Pro › 4. Documentos responsive en iPad" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Tests Cross-Device › 5. Navegación táctil funcional en todos los dispositivos" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\accessibility\axe.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="iPad" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Accesibilidad (axe-core) › 1. Login sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 2. Dashboard sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 3. Chat sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 4. Documentos sin violaciones de accesibilidad" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 5. Navegación con teclado funcional" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Accesibilidad (axe-core) › 6. Skip links y landmarks ARIA (test adicional)" classname="specs\accessibility\axe.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\auth\login.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="iPad" tests="10" failures="0" skipped="10" time="0" errors="0">
+<testcase name="Authentication › Login › ✅ login exitoso con credenciales válidas" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con email inválido" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con contraseña inválida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › ❌ login fallido con campos vacíos" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Login › 🔄 refresh de token automático y persistencia de sesión" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › ✅ logout exitoso" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Logout › 🚫 no se puede acceder a rutas protegidas sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔒 redirigir a login al acceder a ruta protegida" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Navigation Protection › 🔓 permitir acceso a ruta pública sin auth" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Authentication › Auth State Persistence › 💾 persistir sesión entre navegaciones" classname="specs\auth\login.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\chat\conversation.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="iPad" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 1. Enviar mensaje y recibir respuesta" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Envío y Recepción de Mensajes › 2. Streaming de respuesta (token por token)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 3. Historial de chat persiste después de refresh" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Historial y Persistencia › 4. Crear nueva conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 5. Cambiar entre conversaciones" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Gestión de Conversaciones › 6. Eliminar conversación" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 7. Manejo de error de red (reintentar)" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Chat Conversacional › Manejo de Errores › 8. Mensaje de error cuando backend no responde" classname="specs\chat\conversation.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\dashboard\dashboard.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="iPad" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Dashboard › 1. Cargar dashboard con estadísticas" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 2. Visualizar Tax Health Score (semáforo)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 3. Visualizar gráficas de impuestos" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 4. Actualización en tiempo real (SSE)" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Dashboard › 5. Exportar dashboard a PDF" classname="specs\dashboard\dashboard.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\idp\document-upload.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="iPad" tests="8" failures="0" skipped="8" time="0" errors="0">
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 1. Upload exitoso de archivo PDF (&lt; 10MB)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Exitoso › 2. Upload exitoso de archivo XML" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 3. Upload fallido con archivo &gt; 10MB" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Fallido › 4. Upload fallido con formato no soportado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 5. Upload múltiple (batch de 5 documentos)" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Upload Múltiple y Procesamiento › 6. Visualización de documento procesado" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 7. Eliminación de documento" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Upload de Documentos (IDP) › Gestión de Documentos › 8. Re-intento de upload fallido" classname="specs\idp\document-upload.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\reconciliation\matching.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="iPad" tests="6" failures="0" skipped="6" time="0" errors="0">
+<testcase name="Conciliación (Matching) › 1. Upload de estado de cuenta (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 2. Visualización de matches sugeridos (mock)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 3. Confirmar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 4. Rechazar match individual" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 5. Filtrar matches por tipo (exact/fuzzy/llm)" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Conciliación (Matching) › 6. Exportar reporte de conciliación" classname="specs\reconciliation\matching.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+<testsuite name="specs\responsive\mobile.spec.ts" timestamp="2026-03-10T11:29:43.726Z" hostname="iPad" tests="5" failures="0" skipped="5" time="0" errors="0">
+<testcase name="Responsividad Mobile › iPhone 13 › 1. Login responsive en iPhone 13" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Pixel 5 › 2. Dashboard responsive en Pixel 5" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPhone SE › 3. Chat responsive en iPhone SE" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › iPad Pro › 4. Documentos responsive en iPad" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+<testcase name="Responsividad Mobile › Tests Cross-Device › 5. Navegación táctil funcional en todos los dispositivos" classname="specs\responsive\mobile.spec.ts" time="0">
+<skipped>
+</skipped>
+</testcase>
+</testsuite>
+</testsuites>

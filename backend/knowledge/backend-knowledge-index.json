@@ -1,0 +1,811 @@
+{
+  "metadata": {
+    "project": "idp-asistente-contable-backend",
+    "version": "3.2.0",
+    "generated": "2026-03-12T12:30:00Z",
+    "generator": "backend-architect-skill",
+    "totalFiles": 42,
+    "totalLOC": 10500,
+    "estimatedTokens": 126000,
+    "language": "Python 3.11+",
+    "framework": "FastAPI"
+  },
+  "directory_structure": {
+    "root": "backend/",
+    "children": [
+      {
+        "name": "app/",
+        "type": "directory",
+        "description": "Código fuente principal de la aplicación",
+        "children": [
+          {
+            "name": "api/",
+            "type": "directory",
+            "description": "API Routers - 11 módulos de endpoints",
+            "fileCount": 12,
+            "children": [
+              {"name": "__init__.py", "type": "file", "role": "Package init"},
+              {"name": "auth.py", "type": "file", "role": "OAuth2 + JWT authentication"},
+              {"name": "idp.py", "type": "file", "role": "Intelligent Document Processing"},
+              {"name": "chat.py", "type": "file", "role": "Conversational chat endpoints"},
+              {"name": "agent.py", "type": "file", "role": "Agentic chat con tool calling"},
+              {"name": "rag.py", "type": "file", "role": "RAG (Retrieval-Augmented Generation)"},
+              {"name": "workspace.py", "type": "file", "role": "Dashboard KPIs + Calendar"},
+              {"name": "clients.py", "type": "file", "role": "Clientes CRUD + KYC"},
+              {"name": "fiscal.py", "type": "file", "role": "Cumplimiento fiscal + Deducciones"},
+              {"name": "payroll.py", "type": "file", "role": "Nómina + Empleados + SUA/IMSS"},
+              {"name": "finance.py", "type": "file", "role": "Estados financieros + Bancos"},
+              {"name": "expenses.py", "type": "file", "role": "Clasificación de gastos"},
+              {"name": "users.py", "type": "file", "role": "Perfil usuario + Configuración"}
+            ]
+          },
+          {
+            "name": "core/",
+            "type": "directory",
+            "description": "Configuración central + Seguridad",
+            "fileCount": 6,
+            "children": [
+              {"name": "__init__.py", "type": "file", "role": "Package init"},
+              {"name": "config.py", "type": "file", "role": "Pydantic Settings (50+ configs)"},
+              {"name": "security.py", "type": "file", "role": "JWT + OAuth2 + Password hashing"},
+              {"name": "validators.py", "type": "file", "role": "Validadores (RFC, CURP, etc.)"},
+              {"name": "rate_limiter.py", "type": "file", "role": "Redis + Memory fallback"},
+              {"name": "sentry.py", "type": "file", "role": "Sentry SDK configuration"}
+            ]
+          },
+          {
+            "name": "db/",
+            "type": "directory",
+            "description": "Capa de datos - SQLAlchemy ORM",
+            "fileCount": 3,
+            "children": [
+              {"name": "__init__.py", "type": "file", "role": "Package init"},
+              {"name": "database.py", "type": "file", "role": "SQLAlchemy async engine + session"},
+              {"name": "models.py", "type": "file", "role": "4 modelos SQL (User, Document, Conversation, Message)"}
+            ]
+          },
+          {
+            "name": "services/",
+            "type": "directory",
+            "description": "Servicios de negocio",
+            "fileCount": 8,
+            "children": [
+              {"name": "__init__.py", "type": "file", "role": "Package init"},
+              {"name": "nvidia_nim.py", "type": "file", "role": "NVIDIA NIM OCR + Vision + LLM"},
+              {"name": "langgraph_agents.py", "type": "file", "role": "Agentes LangGraph (ContableAgent)"},
+              {"name": "rag_service.py", "type": "file", "role": "RAG con ChromaDB + Embeddings"},
+              {"name": "agent_tools.py", "type": "file", "role": "Herramientas para agentes (12 tools)"},
+              {"name": "embeddings.py", "type": "file", "role": "NVIDIA embeddings service"},
+              {"name": "workflow_engine.py", "type": "file", "role": "Motor de workflows ejecutables"},
+              {"name": "predictive/", "type": "directory", "role": "Forecasting services"}
+            ]
+          },
+          {
+            "name": "services/payroll/",
+            "type": "directory",
+            "description": "Motor de Nómina - Fase 10",
+            "fileCount": 5,
+            "children": [
+              {"name": "imss_calculator.py", "type": "file", "role": "Cálculo IMSS 2026 cuotas patronales/obrero"},
+              {"name": "payroll_engine.py", "type": "file", "role": "Motor ISR + percepciones/deducciones"},
+              {"name": "perceptions.py", "type": "file", "role": "Percepciones de nómina"},
+              {"name": "spei_service.py", "type": "file", "role": "Dispersión SPEI"},
+              {"name": "stamping.py", "type": "file", "role": "Timbrado fiscal de recibos"}
+            ]
+          },
+          {
+            "name": "services/finance/",
+            "type": "directory",
+            "description": "Servicios Financieros - Fase 10",
+            "fileCount": 3,
+            "children": [
+              {"name": "banking_sync.py", "type": "file", "role": "Sincronización bancaria multi-banco"},
+              {"name": "bbva_spark_service.py", "type": "file", "role": "BBVA Spark Open API"},
+              {"name": "matching_engine.py", "type": "file", "role": "Motor de conciliación financiera"}
+            ]
+          },
+          {
+            "name": "agents/",
+            "type": "directory",
+            "description": "Agentes especializados",
+            "fileCount": 2,
+            "children": [
+              {"name": "__init__.py", "type": "file", "role": "Package init"},
+              {"name": "rag_agent.py", "type": "file", "role": "RAG Agent para retrieval"}
+            ]
+          },
+          {"name": "__init__.py", "type": "file", "role": "Package init (versión 2.0.0)"},
+          {"name": "main.py", "type": "file", "role": "FastAPI app factory + Sentry init"}
+        ]
+      },
+      {
+        "name": "tests/",
+        "type": "directory",
+        "description": "Tests unitarios + integración",
+        "fileCount": 8,
+        "children": [
+          {"name": "__init__.py", "type": "file", "role": "Package init"},
+          {"name": "conftest.py", "type": "file", "role": "Pytest fixtures"},
+          {"name": "test_core.py", "type": "file", "role": "Tests de configuración + seguridad"},
+          {"name": "test_integration.py", "type": "file", "role": "Tests de integración API"},
+          {"name": "test_integracion.py", "type": "file", "role": "Tests de integración adicionales"},
+          {"name": "test_payroll_calculations.py", "type": "file", "role": "Tests IMSS/ISR 2026"},
+          {"name": "test_fuzzy_matching.py", "type": "file", "role": "Tests fuzzy matching con mocks"},
+          {"name": "test_rag_system.py", "type": "file", "role": "Tests del sistema RAG"}
+        ]
+      },
+      {
+        "name": "docs/",
+        "type": "directory",
+        "description": "Documentación generada",
+        "fileCount": 2,
+        "children": [
+          {"name": "BACKEND_KNOWLEDGE_MAP.md", "type": "file", "role": "Documentación completa del backend"},
+          {"name": "backend-knowledge-index.json", "type": "file", "role": "Índice JSON optimizado"}
+        ]
+      },
+      {"name": ".venv/", "type": "directory", "description": "Virtual environment (excluido)", "excluded": true},
+      {"name": "uploads/", "type": "directory", "description": "Archivos subidos (runtime)", "runtime": true},
+      {"name": "dataset/", "type": "directory", "description": "Dataset de entrenamiento", "children": [
+        {"name": "pdf/", "type": "directory"},
+        {"name": "xml/", "type": "directory"}
+      ]},
+      {"name": "output/", "type": "directory", "description": "Resultados de procesamiento", "runtime": true},
+      {"name": "logs/", "type": "directory", "description": "Logs de aplicación", "runtime": true},
+      {"name": ".env", "type": "file", "role": "Variables de entorno", "sensitive": true},
+      {"name": ".env.example", "type": "file", "role": "Template de configuración"},
+      {"name": "requirements.txt", "type": "file", "role": "Dependencias Python"},
+      {"name": "Dockerfile", "type": "file", "role": "Containerización"},
+      {"name": "docker-compose.yml", "type": "file", "role": "Orquestación de servicios"},
+      {"name": "repomix.config.json", "type": "file", "role": "Configuración Repomix"},
+      {"name": "pyproject.toml", "type": "file", "role": "Config proyecto + Pyright + pytest + black + mypy"},
+      {"name": ".pyre_configuration", "type": "file", "role": "Pyre2 type-checker config (JSON)"},
+      {"name": "pyre.toml", "type": "file", "role": "Pyre2 config (TOML)"},
+      {"name": "README.md", "type": "file", "role": "Documentación principal"}
+    ]
+  },
+  "file_inventory": [
+    {"path": "app/main.py", "role": "entry_point", "loc": 350, "tokens": 4200, "category": "core"},
+    {"path": "app/__init__.py", "role": "package_init", "loc": 5, "tokens": 60, "category": "core"},
+    {"path": "app/core/config.py", "role": "configuration", "loc": 200, "tokens": 2400, "category": "core"},
+    {"path": "app/core/security.py", "role": "security", "loc": 280, "tokens": 3360, "category": "core"},
+    {"path": "app/core/validators.py", "role": "validation", "loc": 80, "tokens": 960, "category": "core"},
+    {"path": "app/core/rate_limiter.py", "role": "rate_limiting", "loc": 50, "tokens": 600, "category": "core"},
+    {"path": "app/core/sentry.py", "role": "monitoring", "loc": 30, "tokens": 360, "category": "core"},
+    {"path": "app/db/database.py", "role": "database", "loc": 60, "tokens": 720, "category": "data"},
+    {"path": "app/db/models.py", "role": "orm_models", "loc": 80, "tokens": 960, "category": "data"},
+    {"path": "app/db/__init__.py", "role": "package_init", "loc": 5, "tokens": 60, "category": "data"},
+    {"path": "app/api/auth.py", "role": "api_router", "loc": 190, "tokens": 2280, "category": "api", "endpoints": 3},
+    {"path": "app/api/idp.py", "role": "api_router", "loc": 430, "tokens": 5160, "category": "api", "endpoints": 3},
+    {"path": "app/api/chat.py", "role": "api_router", "loc": 350, "tokens": 4200, "category": "api", "endpoints": 4},
+    {"path": "app/api/agent.py", "role": "api_router", "loc": 430, "tokens": 5160, "category": "api", "endpoints": 2},
+    {"path": "app/api/rag.py", "role": "api_router", "loc": 540, "tokens": 6480, "category": "api", "endpoints": 6},
+    {"path": "app/api/workspace.py", "role": "api_router", "loc": 100, "tokens": 1200, "category": "api", "endpoints": 3},
+    {"path": "app/api/clients.py", "role": "api_router", "loc": 160, "tokens": 1920, "category": "api", "endpoints": 6},
+    {"path": "app/api/fiscal.py", "role": "api_router", "loc": 100, "tokens": 1200, "category": "api", "endpoints": 5},
+    {"path": "app/api/payroll.py", "role": "api_router", "loc": 100, "tokens": 1200, "category": "api", "endpoints": 5},
+    {"path": "app/api/finance.py", "role": "api_router", "loc": 100, "tokens": 1200, "category": "api", "endpoints": 5},
+    {"path": "app/api/expenses.py", "role": "api_router", "loc": 80, "tokens": 960, "category": "api", "endpoints": 4},
+    {"path": "app/api/users.py", "role": "api_router", "loc": 120, "tokens": 1440, "category": "api", "endpoints": 6},
+    {"path": "app/api/__init__.py", "role": "package_init", "loc": 10, "tokens": 120, "category": "api"},
+    {"path": "app/services/nvidia_nim.py", "role": "external_service", "loc": 510, "tokens": 6120, "category": "service"},
+    {"path": "app/services/langgraph_agents.py", "role": "agent_orchestration", "loc": 480, "tokens": 5760, "category": "service"},
+    {"path": "app/services/rag_service.py", "role": "rag_service", "loc": 400, "tokens": 4800, "category": "service"},
+    {"path": "app/services/agent_tools.py", "role": "agent_tools", "loc": 1430, "tokens": 17160, "category": "service"},
+    {"path": "app/services/embeddings.py", "role": "embeddings", "loc": 150, "tokens": 1800, "category": "service"},
+    {"path": "app/services/workflow_engine.py", "role": "workflow_execution", "loc": 250, "tokens": 3000, "category": "service"},
+    {"path": "app/services/__init__.py", "role": "package_init", "loc": 5, "tokens": 60, "category": "service"},
+    {"path": "app/agents/rag_agent.py", "role": "agent", "loc": 200, "tokens": 2400, "category": "agent"},
+    {"path": "app/agents/__init__.py", "role": "package_init", "loc": 5, "tokens": 60, "category": "agent"},
+    {"path": "tests/conftest.py", "role": "test_fixtures", "loc": 100, "tokens": 1200, "category": "test"},
+    {"path": "tests/test_core.py", "role": "test_unit", "loc": 200, "tokens": 2400, "category": "test"},
+    {"path": "tests/test_integration.py", "role": "test_integration", "loc": 300, "tokens": 3600, "category": "test"},
+    {"path": "tests/__init__.py", "role": "package_init", "loc": 5, "tokens": 60, "category": "test"},
+    {"path": "tests/test_payroll_calculations.py", "role": "test_unit", "loc": 100, "tokens": 1200, "category": "test"},
+    {"path": "tests/test_fuzzy_matching.py", "role": "test_unit", "loc": 100, "tokens": 1200, "category": "test"},
+    {"path": "tests/test_rag_system.py", "role": "test_unit", "loc": 150, "tokens": 1800, "category": "test"},
+    {"path": "app/services/payroll/imss_calculator.py", "role": "payroll_service", "loc": 400, "tokens": 4800, "category": "service"},
+    {"path": "app/services/payroll/payroll_engine.py", "role": "payroll_service", "loc": 500, "tokens": 6000, "category": "service"},
+    {"path": "app/services/payroll/perceptions.py", "role": "payroll_service", "loc": 200, "tokens": 2400, "category": "service"},
+    {"path": "app/services/payroll/spei_service.py", "role": "payroll_service", "loc": 300, "tokens": 3600, "category": "service"},
+    {"path": "app/services/payroll/stamping.py", "role": "payroll_service", "loc": 250, "tokens": 3000, "category": "service"},
+    {"path": "app/services/finance/banking_sync.py", "role": "finance_service", "loc": 350, "tokens": 4200, "category": "service"},
+    {"path": "app/services/finance/bbva_spark_service.py", "role": "finance_service", "loc": 300, "tokens": 3600, "category": "service"},
+    {"path": "app/services/finance/matching_engine.py", "role": "finance_service", "loc": 250, "tokens": 3000, "category": "service"}
+  ],
+  "project_structure": {
+    "architecture_pattern": "Layered Architecture",
+    "layers": [
+      {
+        "name": "Presentation Layer",
+        "description": "FastAPI Routers + Request/Response Models",
+        "modules": ["app/api/*"],
+        "responsibilities": ["HTTP request handling", "Input validation", "Response formatting", "Authentication"]
+      },
+      {
+        "name": "Business Logic Layer",
+        "description": "Services + Agents",
+        "modules": ["app/services/*", "app/agents/*"],
+        "responsibilities": ["Document processing", "AI agent orchestration", "RAG operations", "Tool execution"]
+      },
+      {
+        "name": "Data Access Layer",
+        "description": "Database + ORM",
+        "modules": ["app/db/*"],
+        "responsibilities": ["Database connections", "ORM operations", "Session management"]
+      },
+      {
+        "name": "Core Layer",
+        "description": "Configuration + Security + Utilities",
+        "modules": ["app/core/*"],
+        "responsibilities": ["Settings management", "Authentication", "Rate limiting", "Validation"]
+      }
+    ],
+    "design_patterns": [
+      "Dependency Injection (FastAPI Depends)",
+      "Repository Pattern (SQLAlchemy ORM)",
+      "Factory Pattern (app factory)",
+      "Strategy Pattern (Rate limiter fallback)",
+      "Observer Pattern (Sentry integration)",
+      "State Pattern (LangGraph agents)"
+    ]
+  },
+  "code_metrics": {
+    "total_lines": 5860,
+    "total_tokens": 70320,
+    "total_files": 35,
+    "python_files": 33,
+    "config_files": 2,
+    "average_file_size": 167,
+    "largest_files": [
+      {"path": "app/api/rag.py", "loc": 540},
+      {"path": "app/services/nvidia_nim.py", "loc": 510},
+      {"path": "app/services/langgraph_agents.py", "loc": 480},
+      {"path": "app/api/idp.py", "loc": 430},
+      {"path": "app/api/agent.py", "loc": 430}
+    ],
+    "complexity_indicators": {
+      "total_functions": 150,
+      "total_classes": 45,
+      "total_endpoints": 57,
+      "async_functions": 80,
+      "sync_functions": 70
+    },
+    "coverage_targets": {
+      "unit_tests": "80%",
+      "integration_tests": "60%",
+      "critical_paths": "100%"
+    }
+  },
+  "dependency_analysis": {
+    "internal_dependencies": {
+      "app/main.py": [
+        "app.core.config",
+        "app.core.security",
+        "app.core.rate_limiter",
+        "app.db.database",
+        "app.api.auth",
+        "app.api.idp",
+        "app.api.chat",
+        "app.api.agent",
+        "app.api.rag",
+        "app.api.workspace",
+        "app.api.clients",
+        "app.api.fiscal",
+        "app.api.payroll",
+        "app.api.finance",
+        "app.api.expenses",
+        "app.api.users"
+      ],
+      "app/api/auth.py": ["app.core.security", "app.db.database", "app.db.models"],
+      "app/api/idp.py": ["app.services.nvidia_nim", "app.db.database", "app.db.models", "app.core.security"],
+      "app/api/chat.py": ["app.services.langgraph_agents", "app.db.database", "app.db.models", "app.core.security"],
+      "app/api/agent.py": ["app.services.agent_tools", "app.services.langgraph_agents", "app.db.database", "app.db.models"],
+      "app/api/rag.py": ["app.services.rag_service", "app.agents.rag_agent", "app.db.database", "app.db.models"],
+      "app/services/nvidia_nim.py": ["app.core.config", "app.core.validators"],
+      "app/services/langgraph_agents.py": ["app.services.nvidia_nim", "app.services.rag_service", "app.core.config"],
+      "app/services/rag_service.py": ["app.core.config"],
+      "app/services/agent_tools.py": ["app.core.config"],
+      "app/db/models.py": ["app.db.database"]
+    },
+    "external_dependencies": {
+      "fastapi": {"version": ">=0.109.0", "usage": "Web framework", "modules": ["main", "api/*"]},
+      "uvicorn": {"version": ">=0.27.0", "usage": "ASGI server", "modules": ["main"]},
+      "sqlalchemy": {"version": ">=2.0.0", "usage": "ORM", "modules": ["db/*"]},
+      "asyncpg": {"version": ">=0.29.0", "usage": "PostgreSQL async driver", "modules": ["db/database"]},
+      "python-jose": {"version": ">=3.3.0", "usage": "JWT tokens", "modules": ["core/security"]},
+      "passlib": {"version": ">=1.7.4", "usage": "Password hashing", "modules": ["core/security"]},
+      "bcrypt": {"version": ">=4.0.1", "usage": "Bcrypt algorithm", "modules": ["core/security"]},
+      "pydantic-settings": {"version": ">=2.1.0", "usage": "Settings management", "modules": ["core/config"]},
+      "langgraph": {"version": ">=0.0.1", "usage": "Agent orchestration", "modules": ["services/langgraph_agents"]},
+      "langchain": {"version": ">=0.1.0", "usage": "LLM abstractions", "modules": ["services/langgraph_agents"]},
+      "chromadb": {"version": ">=0.4.0", "usage": "Vector store", "modules": ["services/rag_service"]},
+      "requests": {"version": ">=2.31.0", "usage": "HTTP client", "modules": ["services/*"]},
+      "aiohttp": {"version": ">=3.9.0", "usage": "Async HTTP client", "modules": ["services/nvidia_nim"]},
+      "pdf2image": {"version": ">=1.16.0", "usage": "PDF conversion", "modules": ["services/nvidia_nim"]},
+      "slowapi": {"version": ">=0.1.9", "usage": "Rate limiting", "modules": ["main", "core/rate_limiter"]},
+      "redis": {"version": ">=5.0.0", "usage": "Cache + rate limiting", "modules": ["core/rate_limiter"]},
+      "sentry-sdk": {"version": ">=1.39.0", "usage": "Error monitoring", "modules": ["main", "core/sentry"]},
+      "pytest": {"version": ">=7.4.0", "usage": "Testing framework", "modules": ["tests/*"]},
+      "pytest-asyncio": {"version": ">=0.23.0", "usage": "Async test support", "modules": ["tests/*"]}
+    },
+    "dependency_graph": {
+      "nodes": [
+        {"id": "main", "type": "entry", "dependencies": 17},
+        {"id": "core/config", "type": "core", "dependencies": 3},
+        {"id": "core/security", "type": "core", "dependencies": 4},
+        {"id": "db/database", "type": "data", "dependencies": 2},
+        {"id": "db/models", "type": "data", "dependencies": 1},
+        {"id": "services/nvidia_nim", "type": "service", "dependencies": 2},
+        {"id": "services/langgraph_agents", "type": "service", "dependencies": 3},
+        {"id": "services/rag_service", "type": "service", "dependencies": 1},
+        {"id": "api/auth", "type": "router", "dependencies": 3},
+        {"id": "api/idp", "type": "router", "dependencies": 4},
+        {"id": "api/chat", "type": "router", "dependencies": 4},
+        {"id": "api/agent", "type": "router", "dependencies": 4},
+        {"id": "api/rag", "type": "router", "dependencies": 4}
+      ],
+      "edges": [
+        {"from": "main", "to": "core/config"},
+        {"from": "main", "to": "core/security"},
+        {"from": "main", "to": "db/database"},
+        {"from": "main", "to": "api/auth"},
+        {"from": "main", "to": "api/idp"},
+        {"from": "main", "to": "api/chat"},
+        {"from": "main", "to": "api/agent"},
+        {"from": "main", "to": "api/rag"},
+        {"from": "api/auth", "to": "core/security"},
+        {"from": "api/auth", "to": "db/models"},
+        {"from": "api/idp", "to": "services/nvidia_nim"},
+        {"from": "api/idp", "to": "db/models"},
+        {"from": "api/chat", "to": "services/langgraph_agents"},
+        {"from": "api/chat", "to": "db/models"},
+        {"from": "api/agent", "to": "services/agent_tools"},
+        {"from": "api/agent", "to": "services/langgraph_agents"},
+        {"from": "api/rag", "to": "services/rag_service"},
+        {"from": "services/nvidia_nim", "to": "core/config"},
+        {"from": "services/langgraph_agents", "to": "services/nvidia_nim"},
+        {"from": "services/langgraph_agents", "to": "services/rag_service"}
+      ]
+    },
+    "critical_paths": [
+      {
+        "name": "Document Processing Path",
+        "flow": "API IDP → NIMExtractionService → NVIDIA NIM API → Database",
+        "criticality": "HIGH",
+        "latency_target": "3.0s GPU"
+      },
+      {
+        "name": "Chat Agent Path",
+        "flow": "API Chat → ContableAgent → LangGraph → Tools → Response",
+        "criticality": "HIGH",
+        "latency_target": "5.0s"
+      },
+      {
+        "name": "RAG Query Path",
+        "flow": "API RAG → RAGService → ChromaDB → NVIDIA Embeddings → LLM → Response",
+        "criticality": "MEDIUM",
+        "latency_target": "4.0s"
+      },
+      {
+        "name": "Authentication Path",
+        "flow": "API Auth → Security → Database → JWT Token",
+        "criticality": "HIGH",
+        "latency_target": "0.5s"
+      }
+    ]
+  },
+  "api_endpoints": {
+    "summary": {
+      "total_endpoints": 57,
+      "by_method": {
+        "GET": 32,
+        "POST": 20,
+        "PUT": 3,
+        "DELETE": 2
+      },
+      "by_auth_requirement": {
+        "authenticated": 48,
+        "public": 9
+      }
+    },
+    "endpoints_by_router": {
+      "auth": {
+        "prefix": "/v1/auth",
+        "count": 3,
+        "endpoints": [
+          {"method": "POST", "path": "/token", "auth": false, "description": "OAuth2 token endpoint"},
+          {"method": "GET", "path": "/me", "auth": true, "description": "Current user info"},
+          {"method": "POST", "path": "/refresh", "auth": false, "description": "Refresh access token"}
+        ]
+      },
+      "idp": {
+        "prefix": "/v1/idp",
+        "count": 3,
+        "endpoints": [
+          {"method": "POST", "path": "/process", "auth": true, "description": "Process single document"},
+          {"method": "POST", "path": "/batch-process", "auth": true, "description": "Batch document processing"},
+          {"method": "GET", "path": "/{document_id}", "auth": true, "description": "Get document status"}
+        ]
+      },
+      "chat": {
+        "prefix": "/v1/chat",
+        "count": 4,
+        "endpoints": [
+          {"method": "POST", "path": "/message", "auth": true, "description": "Send chat message"},
+          {"method": "GET", "path": "/conversation/{id}", "auth": true, "description": "Get conversation"},
+          {"method": "DELETE", "path": "/conversation/{id}", "auth": true, "description": "Delete conversation"},
+          {"method": "GET", "path": "/conversations", "auth": true, "description": "List conversations"}
+        ]
+      },
+      "agent": {
+        "prefix": "/v1/agent",
+        "count": 2,
+        "endpoints": [
+          {"method": "POST", "path": "/chat", "auth": true, "description": "Agentic chat con tool calling"},
+          {"method": "GET", "path": "/tools", "auth": true, "description": "List available tools"}
+        ]
+      },
+      "rag": {
+        "prefix": "/v1/rag",
+        "count": 6,
+        "endpoints": [
+          {"method": "POST", "path": "/ingest", "auth": true, "description": "Ingest document"},
+          {"method": "POST", "path": "/ingest/batch", "auth": true, "description": "Batch document ingestion"},
+          {"method": "POST", "path": "/query", "auth": true, "description": "Query with retrieval"},
+          {"method": "GET", "path": "/collections", "auth": true, "description": "List collections"},
+          {"method": "DELETE", "path": "/collections/{name}", "auth": true, "description": "Delete collection"},
+          {"method": "GET", "path": "/stats", "auth": true, "description": "RAG system statistics"}
+        ]
+      },
+      "workspace": {
+        "prefix": "/v1/workspace",
+        "count": 3,
+        "endpoints": [
+          {"method": "GET", "path": "/dashboard", "auth": true, "description": "Dashboard KPIs"},
+          {"method": "GET", "path": "/calendar", "auth": true, "description": "Fiscal calendar events"},
+          {"method": "GET", "path": "/metrics", "auth": true, "description": "IA engine metrics"}
+        ]
+      },
+      "clients": {
+        "prefix": "/v1/clients",
+        "count": 6,
+        "endpoints": [
+          {"method": "GET", "path": "/", "auth": true, "description": "List clients"},
+          {"method": "GET", "path": "/{client_id}", "auth": true, "description": "Get client by ID"},
+          {"method": "POST", "path": "/", "auth": true, "description": "Create client"},
+          {"method": "PUT", "path": "/{client_id}", "auth": true, "description": "Update client"},
+          {"method": "DELETE", "path": "/{client_id}", "auth": true, "description": "Delete client"},
+          {"method": "GET", "path": "/{client_id}/expediente", "auth": true, "description": "Get client KYC file"}
+        ]
+      },
+      "fiscal": {
+        "prefix": "/v1/fiscal",
+        "count": 5,
+        "endpoints": [
+          {"method": "GET", "path": "/deadlines", "auth": true, "description": "Fiscal deadlines"},
+          {"method": "GET", "path": "/deductions", "auth": true, "description": "Personal deductions"},
+          {"method": "GET", "path": "/annual-report", "auth": true, "description": "Annual report status"},
+          {"method": "GET", "path": "/opinion", "auth": true, "description": "SAT compliance opinion"},
+          {"method": "GET", "path": "/coeficiente", "auth": true, "description": "Coeficiente de Utilidad"}
+        ]
+      },
+      "payroll": {
+        "prefix": "/v1/payroll",
+        "count": 5,
+        "endpoints": [
+          {"method": "GET", "path": "/summary", "auth": true, "description": "Payroll summary"},
+          {"method": "GET", "path": "/employees", "auth": true, "description": "Employee list"},
+          {"method": "POST", "path": "/disperse", "auth": true, "description": "Execute payroll dispersion"},
+          {"method": "GET", "path": "/special-calcs", "auth": true, "description": "Special calculations"},
+          {"method": "GET", "path": "/sua", "auth": true, "description": "SUA/IMSS status"}
+        ]
+      },
+      "finance": {
+        "prefix": "/v1/finance",
+        "count": 5,
+        "endpoints": [
+          {"method": "GET", "path": "/summary", "auth": true, "description": "Financial summary"},
+          {"method": "GET", "path": "/statements", "auth": true, "description": "Financial statements"},
+          {"method": "GET", "path": "/bank-accounts", "auth": true, "description": "Connected bank accounts"},
+          {"method": "POST", "path": "/reconcile", "auth": true, "description": "Bank reconciliation"},
+          {"method": "GET", "path": "/cash-flow", "auth": true, "description": "Cash flow analysis"}
+        ]
+      },
+      "expenses": {
+        "prefix": "/v1/expenses",
+        "count": 4,
+        "endpoints": [
+          {"method": "GET", "path": "/categories", "auth": true, "description": "Expense categories"},
+          {"method": "GET", "path": "/pending", "auth": true, "description": "Pending expenses"},
+          {"method": "POST", "path": "/classify", "auth": true, "description": "Re-run classification"},
+          {"method": "GET", "path": "/budget", "auth": true, "description": "Budget overview"}
+        ]
+      },
+      "users": {
+        "prefix": "/v1/users",
+        "count": 6,
+        "endpoints": [
+          {"method": "GET", "path": "/me", "auth": true, "description": "User profile"},
+          {"method": "PUT", "path": "/me", "auth": true, "description": "Update profile"},
+          {"method": "GET", "path": "/me/settings", "auth": true, "description": "User settings"},
+          {"method": "PUT", "path": "/me/settings", "auth": true, "description": "Update settings"},
+          {"method": "GET", "path": "/me/fiscal-profiles", "auth": true, "description": "Fiscal profiles"},
+          {"method": "GET", "path": "/me/subscription", "auth": true, "description": "Subscription info"}
+        ]
+      },
+      "health_root": {
+        "prefix": "/",
+        "count": 5,
+        "endpoints": [
+          {"method": "GET", "path": "/", "auth": false, "description": "Root endpoint"},
+          {"method": "GET", "path": "/health", "auth": false, "description": "Health check"},
+          {"method": "GET", "path": "/health/detailed", "auth": false, "description": "Detailed health"},
+          {"method": "GET", "path": "/docs", "auth": false, "description": "OpenAPI/Swagger"},
+          {"method": "GET", "path": "/redoc", "auth": false, "description": "ReDoc"}
+        ]
+      }
+    }
+  },
+  "database_models": {
+    "models": [
+      {
+        "name": "User",
+        "table": "users",
+        "fields": [
+          {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
+          {"name": "email", "type": "String", "constraints": ["unique", "index", "not_null"]},
+          {"name": "hashed_password", "type": "String", "constraints": ["not_null"]},
+          {"name": "full_name", "type": "String", "constraints": []},
+          {"name": "is_active", "type": "Integer", "constraints": ["default:1"]},
+          {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]},
+          {"name": "updated_at", "type": "DateTime", "constraints": ["default:utcnow", "onupdate"]}
+        ],
+        "relationships": ["documents", "conversations"],
+        "description": "User authentication and profile"
+      },
+      {
+        "name": "Document",
+        "table": "documents",
+        "fields": [
+          {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
+          {"name": "user_id", "type": "Integer", "constraints": ["foreign_key:users.id"]},
+          {"name": "document_type", "type": "String", "constraints": ["not_null"]},
+          {"name": "file_path", "type": "String", "constraints": ["not_null"]},
+          {"name": "original_filename", "type": "String", "constraints": []},
+          {"name": "extracted_data", "type": "JSON", "constraints": []},
+          {"name": "confidence_score", "type": "Float", "constraints": []},
+          {"name": "status", "type": "String", "constraints": ["default:pending"]},
+          {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]},
+          {"name": "updated_at", "type": "DateTime", "constraints": ["default:utcnow", "onupdate"]}
+        ],
+        "relationships": ["user"],
+        "description": "Processed contable documents"
+      },
+      {
+        "name": "Conversation",
+        "table": "conversations",
+        "fields": [
+          {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
+          {"name": "user_id", "type": "Integer", "constraints": ["foreign_key:users.id"]},
+          {"name": "title", "type": "String", "constraints": []},
+          {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]},
+          {"name": "updated_at", "type": "DateTime", "constraints": ["default:utcnow", "onupdate"]}
+        ],
+        "relationships": ["user", "messages"],
+        "description": "Chat conversation history"
+      },
+      {
+        "name": "Message",
+        "table": "messages",
+        "fields": [
+          {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
+          {"name": "conversation_id", "type": "Integer", "constraints": ["foreign_key:conversations.id"]},
+          {"name": "role", "type": "String", "constraints": ["not_null"]},
+          {"name": "content", "type": "Text", "constraints": ["not_null"]},
+          {"name": "metadata", "type": "JSON", "constraints": []},
+          {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]}
+        ],
+        "relationships": ["conversation"],
+        "description": "Individual chat messages"
+      }
+    ],
+    "indexes": [
+      {"table": "users", "columns": ["email"], "type": "unique"},
+      {"table": "users", "columns": ["id"], "type": "index"},
+      {"table": "documents", "columns": ["id"], "type": "index"},
+      {"table": "documents", "columns": ["user_id"], "type": "foreign_key"},
+      {"table": "conversations", "columns": ["id"], "type": "index"},
+      {"table": "conversations", "columns": ["user_id"], "type": "foreign_key"},
+      {"table": "messages", "columns": ["id"], "type": "index"},
+      {"table": "messages", "columns": ["conversation_id"], "type": "foreign_key"}
+    ]
+  },
+  "pydantic_schemas": {
+    "by_module": {
+      "security": ["Token", "TokenData", "UserCreate", "UserResponse"],
+      "idp": ["DocumentProcessingRequest", "DocumentProcessingResponse", "DocumentStatusResponse", "BatchProcessRequest", "BatchProcessResponse"],
+      "chat": ["ChatMessage", "ChatRequest", "ChatResponse", "ConversationSummary", "ConversationDetailResponse"],
+      "agent": ["AgentChatRequest", "ToolCallInfo", "AgentChatResponse", "ToolDefinitionResponse"],
+      "rag": ["IngestRequest", "IngestResponse", "BatchIngestRequest", "BatchIngestResponse", "QueryRequest", "QueryResponse", "CollectionInfo", "CollectionsResponse", "StatsResponse"],
+      "workspace": ["DashboardKPIs", "CalendarEvent"],
+      "clients": ["ClientResponse", "ClientCreate", "ClientUpdate", "ExpedienteResponse"],
+      "fiscal": ["FiscalDeadline", "Deduction", "AnnualReport"],
+      "payroll": ["PayrollSummary", "Employee", "SpecialCalc"],
+      "finance": ["FinanceSummary", "FinancialStatement", "BankAccount"],
+      "expenses": ["ExpenseCategory", "PendingExpense"],
+      "users": ["UserProfile", "UserUpdate", "UserSettings", "FiscalProfile", "Subscription"]
+    },
+    "total_schemas": 45
+  },
+  "services": {
+    "nvidia_nim": {
+      "class": "NIMExtractionService",
+      "file": "app/services/nvidia_nim.py",
+      "purpose": "Extracción de datos de facturas usando NVIDIA NIM Vision",
+      "models_used": [
+        "meta/llama-3.2-90b-vision-instruct",
+        "nvidia/nemoretriever-ocr-v1",
+        "meta/llama-3.3-70b-instruct"
+      ],
+      "features": [
+        "Rate limiting thread-safe (40 RPM)",
+        "Retry con exponential backoff",
+        "Mejora de imagen con ImageMagick",
+        "Validación automática de RFCs",
+        "Conversión PDF→PNG (400 DPI)"
+      ],
+      "main_methods": ["process_document", "_pdf_to_png", "_enhance_image", "_extract_entities", "_validate_rfc"]
+    },
+    "langgraph_agents": {
+      "class": "ContableAgent",
+      "file": "app/services/langgraph_agents.py",
+      "purpose": "Agente principal para consultas contables y fiscales",
+      "graph_nodes": ["classifier", "retriever", "reasoner", "responder"],
+      "features": [
+        "Streaming de respuestas token-por-token",
+        "RAG con legislación fiscal mexicana",
+        "Validación con fuentes",
+        "Scores de confianza"
+      ],
+      "main_methods": ["_build_graph", "_classify_intent", "_retrieve_context", "_reason_with_context", "_generate_response"]
+    },
+    "rag_service": {
+      "class": "RAGService",
+      "file": "app/services/rag_service.py",
+      "purpose": "Retrieval-Augmented Generation con ChromaDB",
+      "components": ["ChromaDB", "NVIDIA Embeddings", "Reranking"],
+      "embedding_model": "nvidia/nv-embedqa-e5-v5",
+      "embedding_dimensions": 1024,
+      "main_methods": ["ingest_document", "query_documents", "create_collection", "delete_collection", "get_stats"]
+    },
+    "agent_tools": {
+      "file": "app/services/agent_tools.py",
+      "purpose": "Herramientas ejecutables para agentes",
+      "tools": [
+        "get_client_by_rfc",
+        "get_client_by_name",
+        "validate_rfc_sat",
+        "get_invoice_by_uuid",
+        "calculate_deductions",
+        "get_fiscal_calendar",
+        "classify_expense"
+      ]
+    }
+  },
+  "configuration": {
+    "settings_class": "Settings",
+    "file": "app/core/config.py",
+    "total_settings": 50,
+    "categories": {
+      "application": ["APP_NAME", "APP_VERSION", "DEBUG", "ENVIRONMENT"],
+      "nvidia_api": ["NVIDIA_API_KEY", "NVIDIA_NIM_BASE_URL", "OCR_MODEL", "VISION_MODEL", "LLM_MODEL", "EMBEDDING_MODEL"],
+      "processing_limits": ["MAX_WORKERS", "RATE_LIMIT", "REQUEST_TIMEOUT", "MAX_FILE_SIZE"],
+      "database": ["DATABASE_URL", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "POSTGRES_HOST", "POSTGRES_PORT"],
+      "chromadb": ["CHROMA_DB_HOST", "CHROMA_DB_PORT", "CHROMA_DB_COLLECTION", "EMBEDDING_DIMENSIONS"],
+      "security": ["SECRET_KEY", "ALGORITHM", "ACCESS_TOKEN_EXPIRE_MINUTES", "REFRESH_TOKEN_EXPIRE_DAYS"],
+      "cors": ["BACKEND_CORS_ORIGINS"],
+      "redis": ["REDIS_HOST", "REDIS_PORT", "REDIS_URL", "REDIS_DB", "REDIS_PASSWORD"],
+      "performance_targets": ["TARGET_RFC_PRECISION", "TARGET_UUID_PRECISION", "TARGET_TOTAL_PRECISION", "TARGET_LATENCY_CPU", "TARGET_LATENCY_GPU", "TARGET_COST_PER_DOC"]
+    }
+  },
+  "security": {
+    "authentication": "OAuth2 + JWT",
+    "password_hashing": "bcrypt",
+    "token_types": ["access_token (30 min)", "refresh_token (7 days)"],
+    "security_utilities": [
+      "verify_password",
+      "get_password_hash",
+      "create_access_token",
+      "create_refresh_token",
+      "decode_access_token",
+      "authenticate_user",
+      "get_current_user"
+    ],
+    "rate_limiting": {
+      "strategy": "Redis + Memory fallback",
+      "default_limit": "40 requests per minute",
+      "library": "SlowAPI"
+    },
+    "cors": {
+      "allowed_origins": [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://frontend:5173",
+        "http://localhost:8000"
+      ],
+      "allow_credentials": true,
+      "allow_methods": ["*"],
+      "allow_headers": ["*"]
+    }
+  },
+  "monitoring": {
+    "sentry": {
+      "integration": "sentry-sdk[fastapi]",
+      "features": ["Error monitoring", "Performance tracing", "Profiling", "Structured logs"],
+      "sample_rates": {
+        "traces": 1.0,
+        "profiles": 0.5
+      },
+      "ignored_transactions": ["/health", "/health/detailed"]
+    }
+  },
+  "testing": {
+    "framework": "pytest + pytest-asyncio",
+    "test_files": ["test_core.py", "test_integration.py", "test_integracion.py", "test_payroll_calculations.py", "test_fuzzy_matching.py", "test_rag_system.py"],
+    "fixtures": "conftest.py",
+    "coverage_targets": {
+      "unit": "80%",
+      "integration": "60%",
+      "critical_paths": "100%"
+    }
+  },
+  "performance_targets": {
+    "rfc_precision": 0.98,
+    "uuid_precision": 0.98,
+    "total_precision": 0.95,
+    "latency_cpu_seconds": 10.0,
+    "latency_gpu_seconds": 3.0,
+    "throughput_iter_per_second": 0.26,
+    "cost_per_document_usd": 0.10
+  },
+  "data_persistence": {
+    "location": "../data/",
+    "directories": {
+      "postgresql": "data/pg_data/",
+      "chromadb": "data/chroma_data/"
+    },
+    "documentation": "data/README.md",
+    "docker_volumes": [
+      "./data/pg_data:/var/lib/postgresql/data",
+      "./data/chroma_data:/chroma/chroma"
+    ]
+  },
+  "development_commands": {
+    "install": "pip install -r requirements.txt",
+    "run_dev": "uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "run_prod": "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4",
+    "test": "pytest tests/ -v",
+    "test_coverage": "pytest tests/ --cov=app --cov-report=html",
+    "validate_config": "python -c \"from app.core.config import validate_settings; print(validate_settings())\"",
+    "docker_build": "docker-compose build",
+    "docker_run": "docker-compose up -d",
+    "docker_logs": "docker-compose logs -f backend",
+    "data_backup": "tar -czf data-backup.tar.gz data/",
+    "data_reset_dev": "rm -rf data/pg_data/* data/chroma_data/*"
+  },
+  "environment_variables_required": [
+    "NVIDIA_API_KEY",
+    "DATABASE_URL",
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+    "POSTGRES_DB",
+    "SECRET_KEY",
+    "REDIS_HOST",
+    "REDIS_PORT",
+    "CHROMA_DB_HOST",
+    "CHROMA_DB_PORT",
+    "SENTRY_DSN (optional)",
+    "SENTRY_ENVIRONMENT (optional)"
+  ]
+}

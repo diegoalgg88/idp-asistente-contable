@@ -1,0 +1,301 @@
+import { useEffect, useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { toast } from 'sonner'
+import {
+    Calculator,
+    Calendar,
+    FileCheck,
+    ArrowUpRight,
+    Scale,
+    Info,
+    CheckCircle2,
+    AlertTriangle,
+    Download,
+    Users
+} from "lucide-react"
+import { useModulesStore } from '@/store/modules.store'
+import { fiscalService } from '@/services/api'
+
+export default function Fiscal() {
+    const { activeView } = useOutletContext<{ activeView: string }>()
+    const { fiscal, fetchFiscal, loading, clients, fetchClients } = useModulesStore()
+    const [selectedRfc, setSelectedRfc] = useState<string>('')
+
+    useEffect(() => {
+        fetchFiscal()
+        fetchClients()
+    }, [fetchFiscal, fetchClients])
+
+    useEffect(() => {
+        if (clients.length > 0 && !selectedRfc) {
+            setSelectedRfc(clients[0].rfc)
+        }
+    }, [clients, selectedRfc])
+
+    const handleDownloadWorkingPaper = async () => {
+        if (!selectedRfc) {
+            toast.error("Seleccione un cliente primero")
+            return
+        }
+        toast.promise(
+            fiscalService.exportWorkingPaper(selectedRfc, 2026),
+            {
+                loading: 'Generando Papel de Trabajo...',
+                success: 'Descarga iniciada',
+                error: (err) => `Error: ${err.message || 'No se pudo generar el reporte'}`
+            }
+        )
+    }
+
+    const handleCheckOpinion = async () => {
+        if (!selectedRfc) {
+            toast.error("Seleccione un cliente primero")
+            return
+        }
+        toast.promise(
+            fiscalService.getComplianceOpinion(selectedRfc),
+            {
+                loading: 'Consultando SAT (Real)...',
+                success: (data) => `Opinión obtenida: ${data.status || 'Completado'}`,
+                error: 'Error al consultar el SAT'
+            }
+        )
+    }
+
+    if (loading.fiscal && !fiscal) {
+        return (
+            <div className="flex items-center justify-center h-full">
+                <div className="text-sm text-muted-foreground animate-pulse">Cargando datos fiscales...</div>
+            </div>
+        )
+    }
+
+    const deadlines = fiscal?.deadlines || []
+    const deductions = fiscal?.deductions || []
+    const annualReport = fiscal?.annualReport
+    const progress = annualReport?.progress || {}
+
+    const renderContent = () => {
+        switch (activeView) {
+            case 'anuales':
+                return (
+                    <Card className="glass-card border-border/40 premium-shadow rounded-3xl overflow-hidden group">
+                        <CardHeader className="bg-muted/30 border-b border-border/30 py-6 px-8">
+                            <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60 flex items-center gap-3">
+                                <Calculator className="h-4 w-4 text-primary" />
+                                Declaración Anual • Preparación {annualReport?.year || 2025}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-8 space-y-10">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                                <div className="space-y-6">
+                                    <h4 className="text-[9px] font-black text-muted-foreground uppercase tracking-widest flex items-center gap-2 opacity-40">
+                                        <Scale className="h-3 w-3" /> Estado de Conciliación
+                                    </h4>
+                                    <div className="space-y-6">
+                                        {Object.values(progress).map((p: any, i: number) => (
+                                            <div key={i} className="space-y-3">
+                                                <div className="flex justify-between text-[11px] font-black uppercase tracking-wider">
+                                                    <span className="text-foreground/80">{p.label}</span>
+                                                    <span className={p.status === 'OK' ? 'text-green-500' : 'text-yellow-500'}>{p.status}</span>
+                                                </div>
+                                                <div className="h-1.5 w-full bg-muted/30 rounded-full overflow-hidden border border-white/5">
+                                                    <div className={`h-full transition-all duration-1000 ${p.status === 'OK' ? 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' : 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]'}`} style={{ width: `${p.percentage}%` }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="md:col-span-2 space-y-8">
+                                    <div className="bg-primary/5 p-8 border border-primary/20 rounded-3xl relative overflow-hidden group/opt">
+                                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover/opt:scale-110 transition-transform">
+                                            <Info className="h-24 w-24" />
+                                        </div>
+                                        <div className="relative z-10 space-y-4">
+                                            <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Optimización IA Activa</p>
+                                            <p className="text-sm font-bold text-foreground leading-relaxed italic">
+                                                "{annualReport?.suggestion || 'El motor está analizando tus deducciones para maximizar el saldo a favor.'}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <Button 
+                                            onClick={handleDownloadWorkingPaper}
+                                            className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[10px] font-black uppercase tracking-widest h-11 px-8 rounded-xl flex-1 transition-all"
+                                        >
+                                            Generar Papel de Trabajo
+                                        </Button>
+                                        <Button variant="outline" className="glass-card border-border/50 text-[10px] font-black uppercase tracking-widest h-11 px-8 rounded-xl flex-1 hover:bg-muted/50 transition-all">
+                                            Auditar CFDI
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )
+            case 'opinion':
+                return (
+                    <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-700">
+                        <Card className="glass-card border-border/40 premium-shadow rounded-3xl p-12 flex flex-col items-center justify-center text-center gap-6 relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-gradient-to-b from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                            <div className="w-24 h-24 rounded-full bg-green-500/10 flex items-center justify-center border border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.1)] group-hover:scale-110 transition-transform duration-500 relative z-10">
+                                <CheckCircle2 className="h-12 w-12 text-green-500 animate-pulse" />
+                            </div>
+                            <div className="relative z-10 space-y-3">
+                                <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.4em] opacity-80">Estado Actual SAT</p>
+                                <h4 className="text-4xl font-black text-foreground italic tracking-tighter uppercase tracking-widest">SENTIDO: POSITIVA</h4>
+                                <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest opacity-40 italic">Última validación automática: hace 14 minutos</p>
+                            </div>
+                            <div className="flex gap-4 mt-6 relative z-10">
+                                <Button 
+                                    onClick={handleCheckOpinion}
+                                    className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl shadow-primary/30 text-[10px] font-black uppercase tracking-widest h-11 px-10 rounded-xl transition-all"
+                                >
+                                    <Download className="h-4 w-4 mr-3" /> Consultar Opinión (SAT)
+                                </Button>
+                                <Button variant="outline" className="glass-card border-border/50 text-[10px] font-black uppercase tracking-widest h-11 px-10 rounded-xl hover:bg-muted/50 transition-all">
+                                    Historial de Consultas
+                                </Button>
+                            </div>
+                            <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-green-500/5 rounded-full blur-3xl" />
+                        </Card>
+                    </div>
+                )
+            case 'coeficiente':
+                return (
+                    <div className="space-y-6">
+                        <h3 className="text-xl font-bold text-foreground">Calculadora Coeficiente de Utilidad</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <Card className="bg-card border-border">
+                                <CardHeader><CardTitle className="text-sm font-bold">Datos del Ejercicio Anterior</CardTitle></CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="space-y-1.5 font-mono">
+                                        <p className="text-[10px] text-muted-foreground uppercase">Utilidad Fiscal</p>
+                                        <p className="text-lg text-foreground">$1,245,000.00</p>
+                                    </div>
+                                    <div className="space-y-1.5 font-mono">
+                                        <p className="text-[10px] text-muted-foreground uppercase">Ingresos Nominales</p>
+                                        <p className="text-lg text-foreground">$12,800,000.00</p>
+                                    </div>
+                                    <div className="pt-4 border-t border-border flex justify-between items-center">
+                                        <span className="text-xs font-bold text-muted-foreground uppercase">Coeficiente Resultante</span>
+                                        <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground font-mono">0.0972</Badge>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <div className="bg-blue-900/10 border border-blue-900/30 p-6 rounded text-sm space-y-3">
+                                <h4 className="font-bold text-blue-400 flex items-center gap-2"><Info className="h-4 w-4" /> Nota Fiscal</h4>
+                                <p className="text-muted-foreground/80 leading-relaxed text-xs">
+                                    Este coeficiente deberá aplicarse a partir de los pagos provisionales de marzo de 2026. Asegúrese de haber presentado la declaración anual para que el SAT reconozca este factor.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )
+            default: // mensuales
+                return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <Card className="glass-card border-border/40 premium-shadow rounded-3xl overflow-hidden group">
+                                <CardHeader className="bg-muted/30 border-b border-border/30 py-5 px-6">
+                                    <CardTitle className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Próximos Vencimientos</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-4 space-y-3">
+                                    {deadlines.slice(0, 3).map((d: any) => (
+                                        <div key={d.id} className={`flex items-center justify-between p-4 rounded-2xl bg-muted/20 border-l-4 transition-all hover:translate-x-1 ${d.priority === 'alta' ? 'border-red-500 bg-red-500/5' : 'border-yellow-500 bg-yellow-500/5'}`}>
+                                            <div className="space-y-1">
+                                                <p className="text-[11px] font-black text-foreground uppercase tracking-tight">{d.title}</p>
+                                                <p className="text-[10px] font-bold text-muted-foreground opacity-60 uppercase">{d.date}</p>
+                                            </div>
+                                            <Calendar className={`h-5 w-5 ${d.priority === 'alta' ? 'text-red-500' : 'text-yellow-500'} opacity-40`} />
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+
+                            <Card className="glass-card border-border/40 premium-shadow rounded-3xl overflow-hidden md:col-span-2 group">
+                                <CardHeader className="bg-muted/30 border-b border-border/30 py-5 px-8 flex flex-row items-center justify-between">
+                                    <CardTitle className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Deducciones Personales IA Detect</CardTitle>
+                                    <Badge className="bg-primary/10 text-primary text-[9px] font-black uppercase rounded-full px-3 py-1 border-none tracking-widest">Active Scan</Badge>
+                                </CardHeader>
+                                <CardContent className="p-8">
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                                        {deductions.map((item: any, id: number) => (
+                                            <div key={id} className="p-5 rounded-2xl bg-muted/20 border border-white/5 text-center group/card hover:bg-primary/5 hover:border-primary/30 transition-all duration-500 cursor-help">
+                                                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-40 mb-2">{item.label}</p>
+                                                <p className="text-lg font-black text-foreground italic tracking-tighter group-hover:text-primary transition-colors">{item.amount}</p>
+                                                <div className="mt-3 flex items-center justify-center gap-1.5">
+                                                    <div className="h-1 w-1 rounded-full bg-blue-500 animate-pulse" />
+                                                    <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">{item.confidence} Match</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <div className="flex justify-end gap-4">
+                            <Button variant="outline" className="glass-card border-border/50 text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-xl hover:bg-muted/50 transition-all group">
+                                <FileCheck className="w-4 h-4 mr-3 opacity-40 group-hover:opacity-100 transition-opacity" /> Certificar Cumplimiento
+                            </Button>
+                            <Button className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[10px] font-black uppercase tracking-widest h-12 px-12 rounded-xl transition-all group overflow-hidden relative">
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                                Ejecutar Declaración <ArrowUpRight className="w-4 h-4 ml-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                            </Button>
+                        </div>
+                    </div>
+                )
+        }
+    }
+
+    return (
+        <div className="p-8 space-y-10 animate-in fade-in slide-in-from-right-4 duration-500 max-w-[1600px] mx-auto custom-scrollbar">
+            <div className="flex justify-between items-end pb-8 border-b border-border/50 relative">
+                <div className="absolute -bottom-px left-0 w-32 h-px bg-primary" />
+                <div className="space-y-3">
+                    <h2 className="text-4xl font-black text-foreground italic tracking-tight uppercase tracking-tighter">
+                        Asesoría <span className="text-primary tracking-normal not-italic lowercase font-serif font-light opacity-60 px-2">&</span> Fiscal
+                    </h2>
+                    <p className="text-[9px] font-black text-muted-foreground tracking-[0.3em] uppercase flex items-center gap-2">
+                        <Scale className="h-3.3 w-3 text-primary" />
+                        <span>ESTRATEGIA TRIBUTARIA INTELIGENTE</span>
+                        <span className="h-3 w-px bg-border/50 mx-1" />
+                        <span>SAT COMPLIANCE V3</span>
+                    </p>
+                </div>
+                <div className="flex gap-3">
+                    <div className="flex items-center gap-3 bg-muted/20 border border-border/40 px-4 py-1.5 rounded-full mr-2">
+                        <Users className="h-3.5 w-3.5 text-primary opacity-60" />
+                        <select 
+                            value={selectedRfc}
+                            onChange={(e) => setSelectedRfc(e.target.value)}
+                            className="bg-transparent text-[10px] font-black uppercase tracking-widest outline-none border-none text-foreground/80 cursor-pointer"
+                        >
+                            <option value="" disabled className="bg-background">Seleccionar Cliente</option>
+                            {clients.map(c => (
+                                <option key={c.rfc} value={c.rfc} className="bg-background text-foreground">{c.name} ({c.rfc})</option>
+                            ))}
+                        </select>
+                    </div>
+                    <Button 
+                        onClick={handleDownloadWorkingPaper}
+                        variant="outline" 
+                        className="glass-card border-border/50 text-[9px] font-black uppercase tracking-wider h-9 px-6 hover:bg-muted/50 transition-all rounded-full"
+                    >
+                        Papel de Trabajo
+                    </Button>
+                    <Button className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-9 px-8 rounded-full transition-all">
+                        Simular Declaración
+                    </Button>
+                </div>
+            </div>
+
+            {renderContent()}
+        </div>
+    )
+}

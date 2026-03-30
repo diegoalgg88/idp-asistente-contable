@@ -1,0 +1,76 @@
+[build]
+python_version = "3.11"
+
+# Source directories — donde buscar imports como `app.xxx`
+source_directories = ["."]
+
+# Site packages — donde están los paquetes instalados (.venv)
+site_package_search_strategy = "pep561"
+search_path = [".venv/Lib/site-packages"]
+
+[typing]
+# Ignorar stubs faltantes para paquetes de terceros
+disable = [
+    "import-untyped",
+    "import-missing",
+]
+
+# Ignorar módulos específicos sin stubs
+[[tool.pyre.extra_module_names]]
+name = "langgraph"
+
+[[tool.pyre.extra_module_names]]
+name = "langchain"
+
+[[tool.pyre.extra_module_names]]
+name = "langchain_core"
+
+[[tool.pyre.extra_module_names]]
+name = "langchain_openai"
+
+[[tool.pyre.extra_module_names]]
+name = "langchain_community"
+
+[[tool.pyre.extra_module_names]]
+name = "sqlalchemy"
+
+[[tool.pyre.extra_module_names]]
+name = "sqlalchemy.orm"
+
+[[tool.pyre.extra_module_names]]
+name = "sqlalchemy.ext"
+
+[[tool.pyre.extra_module_names]]
+name = "pdf2image"
+
+[[tool.pyre.extra_module_names]]
+name = "aiohttp"
+
+[[tool.pyre.extra_module_names]]
+name = "pydantic"
+
+[[tool.pyre.extra_module_names]]
+name = "fastapi"
+
+[[tool.pyre.extra_module_names]]
+name = "requests"
+
+[[tool.pyre.extra_module_names]]
+name = "tqdm"
+
+[[tool.pyre.extra_module_names]]
+name = "chardet"
+
+[[tool.pyre.extra_module_names]]
+name = "pandas"
+
+# Directorios a ignorar
+ignore_all_errors = [
+    "**/venv/**",
+    "**/.venv/**",
+    "**/node_modules/**",
+    "**/__pycache__/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.docs/**",
+]

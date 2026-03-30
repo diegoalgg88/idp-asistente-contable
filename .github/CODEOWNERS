@@ -1,0 +1,22 @@
+# Code owners for IDP App - Asistente Contable
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owners for the entire repository
+* @diegogzz
+
+# Frontend team owns all frontend code
+/frontend/ @diegogzz
+
+# Backend team owns all backend code
+/backend/ @diegogzz
+
+# Documentation
+/docs/ @diegogzz
+
+# CI/CD workflows
+/.github/workflows/ @diegogzz
+
+# Docker configuration
+/docker-compose.yml @diegogzz
+/Dockerfile @diegogzz
+/docker-compose.*.yml @diegogzz

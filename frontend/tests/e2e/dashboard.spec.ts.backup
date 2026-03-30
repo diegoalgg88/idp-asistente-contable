@@ -1,0 +1,297 @@
+/**
+ * Dashboard E2E Tests
+ * 
+ * Tests para el flujo del Dashboard del IDP Asistente Contable.
+ * Incluye tests para ver estadísticas y documentos recientes después de login.
+ * 
+ * @module tests/e2e/dashboard.spec
+ */
+
+import { test, expect } from '../fixtures'
+
+test.describe('Dashboard', () => {
+  // Configurar timeout para tests
+  test.setTimeout(60000)
+
+  test.describe('Dashboard Statistics', () => {
+    test('ver estadísticas después de login', async ({ authenticatedPage, page }) => {
+      // Arrange: Ya estamos autenticados gracias al fixture
+      const { dashboardPage } = authenticatedPage
+
+      // Assert: Verificar que el heading del dashboard es visible
+      await expect(dashboardPage.heading).toBeVisible({ timeout: 10000 })
+
+      // Assert: Verificar cards de estadísticas principales
+      await dashboardPage.verifyStatsCardsVisible()
+
+      // Assert: Verificar que las cards tienen datos
+      const statsValues = await dashboardPage.getStatsValues()
+      
+      // Verificar que los valores no estén vacíos
+      expect(statsValues.totalProcesado).toBeTruthy()
+      expect(statsValues.completados).toBeTruthy()
+      expect(statsValues.confianzaPromedio).toBeTruthy()
+      expect(statsValues.tiempoPromedio).toBeTruthy()
+    })
+
+    test('ver panel de rendimiento automático', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Act: Navegar al dashboard (por si acaso)
+      await dashboardPage.goto()
+
+      // Assert: Verificar panel de rendimiento
+      await dashboardPage.verifyRendimientoPanel()
+
+      // Assert: Verificar métricas de IA
+      await expect(
+        dashboardPage.page.getByText(/precisión|extraction accuracy|model/i)
+      ).toBeVisible({ timeout: 5000 })
+
+      // Assert: Verificar badge de "Optimized"
+      await expect(
+        dashboardPage.page.getByText(/optimized|optimizado/i)
+      ).toBeVisible({ timeout: 3000 })
+    })
+
+    test('ver estatus fiscal', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Assert: Verificar panel de estatus fiscal
+      await dashboardPage.verifyEstatusFiscal()
+
+      // Assert: Verificar score fiscal visible
+      await expect(
+        dashboardPage.page.getByText(/healthy|fiscal score|10\.0/i)
+      ).toBeVisible({ timeout: 5000 })
+
+      // Assert: Verificar indicador de sincronización
+      await expect(
+        dashboardPage.page.locator('.animate-pulse').or(
+          dashboardPage.page.getByText(/sincronizado|sync/i)
+        )
+      ).toBeVisible({ timeout: 3000 })
+    })
+
+    test('ver AI Insight card', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Assert: Verificar AI Insight card
+      await expect(dashboardPage.aiInsightCard).toBeVisible({ timeout: 5000 })
+
+      // Assert: Verificar contenido del insight
+      await expect(
+        dashboardPage.page.getByText(/optimización|deducibilidad|detectada/i)
+      ).toBeVisible({ timeout: 3000 })
+    })
+
+    test('ver status bar con conexión', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Assert: Verificar status bar
+      await dashboardPage.verifyStatusBar()
+
+      // Assert: Verificar estado de conexión
+      await expect(
+        dashboardPage.page.getByText(/conectado|connected|backend local/i)
+      ).toBeVisible({ timeout: 3000 })
+
+      // Assert: Verificar estado de sincronización
+      await expect(
+        dashboardPage.page.getByText(/al día|up to date|sync/i)
+      ).toBeVisible({ timeout: 3000 })
+    })
+  })
+
+  test.describe('Dashboard Documents', () => {
+    test('ver documentos recientes', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage, documentsPage } = authenticatedPage
+
+      // Act: Navegar a documentos desde el activity bar
+      await dashboardPage.navigateToDocuments()
+
+      // Assert: Verificar que la página de documentos es visible
+      await expect(documentsPage.heading).toBeVisible({ timeout: 10000 })
+
+      // Assert: Verificar tabla de documentos o estado vacío
+      const hasDocuments = await documentsPage.verifyHasDocuments().then(() => true).catch(() => false)
+      
+      if (hasDocuments) {
+        await documentsPage.verifyDocumentosRecientes()
+      } else {
+        await documentsPage.verifyEmptyState()
+      }
+    })
+
+    test('filtrar documentos por tipo', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { documentsPage } = authenticatedPage
+
+      // Act: Navegar a documentos
+      await documentsPage.goto()
+
+      // Act: Filtrar por emitidas
+      await documentsPage.filterByType('emitidas')
+
+      // Assert: Verificar que el filtro se aplicó
+      await expect(
+        documentsPage.page.getByText(/emitidas|ingreso/i)
+      ).toBeVisible({ timeout: 3000 })
+
+      // Act: Filtrar por recibidas
+      await documentsPage.filterByType('recibidas')
+
+      // Assert: Verificar que el filtro se aplicó
+      await expect(
+        documentsPage.page.getByText(/recibidas|egreso/i)
+      ).toBeVisible({ timeout: 3000 })
+
+      // Act: Filtrar por nóminas
+      await documentsPage.filterByType('nominas')
+
+      // Assert: Verificar que el filtro se aplicó
+      await expect(
+        documentsPage.page.getByText(/nóminas|nominas|nom/i)
+      ).toBeVisible({ timeout: 3000 })
+    })
+
+    test('buscar documentos', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { documentsPage } = authenticatedPage
+
+      // Act: Navegar a documentos
+      await documentsPage.goto()
+
+      // Act: Intentar buscar (si hay documentos)
+      const hasDocuments = await documentsPage.verifyHasDocuments().then(() => true).catch(() => false)
+      
+      if (hasDocuments) {
+        await documentsPage.searchInput.fill('test')
+        
+        // Assert: Verificar que el search input funciona
+        await expect(documentsPage.searchInput).toHaveValue('test', { timeout: 3000 })
+      }
+    })
+  })
+
+  test.describe('Dashboard Navigation', () => {
+    test('navegar a fiscal desde dashboard', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Act: Navegar a fiscal
+      await dashboardPage.navigateToFiscal()
+
+      // Assert: Verificar que la página fiscal es visible
+      await expect(
+        dashboardPage.page.getByRole('heading', { name: /fiscal/i })
+      ).toBeVisible({ timeout: 10000 })
+    })
+
+    test('navegar usando activity bar', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Act & Assert: Navegar a cada sección usando activity bar
+      
+      // Documentos
+      await dashboardPage.navigateToDocuments()
+      await expect(dashboardPage.documentsActivityButton).toHaveAttribute(
+        'aria-current',
+        'page'
+      ).catch(() => {
+        // Si no hay aria-current, verificar URL
+        expect(dashboardPage.page.url()).toMatch(/documents/)
+      })
+
+      // Clients
+      await dashboardPage.clientsActivityButton.click()
+      await expect(dashboardPage.page.url()).toMatch(/clients/)
+
+      // Fiscal
+      await dashboardPage.navigateToFiscal()
+      await expect(dashboardPage.page.url()).toMatch(/fiscal/)
+
+      // Payroll
+      await dashboardPage.payrollActivityButton.click()
+      await expect(dashboardPage.page.url()).toMatch(/payroll/)
+
+      // Finance
+      await dashboardPage.financeActivityButton.click()
+      await expect(dashboardPage.page.url()).toMatch(/finance/)
+
+      // Expenses
+      await dashboardPage.expensesActivityButton.click()
+      await expect(dashboardPage.page.url()).toMatch(/expenses/)
+    })
+
+    test('ver tabs abiertas en el editor area', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Assert: Verificar que hay tabs visibles
+      const tabBar = dashboardPage.page.locator('[role="tablist"], .tab-bar')
+      await expect(tabBar).toBeVisible({ timeout: 5000 })
+
+      // Assert: Verificar que la tab activa tiene el estilo correcto
+      const activeTab = dashboardPage.page.locator('[aria-selected="true"], .tab-active')
+      await expect(activeTab.first()).toBeVisible({ timeout: 3000 })
+    })
+  })
+
+  test.describe('Dashboard Actions', () => {
+    test('click en exportar reporte', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Act: Click en exportar
+      await dashboardPage.clickExportar()
+
+      // Assert: Verificar que se disparó la acción (puede ser un download o modal)
+      // Esto depende de la implementación real
+    })
+
+    test('click en nueva tarea', async ({ authenticatedPage }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Act: Click en nueva tarea
+      await dashboardPage.clickNuevaTarea()
+
+      // Assert: Verificar que se abrió modal o navegación
+      // Esto depende de la implementación real
+    })
+  })
+
+  test.describe('Dashboard Responsive', () => {
+    test('ver dashboard en viewport móvil', async ({ authenticatedPage, page }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Act: Cambiar a viewport móvil
+      await page.setViewportSize({ width: 375, height: 667 })
+
+      // Assert: Verificar que el dashboard es visible
+      await expect(dashboardPage.heading).toBeVisible({ timeout: 5000 })
+
+      // Assert: Verificar que las cards se ajustan
+      await dashboardPage.verifyStatsCardsVisible()
+    })
+
+    test('ver dashboard en viewport tablet', async ({ authenticatedPage, page }) => {
+      // Arrange: Ya estamos autenticados
+      const { dashboardPage } = authenticatedPage
+
+      // Act: Cambiar a viewport tablet
+      await page.setViewportSize({ width: 768, height: 1024 })
+
+      // Assert: Verificar que el dashboard es visible
+      await expect(dashboardPage.heading).toBeVisible({ timeout: 5000 })
+    })
+  })
+})

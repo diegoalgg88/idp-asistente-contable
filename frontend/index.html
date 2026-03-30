@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="IDP Asistente Contable - Asistente inteligente con IA para contadores en México" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- Preconnect a APIs -->
+    <link rel="preconnect" href="http://localhost:8000" crossorigin />
+    <link rel="dns-prefetch" href="http://localhost:8000" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- CRITICAL: Preload fonts para FCP -->
+    <link
+      rel="preload"
+      href="/assets/geist-latin-wght-normal.Dm3htQBi.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="preload"
+      href="/assets/geist-cyrillic-wght-normal.CHSlOQsW.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin="anonymous"
+    />
+
+    <!-- Critical CSS inline para FCP inmediato -->
+    <style>
+      /* Critical CSS mínimo para above-the-fold */
+      :root{color-scheme:light dark}
+      *{box-sizing:border-box}
+      html,body{margin:0;padding:0;height:100%;width:100%}
+      body{font-family:'Geist Variable',system-ui,-apple-system,sans-serif;background:#09090b;color:#fafafa;overflow:hidden}
+      #root{height:100%;width:100%}
+      .loading-splash{display:flex;align-items:center;justify-content:center;height:100vh;width:100vw;background:#09090b}
+      .loading-splash__content{text-align:center}
+      .loading-splash__logo{width:96px;height:96px;border-radius:32px;background:rgba(255,255,255,0.05);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 50px -12px rgba(0,0,0,0.25)}
+      .loading-splash__title{font-size:32px;font-weight:900;letter-spacing:-0.02em;text-transform:uppercase;margin-top:24px;color:#fafafa}
+      .loading-splash__subtitle{font-size:10px;font-weight:900;letter-spacing:0.4em;text-transform:uppercase;color:#a1a1aa;margin-top:8px;opacity:0.6}
+      @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+      .loading-splash__logo{animation:pulse 2s cubic-bezier(0.4,0,0.6,1) infinite}
+    </style>
+
+    <title>IDP Asistente Contable</title>
+  </head>
+  <body>
+    <div id="root">
+      <!-- Loading splash para FCP inmediato mientras React carga -->
+      <div class="loading-splash">
+        <div class="loading-splash__content">
+          <div class="loading-splash__logo">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 class="loading-splash__title">IDP<span style="color:rgb(129,140,248)">.</span>Workbench</h1>
+          <p class="loading-splash__subtitle">Intelligent Data Processing Hub</p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

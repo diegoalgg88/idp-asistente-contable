@@ -1,0 +1,27 @@
+src/components/reconciliation/BankStatementUpload.test.tsx(134,7): error TS2353: Object literal may only specify known properties, and 'size' does not exist in type 'FilePropertyBag'.
+src/components/reconciliation/BankStatementUpload.test.tsx(191,7): error TS2353: Object literal may only specify known properties, and 'size' does not exist in type 'FilePropertyBag'.
+src/components/reconciliation/BankStatementUpload.tsx(171,7): error TS2353: Object literal may only specify known properties, and 'onProgress' does not exist in type 'MutateOptions<UploadBankStatementResponse, Error, FormData, unknown>'.
+src/components/reconciliation/index.ts(20,3): error TS2614: Module '"./BankStatementUpload"' has no exported member 'MatchingTableProps'. Did you mean to use 'import MatchingTableProps from "./BankStatementUpload"' instead?
+src/components/reconciliation/index.ts(21,3): error TS2614: Module '"./BankStatementUpload"' has no exported member 'MatchFiltersProps'. Did you mean to use 'import MatchFiltersProps from "./BankStatementUpload"' instead?
+src/components/reconciliation/index.ts(22,3): error TS2614: Module '"./BankStatementUpload"' has no exported member 'UnmatchedAlertsProps'. Did you mean to use 'import UnmatchedAlertsProps from "./BankStatementUpload"' instead?
+src/components/reconciliation/MatchFilters.tsx(57,18): error TS2345: Argument of type '{ matchType: "all" | "exact" | "fuzzy" | "llm_confirmed" | "llm_review"; estado?: "pending" | "confirmed" | "rejected"; confidenceMin?: number; searchQuery?: string; }' is not assignable to parameter of type 'Partial<{ matchType?: "exact" | "fuzzy" | "llm_confirmed" | "llm_review"; estado?: "pending" | "confirmed" | "rejected"; confidenceMin?: number; searchQuery?: string; }>'.
+  Types of property 'matchType' are incompatible.
+    Type '"all" | "exact" | "fuzzy" | "llm_confirmed" | "llm_review"' is not assignable to type '"exact" | "fuzzy" | "llm_confirmed" | "llm_review"'.
+      Type '"all"' is not assignable to type '"exact" | "fuzzy" | "llm_confirmed" | "llm_review"'.
+src/components/reconciliation/MatchFilters.tsx(69,18): error TS2345: Argument of type '{ estado: "all" | "pending" | "confirmed" | "rejected"; matchType?: "exact" | "fuzzy" | "llm_confirmed" | "llm_review"; confidenceMin?: number; searchQuery?: string; }' is not assignable to parameter of type 'Partial<{ matchType?: "exact" | "fuzzy" | "llm_confirmed" | "llm_review"; estado?: "pending" | "confirmed" | "rejected"; confidenceMin?: number; searchQuery?: string; }>'.
+  Types of property 'estado' are incompatible.
+    Type '"all" | "pending" | "confirmed" | "rejected"' is not assignable to type '"pending" | "confirmed" | "rejected"'.
+      Type '"all"' is not assignable to type '"pending" | "confirmed" | "rejected"'.
+src/components/reconciliation/UnmatchedAlerts.tsx(40,15): error TS2614: Module '"@/store/reconciliationStore"' has no exported member 'BankTransaction'. Did you mean to use 'import BankTransaction from "@/store/reconciliationStore"' instead?
+src/components/reconciliation/UnmatchedAlerts.tsx(114,29): error TS2339: Property 'monto' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(118,29): error TS2339: Property 'monto' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(273,31): error TS2339: Property 'id' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(280,68): error TS2339: Property 'concepto' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(289,50): error TS2339: Property 'fecha' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(290,76): error TS2339: Property 'monto' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(291,33): error TS2339: Property 'proveedor' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(292,41): error TS2339: Property 'proveedor' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(315,44): error TS2339: Property 'concepto' does not exist on type 'UnmatchedTransaction'.
+src/components/reconciliation/UnmatchedAlerts.tsx(315,62): error TS2339: Property 'monto' does not exist on type 'UnmatchedTransaction'.
+src/pages/ReconciliationPage.tsx(26,11): error TS2339: Property 'stats' does not exist on type 'UseQueryResult<ReconciliationStats, Error>'.
+src/pages/ReconciliationPage.tsx(80,61): error TS2551: Property 'total_transacciones' does not exist on type 'ReconciliationBatch'. Did you mean 'total_transactions'?

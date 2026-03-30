@@ -1,0 +1,102 @@
+"""
+Script para generar un PDF de test para los tests E2E de Playwright.
+Este PDF simula un CFDI de nómina para propósitos de testing.
+"""
+
+import os
+
+# Crear directorio de fixtures si no existe
+fixtures_dir = os.path.join(os.path.dirname(__file__), 'fixtures')
+os.makedirs(fixtures_dir, exist_ok=True)
+
+# Crear un PDF simple (contenido mínimo válido)
+pdf_content = b"""%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+4 0 obj
+<<
+/Length 200
+>>
+stream
+BT
+/F1 24 Tf
+100 700 Td
+(CFDI - Comprobante Fiscal Digital) Tj
+0 -40 Td
+/F1 16 Tf
+(Tipo: Nomina) Tj
+0 -30 Td
+(Folio: TEST-001) Tj
+0 -30 Td
+(Fecha: 2026-03-10) Tj
+0 -50 Td
+(Emisor: CONTABILIDAD S.A. DE C.V.) Tj
+0 -20 Td
+(RFC: CON850101ABC) Tj
+0 -50 Td
+(Receptor: DIEGO GZZ) Tj
+0 -20 Td
+(RFC: GZZD900101XYZ) Tj
+0 -50 Td
+(Subtotal: $15,400.00 MXN) Tj
+0 -20 Td
+(Total: $15,400.00 MXN) Tj
+ET
+endstream
+endobj
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000274 00000 n 
+0000000526 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+603
+%%EOF
+"""
+
+# Guardar PDF
+pdf_path = os.path.join(fixtures_dir, 'test-cfdi.pdf')
+with open(pdf_path, 'wb') as f:
+    f.write(pdf_content)
+
+print(f"PDF de test creado: {pdf_path}")
+print(f"Tamaño: {os.path.getsize(pdf_path)} bytes")

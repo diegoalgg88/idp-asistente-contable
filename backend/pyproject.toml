@@ -1,0 +1,197 @@
+# =============================================================================
+# IDP Asistente Contable - Backend
+# =============================================================================
+
+[project]
+name = "idp-asistente-contable"
+version = "1.0.0"
+description = "Intelligent Document Processing - Asistente Contable & Fiscal para México"
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "DiegoGzz" }
+]
+
+dependencies = [
+    # FastAPI Framework
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "python-multipart>=0.0.6",
+    "starlette>=0.35.1",
+
+    # Rate Limiting
+    "slowapi>=0.1.9",
+    "redis>=5.0.1",
+
+    # Database - SQLAlchemy
+    "sqlalchemy>=2.0.25",
+    "psycopg2-binary>=2.9.9",
+    "alembic>=1.13.1",
+    "aiosqlite>=0.22.1",
+
+    # Vector Database - ChromaDB
+    "chromadb>=0.4.24",
+
+    # NVIDIA NIM SDK - AI Endpoints
+    "langchain-nvidia-ai-endpoints>=0.1.6",
+    "langchain>=0.1.20",
+    "langchain-community>=0.0.38",
+    "langchain-core>=0.1.52",
+
+    # LangGraph - Agent Workflows
+    "langgraph>=0.0.49",
+
+    # Environment & Configuration
+    "pydantic>=2.5.3",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+
+    # Security & Authentication
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt>=3.2.0",
+    "cryptography>=42.0.0",
+
+    # HTTP Client
+    "httpx>=0.26.0",
+    "aiohttp>=3.9.1",
+    "requests>=2.32.3",
+
+    # PDF Processing
+    "pdf2image>=1.17.0",
+    "Pillow>=10.4.0",
+
+    # XML Processing (SAT/CFDI)
+    "lxml>=6.0.0",
+    "zeep>=4.3.0",
+
+    # Data Processing
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "chardet<6.0.0",
+
+    # Utilities
+    "tenacity>=8.2.3",
+    "pyyaml>=6.0.1",
+    "python-dateutil>=2.8.2",
+    "tqdm>=4.66.1",
+
+    # Monitoring
+    "sentry-sdk[fastapi]>=2.54.0",
+
+    # Analytics
+    "plotly>=5.0.0",
+    "posthog>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "black>=24.1.1",
+    "flake8>=7.0.0",
+    "mypy>=1.8.0",
+]
+
+# =============================================================================
+# Build System
+# =============================================================================
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# =============================================================================
+# Pyright / Pylance / Pyre2 Configuration
+# =============================================================================
+[tool.pyright]
+pythonVersion = "3.11"
+pythonPlatform = "All"
+
+# Source roots — tells the type checker where to find imports
+venvPath = "."
+venv = ".venv"
+
+# Include paths for analysis
+include = [
+    "app",
+    "tests",
+]
+
+# Excluded from analysis
+exclude = [
+    ".venv",
+    "__pycache__",
+    "**/__pycache__",
+    ".docs",
+    "dataset",
+    "output",
+    "uploads",
+    "logs",
+    "knowledge",
+]
+
+# Extra search paths for resolving imports (e.g., `from app.xxx import yyy`)
+extraPaths = [
+    ".",
+]
+
+# Type checking mode: "off", "basic", "standard", "strict"
+typeCheckingMode = "basic"
+
+# Specific diagnostic settings
+reportMissingImports = "warning"
+reportMissingTypeStubs = "none"
+reportOptionalMemberAccess = "warning"
+reportGeneralTypeIssues = "warning"
+reportUnusedImport = "information"
+reportPrivateUsage = "none"
+
+# =============================================================================
+# pytest Configuration
+# =============================================================================
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+asyncio_mode = "auto"
+
+# =============================================================================
+# Black Formatter
+# =============================================================================
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+include = '\.pyi?$'
+
+# =============================================================================
+# MyPy Configuration
+# =============================================================================
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "langgraph.*",
+    "langchain.*",
+    "langchain_core.*",
+    "langchain_community.*",
+    "chromadb.*",
+    "pdf2image.*",
+    "chardet.*",
+    "plotly.*",
+    "posthog.*",
+    "zeep.*",
+    "lxml.*",
+]
+ignore_missing_imports = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]

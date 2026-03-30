@@ -1,0 +1,526 @@
+{
+  "metadata": {
+    "project": "idp-asistente-contable-frontend",
+    "version": "1.0.0",
+    "generated": "2026-03-10T00:00:00.000Z",
+    "generator": "knowledge-architect",
+    "totalFiles": 138,
+    "totalLOC": 26265,
+    "estimatedTokens": 561238,
+    "totalCharacters": 1924104
+  },
+  "directory_structure": {
+    "root": "frontend",
+    "source": "src",
+    "directories": [
+      {
+        "path": "src/components",
+        "description": "Componentes React de la aplicación",
+        "subdirectories": [
+          {
+            "path": "src/components/ui",
+            "description": "Componentes base de shadcn/ui con Radix UI primitives",
+            "fileCount": 24
+          }
+        ],
+        "fileCount": 18,
+        "keyFiles": [
+          "Layout.tsx",
+          "Workspace.tsx",
+          "Chat.tsx",
+          "Documents.tsx",
+          "Fiscal.tsx",
+          "Payroll.tsx",
+          "Finance.tsx",
+          "Expenses.tsx",
+          "Clients.tsx"
+        ]
+      },
+      {
+        "path": "src/hooks",
+        "description": "Hooks personalizados para lógica reutilizable",
+        "fileCount": 8,
+        "keyFiles": [
+          "useAuth.ts",
+          "useChat.ts",
+          "useDocuments.ts",
+          "useIDP.ts",
+          "use-mobile.ts"
+        ]
+      },
+      {
+        "path": "src/services",
+        "description": "Servicios API y clientes HTTP",
+        "fileCount": 4,
+        "keyFiles": [
+          "api.ts",
+          "auth.service.ts",
+          "chat.service.ts",
+          "idp.service.ts"
+        ]
+      },
+      {
+        "path": "src/store",
+        "description": "Stores de Zustand para estado global",
+        "fileCount": 5,
+        "keyFiles": [
+          "auth.store.ts",
+          "chat.store.ts",
+          "idp.store.ts",
+          "modules.store.ts",
+          "index.ts"
+        ]
+      },
+      {
+        "path": "src/types",
+        "description": "Tipos e interfaces TypeScript globales",
+        "fileCount": 1,
+        "keyFiles": ["index.ts"]
+      },
+      {
+        "path": "src/lib",
+        "description": "Utilidades de librerías y configuraciones base",
+        "fileCount": 2,
+        "keyFiles": ["utils.ts", "sentry.ts"]
+      },
+      {
+        "path": "src/utils",
+        "description": "Utilidades propias de la aplicación",
+        "fileCount": 1,
+        "keyFiles": ["reportWebVitals.ts"]
+      },
+      {
+        "path": "src/test",
+        "description": "Configuración de tests unitarios",
+        "fileCount": 1,
+        "keyFiles": ["setup.ts"]
+      },
+      {
+        "path": "tests/e2e",
+        "description": "Tests end-to-end con Playwright",
+        "subdirectories": [
+          {"path": "tests/e2e/page-objects", "description": "Page Objects Pattern", "fileCount": 4},
+          {"path": "tests/e2e/specs", "description": "Especificaciones de tests", "fileCount": 7},
+          {"path": "tests/e2e/fixtures", "description": "Datos de prueba", "fileCount": 4},
+          {"path": "tests/e2e/utils", "description": "Utilidades de testing", "fileCount": 2}
+        ],
+        "fileCount": 12
+      },
+      {
+        "path": "frontend/docs",
+        "description": "Documentación técnica del proyecto",
+        "fileCount": 5
+      },
+      {
+        "path": "dev-dist",
+        "description": "Service Worker y archivos PWA generados",
+        "fileCount": 5
+      }
+    ]
+  },
+  "file_inventory": [
+    {"path": "src/components/Layout.tsx", "role": "Layout Principal", "loc": 616, "tokens": 6137, "criticality": "high"},
+    {"path": "src/components/Workspace.tsx", "role": "Dashboard", "loc": 385, "tokens": 5034, "criticality": "high"},
+    {"path": "src/components/Chat.tsx", "role": "Chat con IA", "loc": 300, "tokens": 4500, "criticality": "high"},
+    {"path": "src/components/Documents.tsx", "role": "Gestión Documental", "loc": 280, "tokens": 5034, "criticality": "high"},
+    {"path": "src/components/ui/sidebar.tsx", "role": "Componente UI", "loc": 280, "tokens": 5442, "criticality": "medium"},
+    {"path": "src/components/Payroll.tsx", "role": "Módulo Nóminas", "loc": 250, "tokens": 4570, "criticality": "medium"},
+    {"path": "src/components/Finance.tsx", "role": "Módulo Finanzas", "loc": 240, "tokens": 3775, "criticality": "medium"},
+    {"path": "src/components/Fiscal.tsx", "role": "Módulo Fiscal", "loc": 230, "tokens": 3579, "criticality": "medium"},
+    {"path": "src/components/Expenses.tsx", "role": "Módulo Gastos", "loc": 220, "tokens": 3841, "criticality": "medium"},
+    {"path": "src/components/Clients.tsx", "role": "Módulo Clientes", "loc": 200, "tokens": 3074, "criticality": "medium"},
+    {"path": "src/services/api.ts", "role": "API Client", "loc": 450, "tokens": 3882, "criticality": "high"},
+    {"path": "src/components/Dashboard.tsx", "role": "Dashboard Secundario", "loc": 180, "tokens": 3420, "criticality": "low"},
+    {"path": "src/types/index.ts", "role": "Tipos Globales", "loc": 150, "tokens": 1800, "criticality": "high"},
+    {"path": "src/store/chat.store.ts", "role": "Chat Store", "loc": 120, "tokens": 1400, "criticality": "medium"},
+    {"path": "src/store/auth.store.ts", "role": "Auth Store", "loc": 100, "tokens": 1200, "criticality": "high"},
+    {"path": "src/hooks/useDocuments.ts", "role": "Documents Hook", "loc": 80, "tokens": 900, "criticality": "medium"},
+    {"path": "src/App.tsx", "role": "App Root", "loc": 120, "tokens": 1500, "criticality": "high"},
+    {"path": "src/main.tsx", "role": "Entry Point", "loc": 80, "tokens": 1000, "criticality": "critical"},
+    {"path": "vite.config.ts", "role": "Build Config", "loc": 180, "tokens": 2200, "criticality": "high"},
+    {"path": "package.json", "role": "Dependencies", "loc": 90, "tokens": 1100, "criticality": "high"}
+  ],
+  "project_structure": {
+    "architecture": "React SPA con enrutamiento cliente y estado híbrido",
+    "patterns": [
+      "Component-Based Architecture",
+      "Custom Hooks Pattern",
+      "State Management con Zustand",
+      "Server State con TanStack Query",
+      "Service Layer Pattern",
+      "Page Objects (E2E testing)"
+    ],
+    "state_management": {
+      "client_state": "Zustand con persistencia en localStorage",
+      "server_state": "TanStack Query con caching y optimistic updates",
+      "stores": [
+        {"name": "useAppStore", "purpose": "Estado global de UI y usuario", "persistent": true},
+        {"name": "useAuthStore", "purpose": "Autenticación y sesión", "persistent": true},
+        {"name": "useChatStore", "purpose": "Conversaciones de chat", "persistent": false},
+        {"name": "useIDPStore", "purpose": "Documentos y procesamiento IDP", "persistent": false},
+        {"name": "useModulesStore", "purpose": "Datos de módulos de negocio", "persistent": false}
+      ]
+    },
+    "routing": {
+      "library": "react-router-dom v6",
+      "strategy": "Lazy loading con React.lazy + Suspense",
+      "routes": [
+        {"path": "/", "component": "Layout", "children": [
+          {"path": "dashboard", "component": "Workspace", "lazy": true},
+          {"path": "chat", "component": "Chat", "lazy": true},
+          {"path": "documents", "component": "Documents", "lazy": true},
+          {"path": "fiscal", "component": "Fiscal", "lazy": true},
+          {"path": "expenses", "component": "Expenses", "lazy": true},
+          {"path": "settings", "component": "Settings", "lazy": true},
+          {"path": "clients", "component": "Clients", "lazy": true},
+          {"path": "payroll", "component": "Payroll", "lazy": true},
+          {"path": "finance", "component": "Finance", "lazy": true}
+        ]}
+      ]
+    },
+    "styling": {
+      "framework": "Tailwind CSS 3.4.1",
+      "component_library": "shadcn/ui 1.4.3",
+      "ui_primitives": "Radix UI (headless, accesible)",
+      "icons": "Lucide React",
+      "fonts": "Geist Variable (preloaded con font-display: swap)",
+      "utility": "cn() con tailwind-merge + clsx"
+    }
+  },
+  "code_metrics": {
+    "total_files": 138,
+    "total_lines": 26265,
+    "total_tokens": 561238,
+    "total_characters": 1924104,
+    "average_file_size_loc": 190,
+    "largest_files": [
+      {"path": "src/components/Layout.tsx", "loc": 616},
+      {"path": "src/components/Workspace.tsx", "loc": 385},
+      {"path": "src/services/api.ts", "loc": 450},
+      {"path": "src/components/Chat.tsx", "loc": 300},
+      {"path": "src/components/Documents.tsx", "loc": 280}
+    ],
+    "build_metrics": {
+      "total_bundle_size": "786.53 KiB",
+      "main_bundle": "170.49 KiB",
+      "vendor_chunks": "160.44 KiB",
+      "ui_chunks": "140.06 KiB",
+      "critical_css_inlined": "1.05 KiB",
+      "pwa_precache_entries": 27,
+      "pwa_precache_size": "2343.61 KiB"
+    },
+    "performance_metrics": {
+      "fcp_before": "2136ms",
+      "fcp_after": "~1100ms",
+      "fcp_improvement": "-48%",
+      "lcp_estimated": "~1900ms",
+      "cls_estimated": "~0.02",
+      "tti_estimated": "~2400ms"
+    }
+  },
+  "dependency_analysis": {
+    "production_dependencies": {
+      "core": [
+        {"name": "react", "version": "^18.2.0", "purpose": "Framework UI"},
+        {"name": "react-dom", "version": "^18.2.0", "purpose": "DOM rendering"},
+        {"name": "react-router-dom", "version": "^6.21.1", "purpose": "Enrutamiento"},
+        {"name": "typescript", "version": "^5.3.3", "purpose": "Lenguaje"}
+      ],
+      "state": [
+        {"name": "zustand", "version": "^4.4.7", "purpose": "Estado global"},
+        {"name": "@tanstack/react-query", "version": "^5.17.9", "purpose": "Server state"},
+        {"name": "@tanstack/react-virtual", "version": "^3.13.21", "purpose": "Virtualización"}
+      ],
+      "http": [
+        {"name": "axios", "version": "^1.6.5", "purpose": "HTTP client"}
+      ],
+      "ui": [
+        {"name": "tailwindcss", "version": "^3.4.1", "purpose": "CSS framework"},
+        {"name": "radix-ui", "version": "^1.4.3", "purpose": "UI primitives"},
+        {"name": "lucide-react", "version": "^0.309.0", "purpose": "Iconos"},
+        {"name": "recharts", "version": "^2.15.4", "purpose": "Gráficos"},
+        {"name": "react-resizable-panels", "version": "^4.7.2", "purpose": "Paneles redimensionables"}
+      ],
+      "utilities": [
+        {"name": "class-variance-authority", "version": "^0.7.1", "purpose": "Variants de clases"},
+        {"name": "clsx", "version": "^2.1.1", "purpose": "Utilidad de clases"},
+        {"name": "tailwind-merge", "version": "^3.5.0", "purpose": "Merge de clases Tailwind"},
+        {"name": "date-fns", "version": "^3.2.0", "purpose": "Manipulación de fechas"}
+      ],
+      "fonts": [
+        {"name": "@fontsource-variable/geist", "version": "^5.2.8", "purpose": "Fuente principal"}
+      ],
+      "monitoring": [
+        {"name": "@sentry/react", "version": "^10.43.0", "purpose": "Monitoreo de errores"},
+        {"name": "@sentry/tracing", "version": "^7.120.4", "purpose": "Trazas de performance"},
+        {"name": "web-vitals", "version": "^5.1.0", "purpose": "Métricas de performance"}
+      ],
+      "pwa": [
+        {"name": "vite-plugin-pwa", "version": "^1.2.0", "purpose": "Service Worker"}
+      ]
+    },
+    "development_dependencies": {
+      "build": [
+        {"name": "vite", "version": "^5.0.11", "purpose": "Build tool"},
+        {"name": "@vitejs/plugin-react", "version": "^4.2.1", "purpose": "Plugin React"},
+        {"name": "@sentry/vite-plugin", "version": "^5.1.1", "purpose": "Source maps Sentry"}
+      ],
+      "typescript": [
+        {"name": "typescript", "version": "^5.3.3", "purpose": "Type checking"},
+        {"name": "@types/react", "version": "^19.2.14", "purpose": "Tipos React"},
+        {"name": "@types/react-dom", "version": "^19.2.3", "purpose": "Tipos ReactDOM"},
+        {"name": "@types/node", "version": "^25.4.0", "purpose": "Tipos Node"}
+      ],
+      "testing": [
+        {"name": "vitest", "version": "^1.2.1", "purpose": "Test runner"},
+        {"name": "@vitest/coverage-v8", "version": "^1.3.0", "purpose": "Coverage"},
+        {"name": "jsdom", "version": "^24.0.0", "purpose": "DOM environment"},
+        {"name": "@testing-library/react", "version": "^14.2.0", "purpose": "Testing utilities"},
+        {"name": "@playwright/test", "version": "^1.58.2", "purpose": "E2E testing"}
+      ],
+      "linting": [
+        {"name": "eslint", "version": "^8.56.0", "purpose": "Linting"},
+        {"name": "@typescript-eslint/eslint-plugin", "version": "^6.19.0", "purpose": "Reglas TS"},
+        {"name": "eslint-plugin-react-hooks", "version": "^4.6.0", "purpose": "Reglas React"}
+      ],
+      "optimization": [
+        {"name": "critters", "version": "^0.0.23", "purpose": "Critical CSS"},
+        {"name": "rollup-plugin-visualizer", "version": "^7.0.1", "purpose": "Bundle analysis"},
+        {"name": "vite-plugin-image-optimizer", "version": "^2.0.3", "purpose": "Optimización imágenes"}
+      ]
+    },
+    "code_splitting": {
+      "strategy": "manualChunks en rollupOptions",
+      "chunks": [
+        {"name": "react-vendor", "modules": ["react", "react-dom/client"], "priority": "critical"},
+        {"name": "router-vendor", "modules": ["react-router-dom"], "priority": "high"},
+        {"name": "query-vendor", "modules": ["@tanstack/react-query"], "priority": "medium"},
+        {"name": "sentry-vendor", "modules": ["@sentry/react"], "priority": "low"},
+        {"name": "ui-primitives", "modules": ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu"], "priority": "medium"},
+        {"name": "icons-vendor", "modules": ["lucide-react"], "priority": "low"}
+      ]
+    },
+    "dependency_graph": {
+      "entry_point": "src/main.tsx",
+      "critical_path": [
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/components/Layout.tsx",
+        "src/components/Workspace.tsx",
+        "src/services/api.ts",
+        "src/store/auth.store.ts"
+      ],
+      "lazy_loaded": [
+        "src/components/Chat.tsx",
+        "src/components/Documents.tsx",
+        "src/components/Fiscal.tsx",
+        "src/components/Payroll.tsx",
+        "src/components/Finance.tsx",
+        "src/components/Expenses.tsx",
+        "src/components/Clients.tsx",
+        "src/components/Settings.tsx"
+      ]
+    }
+  },
+  "entry_points": {
+    "main": {
+      "file": "src/main.tsx",
+      "description": "Punto de entrada principal de la aplicación React",
+      "responsibilities": [
+        "Inicializar ReactDOM.createRoot",
+        "Configurar QueryClientProvider (TanStack Query)",
+        "Configurar SentryProfiler",
+        "Registrar Web Vitals diferidamente",
+        "Renderizar componente App"
+      ]
+    },
+    "html": {
+      "file": "index.html",
+      "description": "HTML principal con optimizaciones de FCP",
+      "features": [
+        "Critical CSS inline",
+        "Preload de fuentes Geist Variable",
+        "Loading splash para FCP inmediato",
+        "Modulepreload para JS crítico",
+        "Meta tags PWA"
+      ]
+    },
+    "service_worker": {
+      "file": "dev-dist/sw.js",
+      "description": "Service Worker para PWA",
+      "features": [
+        "Precache de 27 recursos",
+        "Runtime caching para API (NetworkFirst)",
+        "Cache de imágenes (CacheFirst)",
+        "Auto-update strategy"
+      ]
+    }
+  },
+  "api_endpoints": {
+    "base_url": "http://localhost:8000/v1",
+    "services": {
+      "auth": {
+        "base": "/auth",
+        "endpoints": [
+          {"method": "POST", "path": "/token", "purpose": "Login OAuth2"},
+          {"method": "GET", "path": "/me", "purpose": "Usuario actual"},
+          {"method": "POST", "path": "/refresh", "purpose": "Refresh token"}
+        ]
+      },
+      "idp": {
+        "base": "/idp",
+        "endpoints": [
+          {"method": "POST", "path": "/process", "purpose": "Procesar documento"},
+          {"method": "POST", "path": "/batch-process", "purpose": "Procesamiento batch"},
+          {"method": "GET", "path": "/:id", "purpose": "Obtener documento"},
+          {"method": "DELETE", "path": "/:id", "purpose": "Eliminar documento"},
+          {"method": "GET", "path": "/stats", "purpose": "Estadísticas"}
+        ]
+      },
+      "chat": {
+        "base": "/chat",
+        "endpoints": [
+          {"method": "POST", "path": "/message", "purpose": "Enviar mensaje"},
+          {"method": "POST", "path": "/message/stream", "purpose": "Streaming SSE"},
+          {"method": "GET", "path": "/conversation/:id", "purpose": "Obtener conversación"},
+          {"method": "DELETE", "path": "/conversation/:id", "purpose": "Eliminar conversación"},
+          {"method": "GET", "path": "/conversations", "purpose": "Listar conversaciones"},
+          {"method": "POST", "path": "/feedback", "purpose": "Enviar feedback"}
+        ]
+      },
+      "workspace": {
+        "base": "/workspace",
+        "endpoints": [
+          {"method": "GET", "path": "/dashboard", "purpose": "Dashboard datos"},
+          {"method": "GET", "path": "/calendar", "purpose": "Calendario fiscal"},
+          {"method": "GET", "path": "/metrics", "purpose": "Métricas IA"}
+        ]
+      },
+      "clients": {
+        "base": "/clients",
+        "endpoints": [
+          {"method": "GET", "path": "", "purpose": "Listar clientes"},
+          {"method": "GET", "path": "/:id", "purpose": "Obtener cliente"},
+          {"method": "POST", "path": "", "purpose": "Crear cliente"},
+          {"method": "PUT", "path": "/:id", "purpose": "Actualizar cliente"},
+          {"method": "DELETE", "path": "/:id", "purpose": "Eliminar cliente"},
+          {"method": "GET", "path": "/:id/expediente", "purpose": "Expediente KYC"}
+        ]
+      },
+      "fiscal": {
+        "base": "/fiscal",
+        "endpoints": [
+          {"method": "GET", "path": "/deadlines", "purpose": "Deadlines fiscales"},
+          {"method": "GET", "path": "/deductions", "purpose": "Deducciones"},
+          {"method": "GET", "path": "/annual-report", "purpose": "Reporte anual"},
+          {"method": "GET", "path": "/opinion", "purpose": "Opinión SAT"},
+          {"method": "GET", "path": "/coeficiente", "purpose": "Coeficiente CU"}
+        ]
+      },
+      "payroll": {
+        "base": "/payroll",
+        "endpoints": [
+          {"method": "GET", "path": "/summary", "purpose": "Resumen nóminas"},
+          {"method": "GET", "path": "/employees", "purpose": "Empleados"},
+          {"method": "POST", "path": "/disperse", "purpose": "Dispersión"},
+          {"method": "GET", "path": "/special-calcs", "purpose": "Cálculos especiales"},
+          {"method": "GET", "path": "/sua", "purpose": "SUA/IMSS"}
+        ]
+      },
+      "finance": {
+        "base": "/finance",
+        "endpoints": [
+          {"method": "GET", "path": "/summary", "purpose": "Resumen financiero"},
+          {"method": "GET", "path": "/statements", "purpose": "Estados financieros"},
+          {"method": "GET", "path": "/bank-accounts", "purpose": "Cuentas bancarias"},
+          {"method": "POST", "path": "/reconcile", "purpose": "Conciliación"},
+          {"method": "GET", "path": "/cash-flow", "purpose": "Flujo efectivo"}
+        ]
+      },
+      "expenses": {
+        "base": "/expenses",
+        "endpoints": [
+          {"method": "GET", "path": "/categories", "purpose": "Categorías"},
+          {"method": "GET", "path": "/pending", "purpose": "Pendientes"},
+          {"method": "POST", "path": "/classify", "purpose": "Clasificar IA"},
+          {"method": "GET", "path": "/budget", "purpose": "Presupuesto"}
+        ]
+      },
+      "users": {
+        "base": "/users",
+        "endpoints": [
+          {"method": "GET", "path": "/me", "purpose": "Perfil usuario"},
+          {"method": "PUT", "path": "/me", "purpose": "Actualizar perfil"},
+          {"method": "GET", "path": "/me/settings", "purpose": "Configuración"},
+          {"method": "PUT", "path": "/me/settings", "purpose": "Actualizar configuración"},
+          {"method": "GET", "path": "/me/fiscal-profiles", "purpose": "Perfiles fiscales"},
+          {"method": "GET", "path": "/me/subscription", "purpose": "Suscripción"}
+        ]
+      }
+    }
+  },
+  "testing_strategy": {
+    "unit_testing": {
+      "framework": "Vitest",
+      "environment": "jsdom",
+      "utilities": ["@testing-library/react", "@testing-library/user-event"],
+      "coverage_tool": "@vitest/coverage-v8",
+      "test_files_pattern": "**/*.test.tsx?"
+    },
+    "e2e_testing": {
+      "framework": "Playwright",
+      "browsers": ["chromium", "firefox", "webkit"],
+      "mobile_browsers": ["Mobile Chrome", "Mobile Safari"],
+      "pattern": "Page Objects",
+      "test_files_pattern": "tests/e2e/**/*.spec.ts"
+    },
+    "accessibility_testing": {
+      "tool": "@axe-core/playwright",
+      "integration": "Playwright E2E"
+    }
+  },
+  "optimization_features": {
+    "code_splitting": {
+      "enabled": true,
+      "strategy": "manualChunks + React.lazy",
+      "bundles": 6
+    },
+    "lazy_loading": {
+      "enabled": true,
+      "components": 8,
+      "routes": 9
+    },
+    "virtualization": {
+      "enabled": true,
+      "library": "@tanstack/react-virtual",
+      "components": ["VirtualizedChatHistory", "VirtualizedDocumentList"]
+    },
+    "critical_css": {
+      "enabled": true,
+      "tool": "critters",
+      "inlined_size": "1.05 KiB"
+    },
+    "font_optimization": {
+      "preload": true,
+      "font_display": "swap",
+      "formats": ["woff2"]
+    },
+    "image_optimization": {
+      "enabled": true,
+      "tool": "vite-plugin-image-optimizer",
+      "formats": ["webp", "avif"]
+    },
+    "pwa": {
+      "enabled": true,
+      "service_worker": true,
+      "manifest": true,
+      "precache_entries": 27,
+      "runtime_caching": true
+    },
+    "monitoring": {
+      "error_tracking": "Sentry",
+      "web_vitals": true,
+      "performance_monitoring": true
+    }
+  }
+}

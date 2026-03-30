@@ -1,0 +1,46 @@
+# Install
+# Add the Sentry SDK as a dependency using npm, yarn, or pnpm:
+```
+npm install --save @sentry/react
+```
+
+
+# If you want your AI coding assistant to help you set up Sentry, copy this prompt and paste it into your agent:
+
+Read and follow: https://github.com/getsentry/sentry-for-ai/blob/main/skills/sentry-react-sdk/SKILL.md
+
+#Verify
+#This snippet contains an intentional error and can be used as a test to make sure that everything's working as expected.
+
+```
+import * as Sentry from '@sentry/react';
+// Add this button component to your app to test Sentry's error tracking
+function ErrorButton() {
+  return (
+    <button
+      onClick={() => {
+        throw new Error('This is your first error!');
+      }}
+    >
+      Break the world
+    </button>
+  );
+}
+```
+
+# Configure SDK
+# Initialize Sentry as early as possible in your application's lifecycle.
+```
+import * as Sentry from "@sentry/react";
+
+Sentry.init({
+  dsn: "https://1dfa0654de01be53784b27bf36ec7b51@o4510725289476096.ingest.us.sentry.io/4511020049891328",
+  // Setting this option to true will send default PII data to Sentry.
+  // For example, automatic IP address collection on events
+  sendDefaultPii: true
+});
+
+const container = document.getElementById("app");
+const root = createRoot(container);
+root.render(<App />);
+```

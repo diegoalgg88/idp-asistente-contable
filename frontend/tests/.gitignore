@@ -1,0 +1,23 @@
+# Playwright
+playwright-report/
+playwright-results/
+playwright/.cache/
+test-results/
+
+# Screenshots y videos
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webm
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

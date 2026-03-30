@@ -1,0 +1,28 @@
+{
+  "test1": {
+    "content": {
+      "content": null,
+      "tool_calls": [
+        {
+          "id": "chatcmpl-tool-b224c3bca1fbc33f",
+          "type": "function",
+          "function": {
+            "name": "get_clients_list",
+            "arguments": "{\"status_filter\": \"Activo\"}"
+          }
+        }
+      ]
+    },
+    "sources": [],
+    "confidence": 0.7,
+    "model_used": "meta/llama-3.3-70b-instruct",
+    "latency": 8.285657167434692
+  },
+  "test2": {
+    "content": "Hola, me alegra conocerte. Soy el Agente Fiscal de IDP Asistente Contable, un asistente experto en contabilidad y fiscalidad mexicana. Estoy aquí para ayudarte con cualquier consulta o inquietud que tengas relacionada con la contabilidad, impuestos, declaraciones, entre otros temas fiscales en México. ¿En qué puedo ayudarte hoy?",
+    "sources": [],
+    "confidence": 0.7999999999999999,
+    "model_used": "meta/llama-3.3-70b-instruct",
+    "latency": 2.450742483139038
+  }
+}

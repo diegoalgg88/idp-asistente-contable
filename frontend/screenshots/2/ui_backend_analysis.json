@@ -1,0 +1,764 @@
+[
+  {
+    "filename": "Imagen del Portapapeles.jpg",
+    "page": "Dashboard General (/dashboard)",
+    "ui_backend_alignment_issues": [
+      "El KPI 'Saldo Conciliado $145,200' no tiene un endpoint claro en el backend que proporcione este dato específico. El backend tiene lógica para calcularlo en GET /v1/workspace/dashboard (líneas 95-108).",
+      "'Precisión Extracción 98.1%' coincide con el endpoint GET /v1/workspace/dashboard pero no hay documentos (Documentos: 0) - inconsistencia lógica.",
+      "La sección 'WORKFLOWS EN PROGRESO' muestra 'No hay workflows activos' pero el backend crea workflows por defecto en el endpoint dashboard (líneas 51-82).",
+      "El botón 'INICIAR AUDITORÍA IA' no tiene endpoint POST correspondiente en el backend.",
+      "'IDP ENGINE ACTIVE | MODEL: LLAMA-3.3-70B' es información hardcoded sin endpoint de configuración del modelo.",
+      "La barra de estado inferior 'Conectado: Backend Local' y 'Sincronización: Al día' no tienen endpoints de estado de conexión."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Inconsistencia: Documentos: 0 pero Precisión Extracción: 98.1%.",
+        "solution": "Validar que si documentos=0, la precisión se muestre como 'N/A' o '-'.",
+        "benefits": "Evita confusión del usuario con métricas inconsistentes."
+      },
+      {
+        "description": "La sección de workflows está vacía a pesar de que el backend crea workflows por defecto.",
+        "solution": "Verificar que el endpoint GET /v1/workspace/dashboard retorne los workflows creados.",
+        "benefits": "Mejora la experiencia de usuario mostrando datos reales."
+      },
+      {
+        "description": "El botón 'INICIAR AUDITORÍA IA' no tiene backend.",
+        "solution": "Crear endpoint POST /v1/workspace/start-audit o eliminar el botón.",
+        "benefits": "Evita botones no funcionales."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (1).jpg",
+    "page": "Impuestos Mensuales (/dashboard)",
+    "ui_backend_alignment_issues": [
+      "La sección 'Impuestos Mensuales' muestra todos los valores en '$0.00' con estado 'PENDIENTE DE CALCULAR', pero el backend tiene POST /v1/fiscal/calculate-taxes funcional.",
+      "Los botones 'CALCULAR' en cada tarjeta (IVA, ISR Retenciones, ISR Propio, IEPS) no tienen evidencia de estar conectados al endpoint del backend.",
+      "No hay selector de periodo fiscal visible más allá de 'Marzo 2026' en cada tarjeta individual."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Los botones 'CALCULAR' no tienen feedback visual de estado de carga.",
+        "solution": "Agregar spinner o estado 'Calculando...' al hacer clic en CALCULAR.",
+        "benefits": "Mejora la experiencia de usuario durante operaciones asíncronas."
+      },
+      {
+        "description": "No hay selector de periodo fiscal global.",
+        "solution": "Agregar selector de periodo en la cabecera de la sección.",
+        "benefits": "Permite navegación más clara entre periodos fiscales."
+      },
+      {
+        "description": "Los 4 impuestos muestran el mismo estado 'PENDIENTE DE CALCULAR'.",
+        "solution": "Diferenciar estados por impuesto (algunos pueden estar calculados, otros no).",
+        "benefits": "Proporciona información más precisa al usuario."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (2).jpg",
+    "page": "Reportes CFDI (/dashboard)",
+    "ui_backend_alignment_issues": [
+      "Los conteos de CFDI (124 emitidos, 85 recibidos, 12 nómina) no coinciden con ningún endpoint visible del backend.",
+      "El estado 'SINCRONIZADO SAT' en emitidos no tiene un endpoint de verificación de estado SAT en el backend.",
+      "'2 PENDIENTES' en recibidos y 'TIMBRADO CORRECTO' en nómina no tienen endpoints correspondientes.",
+      "El backend no tiene endpoints para obtener conteos por tipo de CFDI (emitidos/recibidos/nómina)."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El indicador '2 PENDIENTES' no tiene explicación de qué documentos están pendientes.",
+        "solution": "Agregar tooltip o enlace a lista de documentos pendientes.",
+        "benefits": "Proporciona contexto accionable al usuario."
+      },
+      {
+        "description": "No hay fecha de última sincronización con SAT visible.",
+        "solution": "Agregar timestamp 'Última sincronización: [fecha]' debajo del estado.",
+        "benefits": "Mejora la transparencia y confianza en los datos."
+      },
+      {
+        "description": "Falta endpoint para obtener estadísticas de CFDI.",
+        "solution": "Crear GET /v1/documents/cfdi-stats que retorne conteos por tipo y estado.",
+        "benefits": "Proporciona datos reales para la UI."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (3).jpg",
+    "page": "Calendario Fiscal (/dashboard)",
+    "ui_backend_alignment_issues": [
+      "La página 'Calendario Fiscal Completo' está completamente vacía, pero el backend tiene GET /v1/workspace/calendar con CRUD completo.",
+      "Los botones 'Descargar ICS' y '+ Nuevo Evento' están visibles pero no hay evidencia de funcionalidad.",
+      "No se muestran los eventos del calendario fiscal mexicano que el backend genera automáticamente."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página completamente vacía sin contenido ni mensaje de estado.",
+        "solution": "Agregar mensaje de carga o 'No hay eventos' con botón para crear.",
+        "benefits": "Mejora la primera impresión y guía al usuario."
+      },
+      {
+        "description": "El botón 'Descargar ICS' no tiene feedback visual de acción completada.",
+        "solution": "Agregar notificación toast 'Calendario descargado exitosamente'.",
+        "benefits": "Confirma la acción al usuario."
+      },
+      {
+        "description": "Falta integración con el endpoint GET /v1/workspace/calendar.",
+        "solution": "Implementar llamada al endpoint y mostrar eventos en formato de calendario.",
+        "benefits": "Muestra datos reales del backend."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (4).jpg",
+    "page": "Métricas IA (/dashboard)",
+    "ui_backend_alignment_issues": [
+      "La latencia '3200ms' coincide con el endpoint GET /v1/workspace/metrics del backend.",
+      "La precisión '98.1%' coincide con el endpoint del backend.",
+      "Las sub-métricas 'Mapeo Conceptual 99.2%' y 'Detección de RFC 100%' no están definidas en el endpoint de métricas del backend.",
+      "El texto 'Promedio basado en los últimos 500 documentos' es estático sin fuente backend dinámica."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Las barras de progreso para 'Mapeo Conceptual' y 'Detección de RFC' no tienen contexto de qué significan.",
+        "solution": "Agregar tooltips explicando cómo se calculan estas métricas.",
+        "benefits": "Mejora la comprensión del usuario sobre las métricas de IA."
+      },
+      {
+        "description": "No hay indicador de cuántos documentos se usaron para calcular estas métricas.",
+        "solution": "Agregar nota dinámica 'Basado en últimos X documentos procesados'.",
+        "benefits": "Proporciona contexto estadístico importante."
+      },
+      {
+        "description": "Faltan endpoints para las sub-métricas de IA.",
+        "solution": "Agregar campos conceptual_mapping_accuracy y rfc_detection_accuracy al endpoint /metrics.",
+        "benefits": "Proporciona datos reales para las sub-métricas."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (5).jpg",
+    "page": "Explorador Documentos (/documents)",
+    "ui_backend_alignment_issues": [
+      "'REPOSITORIO MAESTRO CONECTADO | IDP CORE V2.0' es información hardcoded sin fuente backend.",
+      "El área de carga indica 'MÁXIMO 10MB' pero no hay validación visible en el backend (settings.MAX_FILE_SIZE).",
+      "'NO SE ENCONTRARON DOCUMENTOS' coincide con una DB vacía, pero el backend tiene endpoints funcionales para documentos.",
+      "Los filtros laterales (Todos, Facturas Emitidas, Recibidas, Nóminas) no tienen endpoints de filtrado específicos."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El mensaje 'NO SE ENCONTRARON DOCUMENTOS' es genérico.",
+        "solution": "Diferenciar entre 'Sin documentos' vs 'Sin documentos en este filtro'.",
+        "benefits": "Clarifica el estado real del repositorio."
+      },
+      {
+        "description": "Falta endpoint para filtrar documentos por tipo.",
+        "solution": "Agregar parámetro query ?type=issued|received|payroll al endpoint GET /v1/documents.",
+        "benefits": "Permite filtrado real por tipo de documento."
+      },
+      {
+        "description": "El botón 'EXPORTAR XLS' no tiene endpoint correspondiente.",
+        "solution": "Crear GET /v1/documents/export?format=xlsx o eliminar el botón.",
+        "benefits": "Funcionalidad consistente."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (6).jpg",
+    "page": "Facturas Emitidas (/documents)",
+    "ui_backend_alignment_issues": [
+      "Mismos issues que la imagen anterior - sección vacía sin endpoint específico de filtrado.",
+      "El título 'EMITIDAS & DOCUMENTOS' cambia dinámicamente pero no hay endpoint que proporcione este dato de configuración de marca."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Vista vacía sin indicador de cuántos documentos hay en este filtro.",
+        "solution": "Agregar contador '(0)' junto al nombre del filtro lateral.",
+        "benefits": "Proporciona feedback inmediato sobre resultados del filtro."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (7).jpg",
+    "page": "Facturas Recibidas (/documents)",
+    "ui_backend_alignment_issues": [
+      "Mismos issues - sección vacía sin endpoint específico de filtrado.",
+      "El título 'RECIBIDAS & DOCUMENTOS' sigue el mismo patrón hardcoded."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Mismo issue - falta contador en filtros laterales.",
+        "solution": "Agregar contador a cada opción de filtro lateral.",
+        "benefits": "Mejora la navegación y filtrado de documentos."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (8).jpg",
+    "page": "Nóminas Documentos (/documents)",
+    "ui_backend_alignment_issues": [
+      "Mismos issues - sección vacía sin endpoint específico de filtrado.",
+      "El título 'NÓMINAS & DOCUMENTOS' sigue el mismo patrón."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Mismo issue - falta contador en filtros laterales.",
+        "solution": "Agregar contador a cada opción de filtro lateral.",
+        "benefits": "Mejora la navegación y filtrado de documentos."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (9).jpg",
+    "page": "Clientes - Personas Morales (/clients)",
+    "ui_backend_alignment_issues": [
+      "'MOLARES & CLIENTES' es branding hardcoded sin fuente backend.",
+      "'SISTEMA DE ADMINISTRACIÓN CENTRAL | ENTITIES HUB' es texto estático.",
+      "La página muestra 'DATABASE EMPTY / FILTERS MISMATCH' pero el backend tiene seed data de clientes en GET /v1/clients.",
+      "El backend tiene clientes como 'Servicios Contables del Norte SA de CV' pero la UI no los muestra."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página vacía cuando hay datos en el backend.",
+        "solution": "Verificar la llamada al endpoint GET /v1/clients y el filtrado por type='moral'.",
+        "benefits": "Muestra datos reales del backend."
+      },
+      {
+        "description": "El mensaje 'DATABASE EMPTY / FILTERS MISMATCH' es confuso.",
+        "solution": "Diferenciar entre 'Base vacía' y 'Filtro sin resultados'.",
+        "benefits": "Clarifica el estado real de los datos."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (10).jpg",
+    "page": "Clientes - Personas Físicas (/clients)",
+    "ui_backend_alignment_issues": [
+      "'FÍSICAS & CLIENTES' es branding hardcoded.",
+      "Mismo issue que Personas Morales - página vacía con seed data en backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página vacía cuando hay datos en el backend.",
+        "solution": "Verificar la llamada al endpoint GET /v1/clients?type=fisica.",
+        "benefits": "Muestra datos reales del backend."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (11).jpg",
+    "page": "Clientes - Prospectos (/clients)",
+    "ui_backend_alignment_issues": [
+      "'PROSPECTOS & CLIENTES' es branding hardcoded.",
+      "Mismo issue - página vacía con seed data en backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Vista vacía cuando hay un solo prospecto.",
+        "solution": "Agregar sugerencia '¿Quieres convertir este prospecto en cliente?' con botón de acción.",
+        "benefits": "Guía al usuario hacia acciones accionables."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (12).jpg",
+    "page": "Expedientes KYC (/clients)",
+    "ui_backend_alignment_issues": [
+      "'EXPEDIENTES & KYC' es branding hardcoded.",
+      "'CUMPLIMIENTO LEGAL ACTIVO | V-SECURE 1.2' es información estática sin fuente backend.",
+      "La página está completamente vacía pero el backend tiene endpoint GET /v1/clients/{client_id}/expediente.",
+      "No hay lista de clientes para seleccionar y ver sus expedientes."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página completamente vacía sin contenido.",
+        "solution": "Agregar lista de clientes con acceso a expedientes o mensaje de estado.",
+        "benefits": "Proporciona punto de entrada para la funcionalidad."
+      },
+      {
+        "description": "Falta integración con endpoint de expedientes.",
+        "solution": "Implementar llamada a GET /v1/clients/{id}/expediente.",
+        "benefits": "Muestra datos reales de expedientes KYC."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (13).jpg",
+    "page": "Fiscal - Declaraciones Mensuales (/fiscal)",
+    "ui_backend_alignment_issues": [
+      "'ASESORÍA & FISCAL' es branding hardcoded.",
+      "'ESTRATEGIA TRIBUTARIA INTELIGENTE | SAT COMPLIANCE V3' es texto estático.",
+      "Las secciones 'PRÓXIMOS VENCIMIENTOS' y 'DEDUCCIONES PERSONALES IA DETECT' están vacías sin endpoints claros.",
+      "Los botones 'PAPEL DE TRABAJO', 'SIMULAR DECLARACIÓN', 'CERTIFICAR CUMPLIMIENTO', 'EJECUTAR DECLARACIÓN' tienen endpoints en el backend pero no hay evidencia de conexión.",
+      "El selector 'SELECCIONAR CLIENTE' no tiene endpoint de lista de clientes para el dropdown."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página completamente vacía sin datos iniciales.",
+        "solution": "Agregar datos de resumen fiscal o mensaje de bienvenida con acciones sugeridas.",
+        "benefits": "Mejora la primera impresión y guía al usuario."
+      },
+      {
+        "description": "Los botones no tienen feedback de estado.",
+        "solution": "Agregar indicadores de carga y resultado de operaciones.",
+        "benefits": "Mejora la experiencia de usuario."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (14).jpg",
+    "page": "Fiscal - Declaraciones Anuales (/fiscal)",
+    "ui_backend_alignment_issues": [
+      "'DECLARACIÓN ANUAL • PREPARACIÓN 2025' es contenido estático.",
+      "El mensaje 'El motor está analizando tus deducciones para maximizar el saldo a favor' sugiere un proceso en tiempo real sin endpoint de estado visible.",
+      "Los botones 'GENERAR PAPEL DE TRABAJO' y 'AUDITAR CFDI' tienen endpoints en el backend (GET /v1/fiscal/export-working-paper) pero no hay evidencia de conexión.",
+      "'OPTIMIZACIÓN IA ACTIVA' no tiene indicador de progreso o estado."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El estado de 'OPTIMIZACIÓN IA ACTIVA' no tiene indicador de progreso.",
+        "solution": "Agregar barra de progreso o spinner animado.",
+        "benefits": "Proporciona feedback visual del proceso en curso."
+      },
+      {
+        "description": "Falta endpoint de estado de procesamiento.",
+        "solution": "Crear GET /v1/fiscal/optimization-status que retorne estado del análisis.",
+        "benefits": "Proporciona estado real del proceso."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (15).jpg",
+    "page": "Fiscal - Opinión del Cumplimiento (/fiscal)",
+    "ui_backend_alignment_issues": [
+      "'SENTIDO: POSITIVA' y 'ÚLTIMA VALIDACIÓN AUTOMÁTICA: HACE 14 MINUTOS' no tienen endpoints correspondientes.",
+      "No hay endpoint para 'Estado Actual SAT' en el backend.",
+      "El botón 'CONSULTAR OPINIÓN (SAT)' no tiene endpoint POST correspondiente.",
+      "'HACE 14 MINUTOS' es tiempo relativo sin timestamp absoluto en backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El timestamp 'HACE 14 MINUTOS' es relativo pero no hay opción de actualizar manualmente.",
+        "solution": "Agregar botón 'Actualizar ahora' junto al timestamp.",
+        "benefits": "Da control al usuario sobre la actualización de datos."
+      },
+      {
+        "description": "Falta endpoint para consultar opinión SAT.",
+        "solution": "Crear POST /v1/fiscal/consult-sat-opinion que retorne estado de opinión de cumplimiento.",
+        "benefits": "Proporciona funcionalidad real de consulta SAT."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (16).jpg",
+    "page": "Fiscal - Coeficiente CU (/fiscal)",
+    "ui_backend_alignment_issues": [
+      "Los valores '$1,245,000.00' (Utilidad Fiscal) y '$12,800,000.00' (Ingresos Nominales) no tienen endpoint fuente.",
+      "El coeficiente '0.0972' parece calculado (1,245,000 / 12,800,000 = 0.09726...) pero no hay endpoint de cálculo visible.",
+      "La 'Nota Fiscal' con texto sobre pagos provisionales de marzo 2026 es contenido estático sin fuente backend.",
+      "No hay botones para editar los valores del ejercicio anterior."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El coeficiente se muestra con 4 decimales pero no hay explicación del cálculo.",
+        "solution": "Agregar fórmula visible 'Coeficiente = Utilidad Fiscal / Ingresos Nominales'.",
+        "benefits": "Educa al usuario sobre el cálculo fiscal."
+      },
+      {
+        "description": "No hay botón para editar los valores del ejercicio anterior.",
+        "solution": "Agregar botón 'Editar' para permitir corrección de datos.",
+        "benefits": "Permite corrección de errores de captura."
+      },
+      {
+        "description": "Falta endpoint para guardar coeficiente calculado.",
+        "solution": "Crear POST /v1/fiscal/calculate-cu que retorne coeficiente basado en datos ingresados.",
+        "benefits": "Proporciona cálculo real del coeficiente."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (17).jpg",
+    "page": "Nómina - Periodo Actual (/payroll)",
+    "ui_backend_alignment_issues": [
+      "Todos los valores en '$0' sugieren datos no inicializados o seed data vacío.",
+      "'CUOTAS IMSS/INF: $0 EXPIRE IN 5D' - el texto 'EXPIRE IN 5D' está en inglés mientras el resto de la UI está en español.",
+      "'LISTO PARA DECL.' también está parcialmente en inglés.",
+      "'READY TO DEC' en la proyección PTU también está en inglés.",
+      "La sección 'STAFF - COLABORADORES ACTIVOS' está vacía sin endpoint de lista de empleados."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Inconsistencia de idioma en etiquetas ('EXPIRE IN 5D', 'READY TO DEC').",
+        "solution": "Traducir al español: 'EXPIRA EN 5D', 'LISTO PARA DECLARAR'.",
+        "benefits": "Consistencia lingüística en toda la aplicación."
+      },
+      {
+        "description": "Sección 'STAFF - COLABORADORES ACTIVOS' vacía sin mensaje de estado.",
+        "solution": "Agregar mensaje 'No hay colaboradores registrados' con botón 'Registrar nuevo integrante'.",
+        "benefits": "Guía al usuario hacia acciones accionables."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (18).jpg",
+    "page": "Nómina - PTU / Aguinaldos (/payroll)",
+    "ui_backend_alignment_issues": [
+      "'MONTO ESTIMADO DE REPARTO: $0' no coincide con los valores de PTU mostrados abajo ('$145,100').",
+      "Los valores '$145,100' para 'días trabajados (50%)' y 'salario devengado (50%)' no tienen fuente backend clara.",
+      "La cita del 'MARCO LEGAL PTU - MÉXICO' es contenido estático.",
+      "El texto 'ESTE SISTEMA CALCULA LA PTU BASADO EN LA UTILIDAD FISCAL...' sugiere integración con módulo fiscal pero no hay endpoint visible."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Inconsistencia: Monto estimado $0 pero criterios legales muestran $145,100.",
+        "solution": "Calcular y mostrar monto estimado consistente basado en los criterios.",
+        "benefits": "Evita confusión del usuario con datos contradictorios."
+      },
+      {
+        "description": "No hay explicación de cómo se calcula el 50% para cada criterio.",
+        "solution": "Agregar tooltip explicando la distribución legal PTU.",
+        "benefits": "Educa al usuario sobre el cálculo de PTU."
+      },
+      {
+        "description": "Falta endpoint para cálculo de PTU.",
+        "solution": "Crear GET /v1/payroll/ptu-calculation que retorne monto estimado y criterios.",
+        "benefits": "Proporciona cálculo real de PTU."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (19).jpg",
+    "page": "Nómina - Incidencias (/payroll)",
+    "ui_backend_alignment_issues": [
+      "La sección 'CONTROL DE INCIDENCIAS OPERATIVAS' está completamente vacía sin endpoints definidos.",
+      "El botón 'AÑADIR REGISTRO' no tiene endpoint POST correspondiente visible.",
+      "No hay modelo de datos para incidencias en el backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página vacía sin contenido ni mensaje de estado.",
+        "solution": "Agregar mensaje 'No hay incidencias registradas' con botón para añadir.",
+        "benefits": "Clarifica el estado vacío y proporciona acción clara."
+      },
+      {
+        "description": "Falta modelo y endpoints para incidencias.",
+        "solution": "Crear modelo Incidence y endpoints CRUD /v1/payroll/incidences.",
+        "benefits": "Proporciona funcionalidad completa de gestión de incidencias."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (20).jpg",
+    "page": "Nómina - SUA / IMSS (/payroll)",
+    "ui_backend_alignment_issues": [
+      "Los valores '$12,450.00' (Cuotas IMSS) y '$5,100.00' (Retención INFONAVIT) no tienen endpoint fuente.",
+      "El total '$17,550' es correcto (12,450 + 5,100 = 17,550) pero no hay endpoint que lo proporcione.",
+      "El badge 'Sincronizado' no tiene endpoint de estado de sincronización.",
+      "El área 'IMPORTAR ARCHIVO .SUA' tiene endpoint POST /v1/payroll/upload-sua pero no hay evidencia de conexión."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay periodo fiscal visible para la liquidación.",
+        "solution": "Agregar selector de periodo 'Liquidación de: [Mes Año]'.",
+        "benefits": "Clarifica el periodo de los datos mostrados."
+      },
+      {
+        "description": "El área 'IMPORTAR ARCHIVO .SUA' no tiene instrucción de formato esperado.",
+        "solution": "Agregar texto de ayuda 'Arrastra tu archivo .SUA o haz clic para explorar'.",
+        "benefits": "Guía al usuario sobre el formato de archivo esperado."
+      },
+      {
+        "description": "Falta endpoint para obtener liquidación del mes.",
+        "solution": "Crear GET /v1/payroll/monthly-settlement que retorne cuotas IMSS e INFONAVIT.",
+        "benefits": "Proporciona datos reales para la liquidación."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (21).jpg",
+    "page": "Finanzas - Bancos / Conciliación (/finance)",
+    "ui_backend_alignment_issues": [
+      "Los KPIs (Margen Bruto, EBITDA, Liquidez, Saldos Bancos) muestran '-' sin datos.",
+      "El backend tiene GET /v1/finance/summary que retorna margen_bruto='32.4%', ebitda='$452,300', etc.",
+      "Las secciones 'ESTADOS FINANCIEROS MAESTRO' e 'INTEGRACIÓN BANCARIA (API)' están vacías sin endpoints claros."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "KPIs vacíos cuando hay datos en el backend.",
+        "solution": "Verificar la llamada al endpoint GET /v1/finance/summary.",
+        "benefits": "Muestra datos reales del backend."
+      },
+      {
+        "description": "Falta integración bancaria.",
+        "solution": "Implementar conexión con API bancaria o mostrar mensaje de configuración pendiente.",
+        "benefits": "Clarifica el estado de la integración."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (22).jpg",
+    "page": "Finanzas - Balance General (/finance)",
+    "ui_backend_alignment_issues": [
+      "Los valores del balance general ($1,450,200.00 Activo, $840,000.00 Pasivo, $610,200.00 Capital) no tienen endpoint específico.",
+      "La cita 'EL MARGEN DE OPERACIÓN HA INCREMENTADO UN 4.2%...' no tiene fuente backend.",
+      "El backend tiene GET /v1/finance/statements pero retorna estructura diferente (P&L y Balance separados)."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El balance muestra solo 3 conceptos básicos.",
+        "solution": "Agregar opción 'Ver desglose completo' que muestre cuenta por cuenta.",
+        "benefits": "Proporciona detalle para usuarios que necesitan más información."
+      },
+      {
+        "description": "La cita de análisis financiero es estática.",
+        "solution": "Generar análisis dinámico basado en datos reales o eliminar la cita.",
+        "benefits": "Evita contenido engañoso."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (23).jpg",
+    "page": "Finanzas - Estado de Resultados (/finance)",
+    "ui_backend_alignment_issues": [
+      "ERROR CONTABLE GRAVE: 'Estado de Resultados Operativo' muestra los mismos valores que el Balance General (Activo Circulante, Pasivo Corto Plazo, Capital).",
+      "Un Estado de Resultados debería mostrar: Ingresos, Costo de Ventas, Utilidad Bruta, Gastos Operativos, Utilidad Operativa, etc.",
+      "Los valores idénticos a la imagen anterior (img22) sugieren datos mockeados duplicados.",
+      "El backend tiene lógica correcta en GET /v1/finance/statements pero el frontend no la está usando."
+    ],
+    "mockup_prototype": true,
+    "ui_improvements": [
+      {
+        "description": "Error conceptual grave: 'Estado de Resultados Operativo' muestra balance general en lugar de P&L.",
+        "solution": "Reemplazar con estructura correcta de P&L: Ingresos, Costo de Ventas, Utilidad Bruta, Gastos Operativos, Utilidad Operativa, etc.",
+        "benefits": "Corrige error contable fundamental que confundiría a usuarios."
+      },
+      {
+        "description": "Falta integración con endpoint de estados financieros.",
+        "solution": "Conectar con GET /v1/finance/statements y usar datos P&L correctos.",
+        "benefits": "Muestra datos contables correctos."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (24).jpg",
+    "page": "Finanzas - Flujo de Efectivo (/finance)",
+    "ui_backend_alignment_issues": [
+      "El resumen de liquidez semanal (+$45,000.00 Entradas, -$28,400.00 Salidas, +$16,600.00 Saldo Neto) no coincide con el endpoint GET /v1/finance/cash-flow que retorna datos trimestrales.",
+      "La visualización de flujo está vacía ('VISUALIZACIÓN DE FLUJO - RENDER CORE') sin datos.",
+      "El backend tiene GET /v1/finance/cash-flow pero retorna estructura diferente (monthly_projections)."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "La gráfica de flujo de efectivo no se renderiza.",
+        "solution": "Implementar gráfica con datos del endpoint cash-flow o mostrar mensaje de carga/error.",
+        "benefits": "Proporciona visualización útil de datos financieros."
+      },
+      {
+        "description": "Inconsistencia entre periodo del resumen ('semanal') y datos del backend ('Q1 2026').",
+        "solution": "Alinear periodo mostrado con datos del backend o agregar selector de periodo.",
+        "benefits": "Consistencia temporal en los datos."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (25).jpg",
+    "page": "Gastos - Clasificación IA (/expenses)",
+    "ui_backend_alignment_issues": [
+      "'CLASIFICACIONES PENDIENTES' muestra '0 POR AUDITAR' pero el backend tiene GET /v1/expenses/pending que retorna gastos pendientes.",
+      "'IA DE DEDUCIBILIDAD • ACTIVA' con '0% del presupuesto' no coincide con GET /v1/expenses/budget que retorna utilization: 68.5.",
+      "'SE HAN AUTO-MAPEADO 142 FACTURAS' es dato estático sin fuente backend.",
+      "El botón 'GENERAR AUDITORÍA DE GASTOS' no tiene endpoint correspondiente."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Datos inconsistentes con el backend (0% vs 68.5%).",
+        "solution": "Verificar la llamada al endpoint GET /v1/expenses/budget.",
+        "benefits": "Muestra datos reales del backend."
+      },
+      {
+        "description": "El conteo '142 FACTURAS' es estático.",
+        "solution": "Obtener conteo real de documentos procesados del backend.",
+        "benefits": "Proporciona información actualizada."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (26).jpg",
+    "page": "Gastos - Deducibles (/expenses)",
+    "ui_backend_alignment_issues": [
+      "'PORTAFOLIO DE GASTOS DEDUCIBLES (LISR)' está vacío pero el backend tiene GET /v1/expenses/pending?deductible=true.",
+      "'VALIDADO CORE' es badge estático sin fuente backend.",
+      "'EXPEDIENTE DE COMPROBANTES CFDI V4.0' es texto decorativo."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Lista vacía cuando hay datos en el backend.",
+        "solution": "Verificar la llamada al endpoint GET /v1/expenses/pending.",
+        "benefits": "Muestra gastos deducibles reales."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (27).jpg",
+    "page": "Gastos - No Deducibles (/expenses)",
+    "ui_backend_alignment_issues": [
+      "'EXPEDIENTE DE GASTOS NO DEDUCIBLES' está vacío pero el backend tiene GET /v1/expenses/pending?deductible=false.",
+      "'REVISIÓN REQUERIDA' es badge estático sin fuente backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Lista vacía cuando hay datos en el backend.",
+        "solution": "Verificar la llamada al endpoint GET /v1/expenses/pending.",
+        "benefits": "Muestra gastos no deducibles reales."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (28).jpg",
+    "page": "Gastos - Presupuesto (/expenses)",
+    "ui_backend_alignment_issues": [
+      "'ARQUITECTURA DE PRESUPUESTO MENSUAL' está vacío sin datos.",
+      "Las gráficas 'MAP DE DISTRIBUCIÓN - IA ENGINE' y 'OPTIMIZACIÓN POR SEGMENTO' no se renderizan.",
+      "El backend tiene GET /v1/expenses/categories que retorna datos de presupuesto por categoría."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "La visualización gráfica del presupuesto no se renderiza.",
+        "solution": "Implementar gráfica circular con datos del endpoint budget.",
+        "benefits": "Proporciona visualización intuitiva de distribución presupuestal."
+      },
+      {
+        "description": "Falta integración con endpoint de categorías.",
+        "solution": "Conectar con GET /v1/expenses/categories para mostrar distribución.",
+        "benefits": "Muestra datos reales de presupuesto."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (29).jpg",
+    "page": "Configuración (/settings)",
+    "ui_backend_alignment_issues": [
+      "Los campos 'Nombre' y 'Email' están vacíos pero el backend tiene GET /v1/users/me que retorna datos del usuario.",
+      "El selector de idioma 'Español (México)' tiene endpoint GET/PUT /v1/users/me/settings en el backend.",
+      "Las notificaciones y apariencia (modo oscuro) tienen endpoint GET/PUT /v1/users/me/settings en el backend.",
+      "El botón 'Guardar Cambios' tiene endpoint PUT correspondiente: PUT /v1/users/me/settings."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Campos de perfil vacíos cuando hay datos de usuario.",
+        "solution": "Cargar datos del usuario autenticado al montar el componente usando GET /v1/users/me.",
+        "benefits": "Muestra información real del usuario."
+      },
+      {
+        "description": "El endpoint de settings existe pero no está conectado en el frontend.",
+        "solution": "Conectar GET /v1/users/me/settings para cargar configuración y PUT /v1/users/me/settings para guardar.",
+        "benefits": "Permite guardar configuración del usuario en la base de datos."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (30).jpg",
+    "page": "IDP Workbench (Home /)",
+    "ui_backend_alignment_issues": [
+      "'IDP.WORKBENCH | INTELLIGENT DATA PROCESSING HUB' es branding hardcoded.",
+      "Los atajos de teclado (CTRL+P, ALT+A) no tienen respaldo de configuración en el backend.",
+      "'AGENTE FISCAL | CONECTADO' no tiene endpoint de estado de conexión del agente.",
+      "'Llama 3.3 70B (Instruct)' y 'TOOLS: 4/5' son datos hardcoded sin fuente backend.",
+      "El panel lateral del agente fiscal tiene sugerencias de comandos pero no hay endpoint de comandos disponibles."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El estado 'CONECTADO' del agente no tiene verificación real.",
+        "solution": "Implementar endpoint GET /v1/agent/status que retorne estado real de la conexión.",
+        "benefits": "Proporciona retroalimentación precisa al usuario."
+      },
+      {
+        "description": "El conteo de herramientas '4/5' es estático.",
+        "solution": "Obtener lista real de herramientas disponibles del backend.",
+        "benefits": "Muestra herramientas realmente disponibles."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (31).jpg",
+    "page": "Workbench - Perfiles Fiscales (Modal)",
+    "ui_backend_alignment_issues": [
+      "El modal 'Perfiles Fiscales' muestra dos perfiles ('Servicios Contables del Norte SA de CV' y 'Diego González - Persona Física') sin endpoint claro.",
+      "Los RFCs (SCN210101ABC, GUZD960101XYZ) y regímenes (601 - General de Ley PM, 625 - RESICO) coinciden con seed data del backend.",
+      "Las etiquetas 'Activo' y 'Principal' no tienen campos correspondientes en el modelo Client del backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Los perfiles fiscales muestran datos hardcoded.",
+        "solution": "Crear endpoint GET /v1/users/fiscal-profiles que retorne perfiles vinculados.",
+        "benefits": "Muestra perfiles reales del usuario."
+      },
+      {
+        "description": "Falta campo 'principal' en el modelo de cliente.",
+        "solution": "Agregar campo is_principal booleano al modelo Client.",
+        "benefits": "Permite marcar cliente principal."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (32).jpg",
+    "page": "Workbench - Suscripción (Modal)",
+    "ui_backend_alignment_issues": [
+      "El modal 'Suscripción' muestra 'IDP Pro $499/mes' con vencimiento '2027-03-09' sin endpoint de suscripción.",
+      "La lista 'FUNCIONALIDADES INCLUIDAS' es contenido estático.",
+      "No hay modelo de suscripción en el backend.",
+      "El estado 'Activa' es hardcoded."
+    ],
+    "mockup_prototype": true,
+    "ui_improvements": [
+      {
+        "description": "La información de suscripción es completamente mockeada.",
+        "solution": "Crear modelo Subscription y endpoints GET/POST /v1/users/subscription.",
+        "benefits": "Permite gestión real de suscripciones."
+      },
+      {
+        "description": "Falta historial de pagos y facturas.",
+        "solution": "Agregar endpoint GET /v1/users/subscription/invoices para historial.",
+        "benefits": "Proporciona transparencia de pagos."
+      }
+    ]
+  },
+  {
+    "filename": "Imagen del Portapapeles (33).jpg",
+    "page": "Search Icon (Detalle)",
+    "ui_backend_alignment_issues": [
+      "Imagen recortada que muestra solo icono de búsqueda - no hay suficiente contexto para análisis."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": []
+  }
+]

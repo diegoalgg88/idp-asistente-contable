@@ -1,0 +1,506 @@
+{
+  "metadata": {
+    "generated_at": "2026-03-10T00:00:00Z",
+    "project_name": "IDP Asistente Contable",
+    "version": "2.0.0",
+    "total_files": 138,
+    "total_lines": 23313,
+    "total_tokens_estimated": 422658,
+    "languages": {
+      "typescript_tsx": {"files": 65, "loc": 9800, "percentage": 42},
+      "python": {"files": 45, "loc": 11200, "percentage": 48},
+      "json": {"files": 15, "loc": 1800, "percentage": 8},
+      "other": {"files": 13, "loc": 513, "percentage": 2}
+    }
+  },
+  "directory_structure": [
+    {
+      "path": "/backend",
+      "type": "directory",
+      "description": "Backend FastAPI con lógica de negocio y servicios de IA",
+      "subdirectories": [
+        {
+          "path": "/backend/app",
+          "type": "directory",
+          "description": "Código fuente principal de la aplicación",
+          "subdirectories": [
+            {
+              "path": "/backend/app/core",
+              "type": "directory",
+              "description": "Configuración centralizada, seguridad, validadores, rate limiting"
+            },
+            {
+              "path": "/backend/app/db",
+              "type": "directory",
+              "description": "Capa de datos: SQLAlchemy models, database engine"
+            },
+            {
+              "path": "/backend/app/api",
+              "type": "directory",
+              "description": "Endpoints REST API organizados por dominio"
+            },
+            {
+              "path": "/backend/app/services",
+              "type": "directory",
+              "description": "Servicios de negocio: NVIDIA NIM, RAG, embeddings, agentes"
+            },
+            {
+              "path": "/backend/app/agents",
+              "type": "directory",
+              "description": "Agentes especializados con LangGraph integration"
+            }
+          ]
+        },
+        {
+          "path": "/backend/tests",
+          "type": "directory",
+          "description": "Tests unitarios y de integración con pytest"
+        }
+      ]
+    },
+    {
+      "path": "/frontend",
+      "type": "directory",
+      "description": "Frontend React + TypeScript con Vite y shadcn/ui",
+      "subdirectories": [
+        {
+          "path": "/frontend/src",
+          "type": "directory",
+          "description": "Código fuente de la aplicación React",
+          "subdirectories": [
+            {
+              "path": "/frontend/src/components",
+              "type": "directory",
+              "description": "Componentes React: Layout, Workspace, Chat, Documents, módulos"
+            },
+            {
+              "path": "/frontend/src/components/ui",
+              "type": "directory",
+              "description": "Componentes shadcn/ui reutilizables"
+            },
+            {
+              "path": "/frontend/src/hooks",
+              "type": "directory",
+              "description": "Custom React hooks: useAuth, useChat, useIDP"
+            },
+            {
+              "path": "/frontend/src/services",
+              "type": "directory",
+              "description": "Servicios de comunicación API: auth, chat, idp"
+            },
+            {
+              "path": "/frontend/src/store",
+              "type": "directory",
+              "description": "Zustand stores para state management"
+            },
+            {
+              "path": "/frontend/src/types",
+              "type": "directory",
+              "description": "TypeScript type definitions"
+            },
+            {
+              "path": "/frontend/src/lib",
+              "type": "directory",
+              "description": "Utilidades: cn() function"
+            }
+          ]
+        },
+        {
+          "path": "/frontend/tests",
+          "type": "directory",
+          "description": "Tests E2E con Playwright",
+          "subdirectories": [
+            {
+              "path": "/frontend/tests/e2e",
+              "type": "directory",
+              "description": "Tests end-to-end: auth, chat, dashboard, idp"
+            },
+            {
+              "path": "/frontend/tests/e2e/pages",
+              "type": "directory",
+              "description": "Page objects para tests E2E"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/docs",
+      "type": "directory",
+      "description": "Documentación del proyecto y piloto",
+      "subdirectories": [
+        {
+          "path": "/docs/pilot",
+          "type": "directory",
+          "description": "Documentación y código del piloto",
+          "subdirectories": [
+            {
+              "path": "/docs/pilot/src",
+              "type": "directory",
+              "description": "Código del piloto: config, extraction, RFC validator"
+            },
+            {
+              "path": "/docs/pilot/scripts",
+              "type": "directory",
+              "description": "Scripts del piloto: generate invoices, run pipeline"
+            },
+            {
+              "path": "/docs/pilot/monitoring",
+              "type": "directory",
+              "description": "Configuración de monitoreo: Grafana, Prometheus"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "/data",
+      "type": "directory",
+      "description": "Datos persistentes: PostgreSQL, ChromaDB"
+    }
+  ],
+  "file_inventory": [
+    {
+      "extension": ".py",
+      "count": 45,
+      "description": "Archivos Python: Backend FastAPI, servicios, agentes, tests",
+      "files": [
+        {"name": "main.py", "path": "backend/app/main.py", "description": "Punto de entrada FastAPI, configuración de app, middleware, routers"},
+        {"name": "config.py", "path": "backend/app/core/config.py", "description": "Pydantic Settings centralizados: NVIDIA API, DB, seguridad, Redis"},
+        {"name": "security.py", "path": "backend/app/core/security.py", "description": "JWT, bcrypt, autenticación OAuth2, password hashing"},
+        {"name": "validators.py", "path": "backend/app/core/validators.py", "description": "Validadores de RFC, UUID, curp, emails"},
+        {"name": "rate_limiter.py", "path": "backend/app/core/rate_limiter.py", "description": "Rate limiting con Redis, factory pattern"},
+        {"name": "database.py", "path": "backend/app/db/database.py", "description": "SQLAlchemy engine, session factory, init_db"},
+        {"name": "models.py", "path": "backend/app/db/models.py", "description": "Modelos: User, Document, Conversation, Message"},
+        {"name": "rag_agent.py", "path": "backend/app/agents/rag_agent.py", "description": "RAGAgent con LangGraph: retrieval, context building, streaming"},
+        {"name": "nvidia_nim.py", "path": "backend/app/services/nvidia_nim.py", "description": "Cliente NVIDIA NIM API: OCR, Vision, LLM, Embeddings, Rerank"},
+        {"name": "rag_service.py", "path": "backend/app/services/rag_service.py", "description": "Servicio RAG con ChromaDB: ingest, query, collections"},
+        {"name": "embeddings.py", "path": "backend/app/services/embeddings.py", "description": "Generación de embeddings con NVIDIA"},
+        {"name": "langgraph_agents.py", "path": "backend/app/services/langgraph_agents.py", "description": "ContableAgent con LangGraph StateGraph, tool calling"},
+        {"name": "agent_tools.py", "path": "backend/app/services/agent_tools.py", "description": "Herramientas para agente: list_clients, validate_rfc, analyze_cfdi"},
+        {"name": "auth.py", "path": "backend/app/api/auth.py", "description": "OAuth2 JWT endpoints: /token, /refresh, /me"},
+        {"name": "idp.py", "path": "backend/app/api/idp.py", "description": "Procesamiento de documentos: /process, /batch-process"},
+        {"name": "chat.py", "path": "backend/app/api/chat.py", "description": "Chat conversacional con streaming SSE"},
+        {"name": "agent.py", "path": "backend/app/api/agent.py", "description": "Agente con ReAct loop y tool calling"},
+        {"name": "rag.py", "path": "backend/app/api/rag.py", "description": "RAG endpoints: /ingest, /query"},
+        {"name": "clients.py", "path": "backend/app/api/clients.py", "description": "CRUD de clientes y expedientes KYC"},
+        {"name": "fiscal.py", "path": "backend/app/api/fiscal.py", "description": "Operaciones fiscales: deadlines, deductions, annual report"},
+        {"name": "payroll.py", "path": "backend/app/api/payroll.py", "description": "Módulo de nómina"},
+        {"name": "finance.py", "path": "backend/app/api/finance.py", "description": "Módulo financiero: estados financieros, bancos"},
+        {"name": "expenses.py", "path": "backend/app/api/expenses.py", "description": "Gastos: categorías, clasificación IA"},
+        {"name": "run_pipeline.py", "path": "docs/pilot/scripts/run_pipeline.py", "description": "Pipeline de procesamiento del piloto"},
+        {"name": "extraction_service.py", "path": "docs/pilot/src/extraction_service.py", "description": "Servicio de extracción del piloto"},
+        {"name": "rfc_validator.py", "path": "docs/pilot/src/rfc_validator.py", "description": "Validador de RFC del piloto"}
+      ]
+    },
+    {
+      "extension": ".tsx",
+      "count": 35,
+      "description": "Componentes React con TypeScript",
+      "files": [
+        {"name": "App.tsx", "path": "frontend/src/App.tsx", "description": "React Router con rutas de módulos"},
+        {"name": "main.tsx", "path": "frontend/src/main.tsx", "description": "Punto de entrada de React application"},
+        {"name": "Layout.tsx", "path": "frontend/src/components/Layout.tsx", "description": "Layout principal con sidebar, header, responsive"},
+        {"name": "Workspace.tsx", "path": "frontend/src/components/Workspace.tsx", "description": "Dashboard principal con métricas y gráficos"},
+        {"name": "Chat.tsx", "path": "frontend/src/components/Chat.tsx", "description": "UI de chat con streaming y tool calls display"},
+        {"name": "Documents.tsx", "path": "frontend/src/components/Documents.tsx", "description": "Gestión de documentos: upload, tabla, processing status"},
+        {"name": "Dashboard.tsx", "path": "frontend/src/components/Dashboard.tsx", "description": "Dashboard de métricas y KPIs"},
+        {"name": "Clients.tsx", "path": "frontend/src/components/Clients.tsx", "description": "CRUD de clientes y expediente KYC"},
+        {"name": "Fiscal.tsx", "path": "frontend/src/components/Fiscal.tsx", "description": "Módulo fiscal: deadlines, deducciones, annual report"},
+        {"name": "Payroll.tsx", "path": "frontend/src/components/Payroll.tsx", "description": "Módulo de nómina"},
+        {"name": "Finance.tsx", "path": "frontend/src/components/Finance.tsx", "description": "Módulo financiero: estados financieros, bancos"},
+        {"name": "Expenses.tsx", "path": "frontend/src/components/Expenses.tsx", "description": "Módulo de gastos con clasificación IA"},
+        {"name": "Settings.tsx", "path": "frontend/src/components/Settings.tsx", "description": "Configuración de usuario y aplicación"},
+        {"name": "EmptyPane.tsx", "path": "frontend/src/components/EmptyPane.tsx", "description": "Estado vacío para módulos"},
+        {"name": "sidebar.tsx", "path": "frontend/src/components/ui/sidebar.tsx", "description": "Componente Sidebar de shadcn/ui"},
+        {"name": "button.tsx", "path": "frontend/src/components/ui/button.tsx", "description": "Componente Button de shadcn/ui"},
+        {"name": "input.tsx", "path": "frontend/src/components/ui/input.tsx", "description": "Componente Input de shadcn/ui"},
+        {"name": "card.tsx", "path": "frontend/src/components/ui/card.tsx", "description": "Componente Card de shadcn/ui"},
+        {"name": "table.tsx", "path": "frontend/src/components/ui/table.tsx", "description": "Componente Table de shadcn/ui"},
+        {"name": "dialog.tsx", "path": "frontend/src/components/ui/dialog.tsx", "description": "Componente Dialog de shadcn/ui"}
+      ]
+    },
+    {
+      "extension": ".ts",
+      "count": 30,
+      "description": "TypeScript: hooks, services, stores, types, tests",
+      "files": [
+        {"name": "api.ts", "path": "frontend/src/services/api.ts", "description": "Cliente Axios configurado con interceptors y auth"},
+        {"name": "auth.service.ts", "path": "frontend/src/services/auth.service.ts", "description": "Servicio de autenticación"},
+        {"name": "chat.service.ts", "path": "frontend/src/services/chat.service.ts", "description": "Servicio de chat"},
+        {"name": "idp.service.ts", "path": "frontend/src/services/idp.service.ts", "description": "Servicio de procesamiento de documentos"},
+        {"name": "auth.store.ts", "path": "frontend/src/store/auth.store.ts", "description": "Zustand store para autenticación"},
+        {"name": "chat.store.ts", "path": "frontend/src/store/chat.store.ts", "description": "Zustand store para chat"},
+        {"name": "idp.store.ts", "path": "frontend/src/store/idp.store.ts", "description": "Zustand store para IDP"},
+        {"name": "modules.store.ts", "path": "frontend/src/store/modules.store.ts", "description": "Zustand store para módulos"},
+        {"name": "useAuth.ts", "path": "frontend/src/hooks/useAuth.ts", "description": "Hook de autenticación"},
+        {"name": "useChat.ts", "path": "frontend/src/hooks/useChat.ts", "description": "Hook de chat"},
+        {"name": "useIDP.ts", "path": "frontend/src/hooks/useIDP.ts", "description": "Hook de IDP"},
+        {"name": "use-mobile.ts", "path": "frontend/src/hooks/use-mobile.ts", "description": "Hook de detección mobile"},
+        {"name": "utils.ts", "path": "frontend/src/lib/utils.ts", "description": "Utilidad cn() para clases"},
+        {"name": "index.ts", "path": "frontend/src/types/index.ts", "description": "TypeScript type definitions"},
+        {"name": "auth.spec.ts", "path": "frontend/tests/e2e/auth.spec.ts", "description": "Tests E2E de autenticación"},
+        {"name": "chat.spec.ts", "path": "frontend/tests/e2e/chat.spec.ts", "description": "Tests E2E de chat"},
+        {"name": "dashboard.spec.ts", "path": "frontend/tests/e2e/dashboard.spec.ts", "description": "Tests E2E de dashboard"},
+        {"name": "idp.spec.ts", "path": "frontend/tests/e2e/idp.spec.ts", "description": "Tests E2E de IDP"}
+      ]
+    },
+    {
+      "extension": ".json",
+      "count": 15,
+      "description": "Archivos de configuración JSON",
+      "files": [
+        {"name": "package.json", "path": "frontend/package.json", "description": "Dependencias y scripts de frontend"},
+        {"name": "tsconfig.json", "path": "frontend/tsconfig.json", "description": "Configuración de TypeScript"},
+        {"name": "vite.config.ts", "path": "frontend/vite.config.ts", "description": "Configuración de Vite"},
+        {"name": "tailwind.config.js", "path": "frontend/tailwind.config.js", "description": "Configuración de Tailwind CSS"},
+        {"name": "components.json", "path": "frontend/components.json", "description": "Configuración de shadcn/ui"},
+        {"name": "playwright.config.ts", "path": "frontend/playwright.config.ts", "description": "Configuración de Playwright"},
+        {"name": "vitest.config.ts", "path": "frontend/vitest.config.ts", "description": "Configuración de Vitest"},
+        {"name": "dashboard.json", "path": "docs/pilot/monitoring/grafana/dashboard.json", "description": "Dashboard de Grafana"},
+        {"name": "repomix.config.json", "path": "backend/repomix.config.json", "description": "Configuración de Repomix"},
+        {"name": "coverage-final.json", "path": "frontend/coverage/coverage-final.json", "description": "Reporte de cobertura de tests"}
+      ]
+    },
+    {
+      "extension": ".yml",
+      "count": 3,
+      "description": "Archivos de configuración YAML",
+      "files": [
+        {"name": "docker-compose.yml", "path": "docker-compose.yml", "description": "Orquestación Docker: Redis, PostgreSQL, ChromaDB, Backend, Frontend"},
+        {"name": "prometheus.yml", "path": "docs/pilot/monitoring/prometheus.yml", "description": "Configuración de Prometheus"}
+      ]
+    },
+    {
+      "extension": ".bat",
+      "count": 3,
+      "description": "Scripts de Windows para Docker",
+      "files": [
+        {"name": "docker-build-frontend.bat", "path": "docker-build-frontend.bat", "description": "Build de frontend en producción"},
+        {"name": "docker-build-frontend-dev.bat", "path": "docker-build-frontend-dev.bat", "description": "Build de frontend en desarrollo"},
+        {"name": "docker-stop-frontend.bat", "path": "docker-stop-frontend.bat", "description": "Stop de frontend container"}
+      ]
+    }
+  ],
+  "project_structure": "Arquitectura Microservices con patrón Layered en backend y Component-Based en frontend. El backend sigue una arquitectura por capas (API Layer → Service Layer → Agent Layer → Data Layer → Core Layer) con separación clara de responsabilidades. El frontend usa arquitectura basada en componentes React con state management centralizado (Zustand), custom hooks para lógica reusable, y servicios para comunicación API. La comunicación entre servicios usa REST API con autenticación JWT y rate limiting con Redis.",
+  "code_metrics": [
+    {"file": "backend/app/main.py", "loc": 280, "tokens": 3500, "complexity": "Media"},
+    {"file": "backend/app/core/config.py", "loc": 220, "tokens": 2800, "complexity": "Media"},
+    {"file": "backend/app/agents/rag_agent.py", "loc": 450, "tokens": 5500, "complexity": "Alta"},
+    {"file": "backend/app/api/agent.py", "loc": 380, "tokens": 4800, "complexity": "Media-Alta"},
+    {"file": "backend/app/api/chat.py", "loc": 420, "tokens": 5200, "complexity": "Media"},
+    {"file": "backend/app/api/idp.py", "loc": 350, "tokens": 4300, "complexity": "Media"},
+    {"file": "backend/app/api/auth.py", "loc": 180, "tokens": 2200, "complexity": "Media"},
+    {"file": "backend/app/services/nvidia_nim.py", "loc": 480, "tokens": 6000, "complexity": "Alta"},
+    {"file": "backend/app/services/rag_service.py", "loc": 320, "tokens": 4000, "complexity": "Media"},
+    {"file": "backend/app/services/langgraph_agents.py", "loc": 400, "tokens": 5000, "complexity": "Alta"},
+    {"file": "backend/app/services/agent_tools.py", "loc": 340, "tokens": 4200, "complexity": "Media-Alta"},
+    {"file": "backend/app/db/models.py", "loc": 120, "tokens": 1500, "complexity": "Baja"},
+    {"file": "backend/app/db/database.py", "loc": 100, "tokens": 1200, "complexity": "Baja"},
+    {"file": "backend/app/core/security.py", "loc": 200, "tokens": 2500, "complexity": "Media"},
+    {"file": "frontend/src/components/Layout.tsx", "loc": 650, "tokens": 8200, "complexity": "Media"},
+    {"file": "frontend/src/components/Workspace.tsx", "loc": 680, "tokens": 8500, "complexity": "Media"},
+    {"file": "frontend/src/components/Chat.tsx", "loc": 580, "tokens": 7200, "complexity": "Media"},
+    {"file": "frontend/src/components/Documents.tsx", "loc": 560, "tokens": 7000, "complexity": "Media"},
+    {"file": "frontend/src/components/Dashboard.tsx", "loc": 450, "tokens": 5600, "complexity": "Media"},
+    {"file": "frontend/src/services/api.ts", "loc": 420, "tokens": 5200, "complexity": "Media"}
+  ],
+  "dependency_analysis": [
+    {
+      "file": "backend/app/main.py",
+      "dependencies": [
+        {"module": "app.api.auth", "type": "import", "purpose": "OAuth2 JWT endpoints"},
+        {"module": "app.api.idp", "type": "import", "purpose": "Document processing endpoints"},
+        {"module": "app.api.chat", "type": "import", "purpose": "Chat endpoints"},
+        {"module": "app.api.agent", "type": "import", "purpose": "Agent endpoints"},
+        {"module": "app.api.rag", "type": "import", "purpose": "RAG endpoints"},
+        {"module": "app.core.config", "type": "import", "purpose": "Settings"},
+        {"module": "app.core.rate_limiter", "type": "import", "purpose": "Rate limiting"},
+        {"module": "app.db.database", "type": "import", "purpose": "Database initialization"}
+      ]
+    },
+    {
+      "file": "backend/app/agents/rag_agent.py",
+      "dependencies": [
+        {"module": "app.services.rag_service", "type": "import", "purpose": "ChromaDB RAG service"},
+        {"module": "app.services.nvidia_nim", "type": "import", "purpose": "LLM inference"},
+        {"module": "app.core.config", "type": "import", "purpose": "Settings"},
+        {"module": "langchain_core.messages", "type": "import", "purpose": "Message types"},
+        {"module": "langchain_core.prompts", "type": "import", "purpose": "Prompt templates"}
+      ]
+    },
+    {
+      "file": "backend/app/services/nvidia_nim.py",
+      "dependencies": [
+        {"module": "app.core.config", "type": "import", "purpose": "NVIDIA API settings"},
+        {"module": "requests", "type": "import", "purpose": "HTTP client"},
+        {"module": "httpx", "type": "import", "purpose": "Async HTTP client"},
+        {"module": "json", "type": "import", "purpose": "JSON parsing"}
+      ]
+    },
+    {
+      "file": "backend/app/services/rag_service.py",
+      "dependencies": [
+        {"module": "app.services.embeddings", "type": "import", "purpose": "Embedding generation"},
+        {"module": "app.core.config", "type": "import", "purpose": "ChromaDB settings"},
+        {"module": "chromadb", "type": "import", "purpose": "Vector database client"}
+      ]
+    },
+    {
+      "file": "backend/app/services/langgraph_agents.py",
+      "dependencies": [
+        {"module": "app.agents.rag_agent", "type": "import", "purpose": "RAG agent"},
+        {"module": "app.services.agent_tools", "type": "import", "purpose": "Tool definitions"},
+        {"module": "app.services.nvidia_nim", "type": "import", "purpose": "LLM inference"},
+        {"module": "langgraph", "type": "import", "purpose": "StateGraph"}
+      ]
+    },
+    {
+      "file": "frontend/src/App.tsx",
+      "dependencies": [
+        {"module": "react-router-dom", "type": "import", "purpose": "Routing"},
+        {"module": "@components/Layout", "type": "import", "purpose": "Main layout"},
+        {"module": "@components/Workspace", "type": "import", "purpose": "Dashboard"},
+        {"module": "@components/Chat", "type": "import", "purpose": "Chat module"},
+        {"module": "@components/Documents", "type": "import", "purpose": "Documents module"}
+      ]
+    },
+    {
+      "file": "frontend/src/services/api.ts",
+      "dependencies": [
+        {"module": "axios", "type": "import", "purpose": "HTTP client"},
+        {"module": "@services/auth.service", "type": "import", "purpose": "Auth utilities"},
+        {"module": "@store/auth.store", "type": "import", "purpose": "Auth state"}
+      ]
+    },
+    {
+      "file": "frontend/src/components/Chat.tsx",
+      "dependencies": [
+        {"module": "@hooks/useChat", "type": "import", "purpose": "Chat logic"},
+        {"module": "@services/chat.service", "type": "import", "purpose": "Chat API"},
+        {"module": "@store/chat.store", "type": "import", "purpose": "Chat state"},
+        {"module": "@components/ui/*", "type": "import", "purpose": "UI components"}
+      ]
+    }
+  ],
+  "component_relationships": "El sistema sigue un flujo de datos unidireccional: Frontend (React) → API REST (FastAPI) → Services (Business Logic) → Agents (AI/ML) → Data Layer (PostgreSQL/ChromaDB). La autenticación usa JWT con OAuth2, almacenando tokens en el frontend. El procesamiento de documentos (IDP) sigue un pipeline: upload → OCR (NVIDIA Nemo) → Vision LLM (Llama 3.2 90B) → Entity extraction → Validation → ChromaDB ingestion. El chat conversacional usa RAG: query → ChromaDB retrieval → Context building → LLM generation (Llama 3.3 70B) → Streaming SSE. El agente con tool calling implementa ReAct loop: Thought → Action (tool execution) → Observation → Response. Los módulos del frontend (Workspace, Chat, Documents, Clients, Fiscal, Payroll, Finance, Expenses) comparten state management vía Zustand stores y se comunican con el backend mediante servicios API centralizados.",
+  "architecture_patterns": {
+    "backend": "Layered Architecture con separación: API Layer → Service Layer → Agent Layer → Data Layer → Core Layer",
+    "frontend": "Component-Based Architecture con React, state management centralizado (Zustand), y custom hooks",
+    "data_flow": "REST API con JWT authentication, rate limiting con Redis, streaming SSE para chat",
+    "ai_pipeline": "RAG (Retrieval-Augmented Generation) con ChromaDB + NVIDIA embeddings + Llama LLMs",
+    "agent_pattern": "ReAct (Reason-Act-Observe) loop con tool calling"
+  },
+  "entry_points": {
+    "backend": [
+      {"file": "backend/app/main.py", "function": "create_app()", "description": "FastAPI application factory"},
+      {"file": "backend/app/core/config.py", "function": "settings", "description": "Global settings instance"},
+      {"file": "backend/app/db/database.py", "function": "init_db()", "description": "Database initialization"}
+    ],
+    "frontend": [
+      {"file": "frontend/src/main.tsx", "function": "ReactDOM.createRoot()", "description": "React application entry"},
+      {"file": "frontend/src/App.tsx", "function": "App component", "description": "React Router configuration"},
+      {"file": "frontend/src/services/api.ts", "function": "axiosInstance", "description": "API client configuration"}
+    ]
+  },
+  "data_flows": [
+    {
+      "name": "Document Processing (IDP)",
+      "steps": [
+        "1. Usuario sube PDF/imagen → Documents.tsx",
+        "2. POST /v1/idp/process → idp.py",
+        "3. Guardar archivo → save_uploaded_file()",
+        "4. POST NVIDIA NIM OCR → nvidia_nim.py (NemoRetrieverOCR)",
+        "5. Extraer texto → OCR response parsing",
+        "6. POST NVIDIA NIM Vision → nvidia_nim.py (Llama 3.2 90B Vision)",
+        "7. Extraer entidades → entity_extraction (RFC, UUID, montos, fechas)",
+        "8. Validar RFC → validators.py",
+        "9. Calcular confianza → calculate_confidence_score()",
+        "10. Guardar en DB → Document model",
+        "11. Ingestar a ChromaDB → rag_service.py",
+        "12. Retornar resultado → DocumentProcessingResponse"
+      ]
+    },
+    {
+      "name": "Conversational RAG",
+      "steps": [
+        "1. Usuario escribe pregunta → Chat.tsx",
+        "2. POST /v1/chat/message → chat.py",
+        "3. Obtener historial → Message model query",
+        "4. ContableAgent.generate_response() → langgraph_agents.py",
+        "5. RAGAgent.retrieve_context() → rag_agent.py",
+        "6. Query ChromaDB → rag_service.py",
+        "7. Generar embedding → embeddings.py",
+        "8. Retrieve top-k docs → ChromaDB",
+        "9. Build context → rag_agent.py",
+        "10. LLM generation → nvidia_nim.py (Llama 3.3 70B)",
+        "11. Streaming response → SSE → Chat.tsx"
+      ]
+    },
+    {
+      "name": "Agent Tool Calling (ReAct)",
+      "steps": [
+        "1. Usuario pregunta con acción → Chat.tsx",
+        "2. POST /v1/agent/chat → agent.py",
+        "3. run_react_loop() → Agent loop (max 3 iteraciones)",
+        "4. LLM genera pensamiento → nvidia_nim.py",
+        "5. Extraer tool_call JSON → _extract_tool_calls()",
+        "6. Ejecutar herramienta → execute_tool()",
+        "7. Agregar resultado al historial → messages array",
+        "8. Repetir hasta respuesta final → loop",
+        "9. Limpiar respuesta → _clean_response()",
+        "10. Retornar con tool_calls → AgentChatResponse"
+      ]
+    }
+  ],
+  "external_dependencies": {
+    "backend_python": [
+      {"name": "FastAPI", "purpose": "Web framework"},
+      {"name": "SQLAlchemy", "purpose": "ORM"},
+      {"name": "LangGraph", "purpose": "Agent orchestration"},
+      {"name": "LangChain", "purpose": "LLM abstraction"},
+      {"name": "ChromaDB", "purpose": "Vector store"},
+      {"name": "Redis", "purpose": "Rate limiting, cache"},
+      {"name": "python-jose", "purpose": "JWT"},
+      {"name": "passlib", "purpose": "Password hashing"}
+    ],
+    "frontend_javascript": [
+      {"name": "React 18", "purpose": "UI framework"},
+      {"name": "TypeScript", "purpose": "Type safety"},
+      {"name": "Vite", "purpose": "Build tool"},
+      {"name": "Tailwind CSS", "purpose": "Styling"},
+      {"name": "shadcn/ui", "purpose": "Component library"},
+      {"name": "Radix UI", "purpose": "Accessible primitives"},
+      {"name": "Zustand", "purpose": "State management"},
+      {"name": "React Router", "purpose": "Routing"},
+      {"name": "Recharts", "purpose": "Charts"},
+      {"name": "Axios", "purpose": "HTTP client"},
+      {"name": "Playwright", "purpose": "E2E testing"},
+      {"name": "Vitest", "purpose": "Unit testing"}
+    ],
+    "nvidia_nim_api": [
+      {"name": "NemoRetriever-OCR-v1", "purpose": "OCR para documentos"},
+      {"name": "NemoRetriever-Table-Structure-v1", "purpose": "Extracción de tablas"},
+      {"name": "Llama-3.2-90b-Vision-Instruct", "purpose": "Vision LLM para extracción"},
+      {"name": "Llama-3.3-70b-Instruct", "purpose": "Text LLM para razonamiento"},
+      {"name": "NV-EmbedQA-E5-V5", "purpose": "Embeddings para RAG"},
+      {"name": "NV-RerankQA-Mistral-4b-v3", "purpose": "Reranking para RAG"}
+    ]
+  },
+  "infrastructure": {
+    "docker_services": [
+      {"name": "redis", "image": "redis:7-alpine", "port": 6379, "purpose": "Rate limiting & cache"},
+      {"name": "db", "image": "postgres:15-alpine", "port": 5432, "purpose": "PostgreSQL database"},
+      {"name": "chromadb", "image": "chromadb/chroma:latest", "port": 8000, "purpose": "Vector store"},
+      {"name": "backend", "build": "./backend", "port": 8000, "purpose": "FastAPI backend"},
+      {"name": "frontend-dev", "build": "./frontend", "port": 5173, "purpose": "React frontend (dev)", "profile": "dev"},
+      {"name": "frontend", "build": "./frontend", "port": 3000, "purpose": "React frontend (prod)", "profile": "prod"}
+    ],
+    "network": "idp-network (bridge)",
+    "volumes": [
+      "redis_data:/data",
+      "./data/pg_data:/var/lib/postgresql/data",
+      "./data/chroma_data:/chroma/chroma"
+    ]
+  }
+}

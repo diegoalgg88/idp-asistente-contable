@@ -1,0 +1,685 @@
+[
+  {
+    "filename": "img1.jpg",
+    "ui_backend_alignment_issues": [
+      "La pantalla de inicio muestra 'IDP WORKBENCH' como título principal, pero no hay un endpoint específico en el backend que proporcione este dato de configuración de marca.",
+      "Los atajos de teclado (CTRL+P, ALT+A) no tienen respaldo de configuración en el backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El panel 'AGENTE FISCAL' muestra 'CONECTADO' pero no hay un endpoint de estado de conexión visible en el backend.",
+        "solution": "Implementar un endpoint GET /v1/agent/status que retorne el estado real de la conexión del agente fiscal IA.",
+        "benefits": "Proporciona retroalimentación precisa al usuario sobre el estado del sistema y evita falsos positivos."
+      },
+      {
+        "description": "La barra de estado inferior muestra 'Conectado: Backend Local' y 'Sincronización: Al día' sin fuentes de datos claras.",
+        "solution": "Crear endpoint GET /v1/workspace/connection-status que retorne estado de conexión y última sincronización.",
+        "benefits": "Mejora la transparencia del estado del sistema y la confianza del usuario."
+      }
+    ]
+  },
+  {
+    "filename": "img2.jpg",
+    "ui_backend_alignment_issues": [
+      "El KPI 'Saldo Conciliado $145,200' no tiene un endpoint claro en el backend que proporcione este dato específico.",
+      "El 'IDP Score 10/10 FULL COMPLIANCE' no corresponde a ningún cálculo definido en el backend (fiscal_score es float 0-100).",
+      "La sección 'WORKFLOWS SUGERIDOS' muestra datos específicos ('CIERRE MENSUAL FEB 2026', 'VALIDACIÓN SAT LOTE #92') sin endpoints correspondientes."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El dashboard muestra 'Documentos: 0' pero 'Precisión Extracción: 98.1%' - inconsistencia lógica.",
+        "solution": "Validar que si documentos=0, la precisión se muestre como 'N/A' o '-'.",
+        "benefits": "Evita confusión del usuario con métricas inconsistentes."
+      },
+      {
+        "description": "El calendario fiscal muestra fechas futuras (Marzo 2026) sin indicar que son proyecciones.",
+        "solution": "Agregar indicador visual 'Proyectado' para eventos futuros basados en calendario fiscal SAT.",
+        "benefits": "Clarifica la naturaleza de los datos y previene malentendidos."
+      }
+    ]
+  },
+  {
+    "filename": "img3.jpg",
+    "ui_backend_alignment_issues": [
+      "La sección 'Impuestos Mensuales' muestra todos los valores en '$0.00' con estado 'PENDIENTE DE CALCULAR', pero no hay endpoints que calculen impuestos en tiempo real.",
+      "El backend tiene POST /v1/fiscal/calculate-taxes pero la UI no muestra evidencia de haber llamado este endpoint."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Los botones 'CALCULAR' están presentes pero no hay feedback visual de estado de carga.",
+        "solution": "Agregar spinner o estado 'Calculando...' al hacer clic en CALCULAR.",
+        "benefits": "Mejora la experiencia de usuario durante operaciones asíncronas."
+      },
+      {
+        "description": "No hay indicador del periodo fiscal actual más allá de 'Marzo 2026' en cada tarjeta.",
+        "solution": "Agregar selector de periodo global en la cabecera de la sección.",
+        "benefits": "Permite navegación más clara entre periodos fiscales."
+      }
+    ]
+  },
+  {
+    "filename": "img4.jpg",
+    "ui_backend_alignment_issues": [
+      "Los conteos de CFDI (124 emitidos, 85 recibidos, 12 nómina) no coinciden con ningún endpoint visible del backend.",
+      "El estado 'SINCRONIZADO SAT' no tiene un endpoint de verificación de estado SAT en el backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El indicador '2 PENDIENTES' en recibidos no tiene explicación de qué documentos están pendientes.",
+        "solution": "Agregar tooltip o enlace a lista de documentos pendientes.",
+        "benefits": "Proporciona contexto accionable al usuario."
+      },
+      {
+        "description": "No hay fecha de última sincronización con SAT visible.",
+        "solution": "Agregar timestamp 'Última sincronización: [fecha]' debajo del estado.",
+        "benefits": "Mejora la transparencia y confianza en los datos."
+      }
+    ]
+  },
+  {
+    "filename": "img5.jpg",
+    "ui_backend_alignment_issues": [
+      "El calendario fiscal muestra fechas que coinciden con el endpoint GET /v1/workspace/calendar.",
+      "Los estados (PENDIENTE, EN_PREPARACION) coinciden con la estructura del backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El botón 'Descargar ICS' no tiene feedback visual de acción completada.",
+        "solution": "Agregar notificación toast 'Calendario descargado exitosamente'.",
+        "benefits": "Confirma la acción al usuario."
+      },
+      {
+        "description": "No hay filtro por tipo de obligación (fiscal, nómina, seguridad social).",
+        "solution": "Agregar filtro dropdown por tipo de obligación.",
+        "benefits": "Mejora la usabilidad para usuarios con múltiples tipos de obligaciones."
+      }
+    ]
+  },
+  {
+    "filename": "img6.jpg",
+    "ui_backend_alignment_issues": [
+      "La latencia '3200ms' coincide exactamente con el endpoint GET /v1/workspace/metrics.",
+      "La precisión '98.1%' coincide con el endpoint del backend.",
+      "Los sub-métricas 'Mapeo Conceptual 99.2%' y 'Detección de RFC 100%' no están definidos en el endpoint de métricas."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Las barras de progreso para 'Mapeo Conceptual' y 'Detección de RFC' no tienen contexto de qué significan.",
+        "solution": "Agregar tooltips explicando cómo se calculan estas métricas.",
+        "benefits": "Mejora la comprensión del usuario sobre las métricas de IA."
+      },
+      {
+        "description": "No hay indicador de cuántos documentos se usaron para calcular estas métricas.",
+        "solution": "Agregar nota 'Basado en últimos 500 documentos procesados' (ya visible en el texto pero poco prominente).",
+        "benefits": "Proporciona contexto estadístico importante."
+      }
+    ]
+  },
+  {
+    "filename": "img7.jpg",
+    "ui_backend_alignment_issues": [],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El menú lateral no muestra indicador visual de la página actual más allá del highlight gris.",
+        "solution": "Agregar icono activo o breadcrumb en la cabecera.",
+        "benefits": "Mejora la orientación del usuario en la navegación."
+      }
+    ]
+  },
+  {
+    "filename": "img8.jpg",
+    "ui_backend_alignment_issues": [
+      "El texto 'REPOSITORIO MAESTRO CONECTADO' no tiene un endpoint de estado de repositorio en el backend.",
+      "'IDP CORE V2.0' es una versión hardcoded sin fuente backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El área de carga de archivos indica 'MÁXIMO 10MB' pero no hay validación visible en el backend.",
+        "solution": "Verificar que settings.MAX_FILE_SIZE en backend coincida con 10MB mostrado en UI.",
+        "benefits": "Previene errores de validación inconsistentes."
+      },
+      {
+        "description": "El mensaje 'NO SE ENCONTRARON DOCUMENTOS' es genérico.",
+        "solution": "Diferenciar entre 'Sin documentos' vs 'Sin documentos en este filtro'.",
+        "benefits": "Clarifica el estado real del repositorio."
+      }
+    ]
+  },
+  {
+    "filename": "img9.jpg",
+    "ui_backend_alignment_issues": [
+      "Mismos issues que img8.jpg - sección 'FACTURAS EMITIDAS' sin endpoint específico de filtrado."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El filtro lateral 'FACTURAS EMITIDAS' está seleccionado pero no hay indicador de cuántos documentos coinciden.",
+        "solution": "Agregar contador '(0)' junto al nombre del filtro.",
+        "benefits": "Proporciona feedback inmediato sobre resultados del filtro."
+      }
+    ]
+  },
+  {
+    "filename": "img10.jpg",
+    "ui_backend_alignment_issues": [
+      "Mismos issues que img8.jpg - sección 'FACTURAS RECIBIDAS' sin endpoint específico de filtrado."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Mismo issue que img9.jpg - falta contador en filtros laterales.",
+        "solution": "Agregar contador a cada opción de filtro lateral.",
+        "benefits": "Mejora la navegación y filtrado de documentos."
+      }
+    ]
+  },
+  {
+    "filename": "img11.jpg",
+    "ui_backend_alignment_issues": [
+      "Mismos issues que img8.jpg - sección 'NÓMINAS' sin endpoint específico de filtrado."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Mismo issue que img9.jpg - falta contador en filtros laterales.",
+        "solution": "Agregar contador a cada opción de filtro lateral.",
+        "benefits": "Mejora la navegación y filtrado de documentos."
+      }
+    ]
+  },
+  {
+    "filename": "img12.jpg",
+    "ui_backend_alignment_issues": [
+      "Los clientes mostrados coinciden parcialmente con el seed data del endpoint GET /v1/clients.",
+      "'SERVICIOS CONTA...' con RFC 'SCN210101ABC' coincide con el cliente 1 del backend.",
+      "'TECH SOLUTIONS...' con RFC 'TSM180601XY9' coincide con cliente 3 del backend.",
+      "Los emails mostrados (CONTACTO@SCN.MX, ADMIN@TECHSOLUTIONS.MX) coinciden con el backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Los nombres de clientes están truncados ('SERVICIOS CONTA...', 'TECH SOLUTIONS...').",
+        "solution": "Agregar tooltip con nombre completo al hacer hover.",
+        "benefits": "Permite ver información completa sin ocupar espacio adicional."
+      },
+      {
+        "description": "El estado KYC 'COMPLETO' y 'REVISIÓN' no coinciden exactamente con los valores del backend ('Completo', 'Revisión').",
+        "solution": "Estandarizar capitalización entre backend y frontend.",
+        "benefits": "Consistencia en la presentación de datos."
+      }
+    ]
+  },
+  {
+    "filename": "img13.jpg",
+    "ui_backend_alignment_issues": [
+      "'MARÍA GONZÁLEZ...' con RFC 'GOLM900215PQ3' coincide con cliente 2 del backend.",
+      "'CARLOS MENDOZ...' con RFC 'MERC850310AB1' coincide con cliente 4 del backend.",
+      "Los emails coinciden exactamente con el backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El estado 'PROSPECTO' se muestra diferente visualmente pero no hay distinción en el backend.",
+        "solution": "Agregar campo 'prospect' booleano o mantener como status string consistente.",
+        "benefits": "Consistencia en el modelo de datos."
+      }
+    ]
+  },
+  {
+    "filename": "img14.jpg",
+    "ui_backend_alignment_issues": [
+      "Muestra solo 'CARLOS MENDOZ...' que coincide con el filtro por status='Prospecto' del backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Vista vacía cuando hay un solo prospecto.",
+        "solution": "Agregar sugerencia '¿Quieres convertir este prospecto en cliente?' con botón de acción.",
+        "benefits": "Guía al usuario hacia acciones accionables."
+      }
+    ]
+  },
+  {
+    "filename": "img15.jpg",
+    "ui_backend_alignment_issues": [
+      "Los expedientes KYC muestran documentos específicos ('Constancia de Situación Fiscal', 'Opinión de Cumplimiento (32D)', etc.) que no están definidos en el endpoint GET /v1/clients/{client_id}/expediente.",
+      "El endpoint solo retorna una lista genérica de 4 documentos, pero la UI muestra 4 documentos diferentes por cliente."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Los iconos de estado (check verde, reloj amarillo) no tienen leyenda explicativa.",
+        "solution": "Agregar leyenda '✓ Completo, ⚠ Pendiente, ○ Sin iniciar'.",
+        "benefits": "Mejora la comprensión visual del estado KYC."
+      },
+      {
+        "description": "No hay fecha de vencimiento visible para los documentos.",
+        "solution": "Mostrar fecha de expiración junto a cada documento cuando esté disponible.",
+        "benefits": "Alerta temprana de documentos por vencer."
+      }
+    ]
+  },
+  {
+    "filename": "img16.jpg",
+    "ui_backend_alignment_issues": [
+      "La sección 'ASESORÍA & FISCAL' está vacía sin endpoints claros que provean datos para 'PRÓXIMOS VENCIMIENTOS' y 'DEDUCCIONES PERSONALES IA DETECT'.",
+      "Los botones 'PAPEL DE TRABAJO', 'SIMULAR DECLARACIÓN', 'CERTIFICAR CUMPLIMIENTO', 'EJECUTAR DECLARACIÓN' no tienen endpoints correspondientes visibles."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página completamente vacía sin datos iniciales.",
+        "solution": "Agregar datos de resumen fiscal o mensaje de bienvenida con acciones sugeridas.",
+        "benefits": "Mejora la primera impresión y guía al usuario."
+      }
+    ]
+  },
+  {
+    "filename": "img17.jpg",
+    "ui_backend_alignment_issues": [
+      "El mensaje 'El motor está analizando tus deducciones para maximizar el saldo a favor' sugiere un proceso en tiempo real sin endpoint de estado visible.",
+      "'DECLARACIÓN ANUAL - PREPARACIÓN 2025' no tiene endpoint específico."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El estado de 'OPTIMIZACIÓN IA ACTIVA' no tiene indicador de progreso.",
+        "solution": "Agregar barra de progreso o spinner animado.",
+        "benefits": "Proporciona feedback visual del proceso en curso."
+      }
+    ]
+  },
+  {
+    "filename": "img18.jpg",
+    "ui_backend_alignment_issues": [
+      "'SENTIDO: POSITIVA' y 'ÚLTIMA VALIDACIÓN AUTOMÁTICA: HACE 14 MINUTOS' no tienen endpoints correspondientes.",
+      "No hay endpoint para 'Estado Actual SAT' en el backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El timestamp 'HACE 14 MINUTOS' es relativo pero no hay opción de actualizar manualmente.",
+        "solution": "Agregar botón 'Actualizar ahora' junto al timestamp.",
+        "benefits": "Da control al usuario sobre la actualización de datos."
+      }
+    ]
+  },
+  {
+    "filename": "img19.jpg",
+    "ui_backend_alignment_issues": [
+      "Los valores '$1,245,000.00' (Utilidad Fiscal) y '$12,800,000.00' (Ingresos Nominales) no tienen endpoint fuente.",
+      "El coeficiente '0.0972' parece calculado (1,245,000 / 12,800,000 = 0.09726...) pero no hay endpoint de cálculo visible.",
+      "La 'Nota Fiscal' con texto sobre pagos provisionales de marzo 2026 es contenido estático sin fuente backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El coeficiente se muestra con 4 decimales pero no hay explicación del cálculo.",
+        "solution": "Agregar fórmula visible 'Coeficiente = Utilidad Fiscal / Ingresos Nominales'.",
+        "benefits": "Educa al usuario sobre el cálculo fiscal."
+      },
+      {
+        "description": "No hay botón para editar los valores del ejercicio anterior.",
+        "solution": "Agregar botón 'Editar' para permitir corrección de datos.",
+        "benefits": "Permite corrección de errores de captura."
+      }
+    ]
+  },
+  {
+    "filename": "img20.jpg",
+    "ui_backend_alignment_issues": [
+      "Todos los valores en '$0' sugieren datos no inicializados o seed data vacío.",
+      "'CUOTAS IMSS/INF: $0 EXPIRE IN 5D' - el texto 'EXPIRE IN 5D' está en inglés mientras el resto de la UI está en español.",
+      "'READY TO DEC' también está en inglés."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Inconsistencia de idioma en etiquetas ('EXPIRE IN 5D', 'READY TO DEC').",
+        "solution": "Traducir al español: 'EXPIRA EN 5D', 'LISTO PARA DECLARAR'.",
+        "benefits": "Consistencia lingüística en toda la aplicación."
+      },
+      {
+        "description": "Sección 'STAFF - COLABORADORES ACTIVOS' vacía sin mensaje de estado.",
+        "solution": "Agregar mensaje 'No hay colaboradores registrados' con botón 'Registrar nuevo integrante'.",
+        "benefits": "Guía al usuario hacia acciones accionables."
+      }
+    ]
+  },
+  {
+    "filename": "img21.jpg",
+    "ui_backend_alignment_issues": [
+      "'MONTO ESTIMADO DE REPARTO: $0' no coincide con los valores de PTU mostrados abajo ('$145,100').",
+      "Los valores '$145,100' para 'días trabajados (50%)' y 'salario devengado (50%)' no tienen fuente backend clara.",
+      "La cita del 'MARCO LEGAL PTU - MÉXICO' es contenido estático."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Inconsistencia: Monto estimado $0 pero criterios legales muestran $145,100.",
+        "solution": "Calcular y mostrar monto estimado consistente basado en los criterios.",
+        "benefits": "Evita confusión del usuario con datos contradictorios."
+      },
+      {
+        "description": "No hay explicación de cómo se calcula el 50% para cada criterio.",
+        "solution": "Agregar tooltip explicando la distribución legal PTU.",
+        "benefits": "Educa al usuario sobre el cálculo de PTU."
+      }
+    ]
+  },
+  {
+    "filename": "img22.jpg",
+    "ui_backend_alignment_issues": [
+      "La sección 'CONTROL DE INCIDENCIAS OPERATIVAS' está completamente vacía sin endpoints definidos.",
+      "El botón 'AÑADIR REGISTRO' no tiene endpoint POST correspondiente visible."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Página vacía sin contenido ni mensaje de estado.",
+        "solution": "Agregar mensaje 'No hay incidencias registradas' con botón para añadir.",
+        "benefits": "Clarifica el estado vacío y proporciona acción clara."
+      }
+    ]
+  },
+  {
+    "filename": "img23.jpg",
+    "ui_backend_alignment_issues": [
+      "Los valores '$12,450.00' (Cuotas IMSS) y '$5,100.00' (Retención INFONAVIT) no tienen endpoint fuente.",
+      "El total '$17,550' es correcto (12,450 + 5,100 = 17,550) pero no hay endpoint que lo proporcione.",
+      "El badge 'Sincronizado' no tiene endpoint de estado de sincronización."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay periodo fiscal visible para la liquidación.",
+        "solution": "Agregar selector de periodo 'Liquidación de: [Mes Año]'.",
+        "benefits": "Clarifica el periodo de los datos mostrados."
+      },
+      {
+        "description": "El área 'IMPORTAR ARCHIVO .SUA' no tiene instrucción de formato esperado.",
+        "solution": "Agregar texto de ayuda 'Arrastra tu archivo .SUA o haz clic para explorar'.",
+        "benefits": "Guía al usuario sobre el formato de archivo esperado."
+      }
+    ]
+  },
+  {
+    "filename": "img24.jpg",
+    "ui_backend_alignment_issues": [
+      "Los valores del resumen financiero coinciden con el endpoint GET /v1/finance/summary: margen_bruto='32.4%', ebitda='$452,300', liquidez='1.45', saldos_bancos='$1.2M'.",
+      "Los estados financieros listados coinciden con GET /v1/finance/statements.",
+      "Las cuentas bancarias (BBVA ****1928 $842,500.2, Santander ****4421 $120,000) coinciden con GET /v1/finance/bank-accounts."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Excelente alineación backend-frontend en esta vista.",
+        "solution": "Mantener consistencia con este patrón en otras vistas.",
+        "benefits": "Consistencia en toda la aplicación."
+      }
+    ]
+  },
+  {
+    "filename": "img25.jpg",
+    "ui_backend_alignment_issues": [
+      "Los valores del balance general ($1,450,200.00 Activo, $840,000.00 Pasivo, $610,200.00 Capital) no tienen endpoint específico.",
+      "La cita 'EL MARGEN DE OPERACIÓN HA INCREMENTADO UN 4.2%...' no tiene fuente backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El balance muestra solo 3 conceptos básicos.",
+        "solution": "Agregar opción 'Ver desglose completo' que muestre cuenta por cuenta.",
+        "benefits": "Proporciona detalle para usuarios que necesitan más información."
+      }
+    ]
+  },
+  {
+    "filename": "img26.jpg",
+    "ui_backend_alignment_issues": [
+      "Mismos valores que img25.jpg pero titulado 'ESTADO DE RESULTADOS OPERATIVO' - los mismos números para conceptos diferentes sugiere datos mockeados.",
+      "Un Estado de Resultados debería mostrar ingresos, costos, gastos, no activo/pasivo/capital."
+    ],
+    "mockup_prototype": true,
+    "ui_improvements": [
+      {
+        "description": "Error conceptual grave: 'Estado de Resultados Operativo' muestra balance general en lugar de P&L.",
+        "solution": "Reemplazar con estructura correcta de P&L: Ingresos, Costo de Ventas, Utilidad Bruta, Gastos Operativos, Utilidad Operativa, etc.",
+        "benefits": "Corrige error contable fundamental que confundiría a usuarios."
+      }
+    ]
+  },
+  {
+    "filename": "img27.jpg",
+    "ui_backend_alignment_issues": [
+      "El resumen de liquidez semanal (+$45,000.00 Entradas, -$28,400.00 Salidas, +$16,600.00 Saldo Neto) no coincide con el endpoint GET /v1/finance/cash-flow que retorna datos trimestrales diferentes.",
+      "La visualización de flujo está vacía ('VISUALIZACIÓN DE FLUJO - RENDER CORE') sin datos."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "La gráfica de flujo de efectivo no se renderiza.",
+        "solution": "Implementar gráfica con datos del endpoint cash-flow o mostrar mensaje de carga/error.",
+        "benefits": "Proporciona visualización útil de datos financieros."
+      },
+      {
+        "description": "Inconsistencia entre periodo del resumen ('semanal') y datos del backend ('Q1 2026').",
+        "solution": "Alinear periodo mostrado con datos del backend o agregar selector de periodo.",
+        "benefits": "Consistencia temporal en los datos."
+      }
+    ]
+  },
+  {
+    "filename": "img28.jpg",
+    "ui_backend_alignment_issues": [
+      "Las categorías de gastos coinciden con GET /v1/expenses/categories: nombres y montos exactos ($45,200, $12,300, $67,800, $8,900).",
+      "Los gastos pendientes coinciden con GET /v1/expenses/pending: mismos vendors, conceptos y montos.",
+      "El texto 'IA DE DEDUCIBILIDAD - ACTIVA' con '68.5% del presupuesto' coincide con GET /v1/expenses/budget (utilization: 68.5)."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Excelente alineación backend-frontend.",
+        "solution": "Mantener este estándar de consistencia en otras vistas.",
+        "benefits": "Consistencia en toda la aplicación."
+      }
+    ]
+  },
+  {
+    "filename": "img29.jpg",
+    "ui_backend_alignment_issues": [
+      "Los gastos deducibles listados coinciden con el endpoint GET /v1/expenses/pending filtrado por is_deductible=true.",
+      "Las fechas (2026-03-05, 2026-03-04, 2026-03-03) coinciden con los datos del backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay total acumulado de gastos deducibles visible.",
+        "solution": "Agregar total '$15,509.00' en la cabecera o pie de lista.",
+        "benefits": "Proporciona contexto financiero inmediato."
+      }
+    ]
+  },
+  {
+    "filename": "img30.jpg",
+    "ui_backend_alignment_issues": [
+      "Los mismos 4 gastos de img29.jpg se muestran como 'NO DEDUCIBLES' con los mismos montos - inconsistencia con el backend donde is_deductible varía por gasto.",
+      "El badge 'REVISIÓN REQUERIDA' no tiene fuente backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Los mismos gastos aparecen como deducibles (img29) y no deducibles (img30) con mismos montos.",
+        "solution": "Revisar lógica de clasificación o permitir reclasificación manual con confirmación.",
+        "benefits": "Evita confusión sobre estado de deducibilidad."
+      }
+    ]
+  },
+  {
+    "filename": "img31.jpg",
+    "ui_backend_alignment_issues": [
+      "Los valores del presupuesto coinciden con GET /v1/expenses/budget: mismos montos por categoría.",
+      "La gráfica circular no se renderiza ('MAP DE DISTRIBUCIÓN - IA ENGINE')."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "La visualización gráfica del presupuesto no se renderiza.",
+        "solution": "Implementar gráfica circular con datos del endpoint budget.",
+        "benefits": "Proporciona visualización intuitiva de distribución presupuestal."
+      }
+    ]
+  },
+  {
+    "filename": "img32.jpg",
+    "ui_backend_alignment_issues": [
+      "El campo Email muestra solo 'admin' en lugar de un email completo - posible dato mockeado o incompleto.",
+      "No hay endpoint visible para guardar configuración de usuario."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "El email 'admin' es inválido (no tiene formato de email).",
+        "solution": "Validar formato de email en frontend y backend.",
+        "benefits": "Previene datos inválidos en el sistema."
+      },
+      {
+        "description": "No hay feedback al guardar cambios.",
+        "solution": "Agregar notificación toast 'Configuración guardada exitosamente'.",
+        "benefits": "Confirma la acción al usuario."
+      }
+    ]
+  },
+  {
+    "filename": "img33.jpg",
+    "ui_backend_alignment_issues": [
+      "El modal 'Perfiles Fiscales' muestra dos perfiles sin endpoint backend visible.",
+      "Los RFCs (SCN210101ABC, GUD960101XYZ) y regímenes coinciden parcialmente con datos de clientes pero no hay endpoint de perfiles fiscales de usuario."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay opción de agregar nuevo perfil fiscal.",
+        "solution": "Agregar botón 'Agregar perfil fiscal' en el modal.",
+        "benefits": "Permite gestión completa de perfiles fiscales."
+      }
+    ]
+  },
+  {
+    "filename": "img34.jpg",
+    "ui_backend_alignment_issues": [
+      "El modal 'Suscripción' muestra 'IDP Pro $499/mes' con vencimiento '2027-03-09' sin endpoint backend.",
+      "Las funcionalidades listadas no tienen fuente de datos backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay historial de pagos o facturas de suscripción.",
+        "solution": "Agregar enlace 'Ver historial de pagos' o 'Descargar facturas'.",
+        "benefits": "Proporciona acceso a documentación fiscal de la suscripción."
+      }
+    ]
+  },
+  {
+    "filename": "img35.jpg",
+    "ui_backend_alignment_issues": [
+      "El menú dropdown muestra opciones sin endpoints claros: 'PERFILES FISCALES', 'SUSCRIPCIÓN PRO'.",
+      "'CERRAR SESIÓN' debería corresponder a POST /v1/auth/logout (no visible en los archivos leídos)."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay atajo de teclado visible para cerrar sesión.",
+        "solution": "Agregar tooltip 'Ctrl+Shift+Q' o similar.",
+        "benefits": "Mejora accesibilidad para power users."
+      }
+    ]
+  },
+  {
+    "filename": "img36.jpg",
+    "ui_backend_alignment_issues": [
+      "El panel 'AGENTE FISCAL' vacío no tiene endpoint de mensajes/historial de chat.",
+      "El placeholder 'Escribe un comando o usa @ para referenciar documentos...' sugiere funcionalidad de chat sin backend visible."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "Panel de agente completamente vacío sin mensaje de bienvenida.",
+        "solution": "Agregar mensaje de bienvenida con ejemplos de comandos disponibles.",
+        "benefits": "Guía al usuario sobre cómo usar el agente fiscal."
+      }
+    ]
+  },
+  {
+    "filename": "img37.jpg",
+    "ui_backend_alignment_issues": [
+      "El selector de modelos muestra 'Llama 3.3 70B (Instruct)', 'Llama 3.2 90B (Vision)', 'Nemo Retriever OCR' sin endpoint de lista de modelos.",
+      "Los badges 'Active' y 'Vision' no tienen fuente backend."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay información de costo o límite de uso por modelo.",
+        "solution": "Agregar tooltip con información de costo por documento y límites del tier.",
+        "benefits": "Transparencia en costos de uso de modelos."
+      }
+    ]
+  },
+  {
+    "filename": "img38.jpg",
+    "ui_backend_alignment_issues": [
+      "La lista de mensajes del historial ('HI', 'Hola. @ @', etc.) no tiene endpoint de historial de chat visible.",
+      "Los iconos de eliminar sugieren funcionalidad CRUD sin backend definido."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay confirmación al eliminar mensajes del historial.",
+        "solution": "Agregar confirmación '¿Eliminar este mensaje?' antes de borrar.",
+        "benefits": "Previene eliminaciones accidentales."
+      },
+      {
+        "description": "No hay opción de limpiar todo el historial.",
+        "solution": "Agregar botón 'Limpiar todo el historial' con confirmación.",
+        "benefits": "Gestión más eficiente del historial."
+      }
+    ]
+  },
+  {
+    "filename": "img39.jpg",
+    "ui_backend_alignment_issues": [
+      "El popover con 'ADJUNTAR CFDI' y 'REFERENCIA CONTEXTO' no tiene endpoints backend visibles para estas acciones."
+    ],
+    "mockup_prototype": false,
+    "ui_improvements": [
+      {
+        "description": "No hay indicador de tipos de archivo aceptados para CFDI.",
+        "solution": "Agregar texto '(PDF, XML - Máx 10MB)' junto a 'ADJUNTAR CFDI'.",
+        "benefits": "Clarifica requisitos de archivo al usuario."
+      }
+    ]
+  },
+  {
+    "filename": "img40.jpg",
+    "ui_backend_alignment_issues": [
+      "Esta es una versión limpia/sin navegador de img1.jpg - misma análisis aplica.",
+      "Puede ser un mockup de presentación o material de marketing."
+    ],
+    "mockup_prototype": true,
+    "ui_improvements": [
+      {
+        "description": "Esta imagen parece ser un mockup de presentación (sin chrome del navegador, fondo blanco limpio).",
+        "solution": "Reemplazar con screenshot real de la aplicación o etiquetar claramente como 'Vista conceptual'.",
+        "benefits": "Evita confusión entre UI real y material de marketing."
+      }
+    ]
+  }
+]

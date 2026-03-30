@@ -2,8 +2,9 @@
 	"version": "1.0",
 	"agents": {
 		"scout": {
+			"_comment": "Scout: Exploración rápida con NVIDIA Llama 3.1 70B (ultra-fast, ~$1.5/1M tokens)",
 			"file": "scout.md",
-			"model": "haiku",
+			"model": "nvidia/meta/llama-3.1-70b-instruct",
 			"tools": [
 				"Read",
 				"Glob",
@@ -20,8 +21,9 @@
 			]
 		},
 		"builder": {
+			"_comment": "Builder: Implementación con Google Gemini 2.0 Flash (excelente para código, ~$0.30/1M tokens)",
 			"file": "builder.md",
-			"model": "sonnet",
+			"model": "google/google/gemini-2.0-flash",
 			"tools": [
 				"Read",
 				"Write",
@@ -39,8 +41,9 @@
 			"constraints": []
 		},
 		"reviewer": {
+			"_comment": "Reviewer: Code review con Google Gemini 2.0 Flash (rápido y preciso, ~$0.30/1M tokens)",
 			"file": "reviewer.md",
-			"model": "sonnet",
+			"model": "google/google/gemini-2.0-flash",
 			"tools": [
 				"Read",
 				"Glob",
@@ -57,8 +60,9 @@
 			]
 		},
 		"lead": {
+			"_comment": "Lead: Coordinación de equipo con NVIDIA Llama 3.1 70B (alta inteligencia, ~$1.5/1M tokens)",
 			"file": "lead.md",
-			"model": "opus",
+			"model": "nvidia/meta/llama-3.1-70b-instruct",
 			"tools": [
 				"Read",
 				"Write",
@@ -77,8 +81,9 @@
 			"constraints": []
 		},
 		"merger": {
+			"_comment": "Merger: Merge con Google Gemini 2.0 Flash (bueno para resolución de conflictos, ~$0.30/1M tokens)",
 			"file": "merger.md",
-			"model": "sonnet",
+			"model": "google/google/gemini-2.0-flash",
 			"tools": [
 				"Read",
 				"Write",
@@ -95,8 +100,9 @@
 			"constraints": []
 		},
 		"coordinator": {
+			"_comment": "Coordinator: Coordinador persistente con NVIDIA Llama 3.1 70B (alta inteligencia, ~$1.5/1M tokens)",
 			"file": "coordinator.md",
-			"model": "opus",
+			"model": "nvidia/meta/llama-3.1-70b-instruct",
 			"tools": [
 				"Read",
 				"Glob",
@@ -115,8 +121,9 @@
 			]
 		},
 		"monitor": {
+			"_comment": "Monitor: Monitoreo con NVIDIA Llama 3.1 70B (rápido para patrulla continua, ~$1.5/1M tokens)",
 			"file": "monitor.md",
-			"model": "sonnet",
+			"model": "nvidia/meta/llama-3.1-70b-instruct",
 			"tools": [
 				"Read",
 				"Glob",
@@ -131,6 +138,30 @@
 			"constraints": [
 				"read-only",
 				"no-worktree"
+			]
+		},
+		"orchestrator": {
+			"_comment": "Orchestrator: Coordinación de coordinadores con NVIDIA Llama 3.1 70B (rápido y económico, ~$1.5/1M tokens)",
+			"file": "orchestrator.md",
+			"model": "nvidia/meta/llama-3.1-70b-instruct",
+			"tools": [
+				"Read",
+				"Glob",
+				"Grep",
+				"Bash"
+			],
+			"capabilities": [
+				"orchestrate",
+				"dispatch",
+				"escalate",
+				"verify"
+			],
+			"canSpawn": false,
+			"constraints": [
+				"read-only",
+				"no-worktree",
+				"no-code-modification",
+				"no-direct-sling"
 			]
 		}
 	},
@@ -169,16 +200,24 @@
 			"merger"
 		],
 		"dispatch": [
-			"coordinator"
+			"coordinator",
+			"orchestrator"
 		],
 		"escalate": [
-			"coordinator"
+			"coordinator",
+			"orchestrator"
 		],
 		"monitor": [
 			"monitor"
 		],
 		"patrol": [
 			"monitor"
+		],
+		"orchestrate": [
+			"orchestrator"
+		],
+		"verify": [
+			"orchestrator"
 		]
 	}
 }
