@@ -8,9 +8,9 @@ Pruebas unitarias para:
 """
 import pytest
 
-from app.services.predictive.cashflow_forecaster import CashflowForecaster
-from app.services.predictive.tax_forecaster import TaxForecaster
-from app.services.predictive.health_score import TaxHealthAnalyzer
+from app.domain.predictive.cashflow_forecaster import CashflowForecaster
+from app.domain.predictive.tax_forecaster import TaxForecaster
+from app.domain.predictive.health_score import TaxHealthAnalyzer
 
 
 class TestCashFlowForecaster:

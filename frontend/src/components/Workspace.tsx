@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useOutletContext, useNavigate } from 'react-router-dom'
 import { useModulesStore } from '@/store/modules.store'
-import { workspaceService } from '@/services/api'
+import { useWorkspace } from '@/hooks/useWorkspace'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +28,7 @@ import {
 export default function Workspace() {
     const { activeView } = useOutletContext<{ activeView: string }>()
     const { workspace, fetchWorkspace, loading } = useModulesStore()
+    const { executeWorkflow } = useWorkspace()
     const navigate = useNavigate()
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [workflowConnections, setWorkflowConnections] = useState<Map<number, WebSocket>>(new Map())
@@ -567,7 +568,7 @@ export default function Workspace() {
                                                 onClick={() => {
                                                     const id = parseInt(wf.id)
                                                     connectToWorkflow(id)
-                                                    workspaceService.executeWorkflow(id)
+                                                    executeWorkflow(id)
                                                 }}
                                             >
                                                 <div className="flex justify-between items-start mb-2">

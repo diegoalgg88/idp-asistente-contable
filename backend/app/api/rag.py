@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field
 
 from app.core.security import get_current_user
 from app.db.models import User
-from app.services.rag_service import get_rag_service, RAGService
+from app.infrastructure.ai.rag_service import get_rag_service, RAGService
 from app.agents.rag_agent import get_rag_agent, RAGAgent
 
 

@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import Workflow, Document
 from app.main import broadcast_workflow_progress
-from app.services.finance.banking_sync import BankingSyncService
+from app.domain.finance.banking_sync import BankingSyncService
 
 
 class WorkflowEngine:

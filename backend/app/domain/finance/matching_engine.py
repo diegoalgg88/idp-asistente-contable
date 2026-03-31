@@ -11,7 +11,7 @@ import json
 
 from app.db.models_reconciliation import BankTransaction, MatchStatus
 from app.db.models import Document
-from app.services.nvidia_nim import chat_completion
+from app.infrastructure.ai.nvidia_nim import chat_completion
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

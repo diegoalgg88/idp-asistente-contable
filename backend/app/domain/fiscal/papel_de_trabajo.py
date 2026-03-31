@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from decimal import Decimal
 
 from app.db.models import Document
-from app.services.fiscal.tax_calculator import TaxCalculator
+from app.domain.fiscal.tax_calculator import TaxCalculator
 
 logger = logging.getLogger(__name__)
 

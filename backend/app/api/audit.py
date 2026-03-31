@@ -3,10 +3,10 @@ Router de Auditoría y Estados Financieros (Fase 12)
 """
 from fastapi import APIRouter
 from typing import Dict, Any
-from app.services.audit.audit_engine import AuditEngine
-from app.services.audit.health_report import FiscalHealthReportGenerator
-from app.services.fiscal.financial_statements import FinancialStatementGenerator
-from app.services.fiscal.tax_advisor import TaxAdvisorService
+from app.domain.audit.audit_engine import AuditEngine
+from app.domain.audit.health_report import FiscalHealthReportGenerator
+from app.domain.fiscal.financial_statements import FinancialStatementGenerator
+from app.domain.fiscal.tax_advisor import TaxAdvisorService
 
 router = APIRouter()
 audit_engine = AuditEngine()

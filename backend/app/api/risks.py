@@ -4,8 +4,8 @@ API de Riesgos y Variaciones (Fase 10)
 from fastapi import APIRouter
 from typing import Dict, Any
 
-from app.services.predictive.risk_detector import RiskDetector
-from app.services.predictive.budget_analyzer import BudgetAnalyzer
+from app.domain.predictive.risk_detector import RiskDetector
+from app.domain.predictive.budget_analyzer import BudgetAnalyzer
 
 router = APIRouter()
 

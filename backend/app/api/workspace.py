@@ -11,9 +11,9 @@ from sqlalchemy import func, extract, desc
 from app.db.database import get_db
 from app.db.models import Document, User
 from app.core.security import get_current_user
-from app.services.predictive.cashflow_forecaster import CashflowForecaster
-from app.services.predictive.tax_forecaster import TaxForecaster
-from app.services.predictive.health_score import TaxHealthAnalyzer
+from app.domain.predictive.cashflow_forecaster import CashflowForecaster
+from app.domain.predictive.tax_forecaster import TaxForecaster
+from app.domain.predictive.health_score import TaxHealthAnalyzer
 
 router = APIRouter()
 
@@ -540,7 +540,7 @@ async def execute_workflow(
 ):
     """Ejecutar workflow real con IDP OCR o conciliación bancaria."""
     from app.db.models import Workflow
-    from app.services.workflow_engine import get_workflow_engine
+    from app.infrastructure.orchestration.workflow_engine import get_workflow_engine
     import asyncio
     
     workflow = db.query(Workflow).filter(

@@ -27,7 +27,7 @@ from app.db.database import get_db
 from app.db.models import Conversation, Message, User
 from app.core.config import settings
 from app.core.security import get_current_user
-from app.services.agent_tools import (
+from app.infrastructure.orchestration.agent_tools import (
     AGENT_TOOL_DEFINITIONS,
     execute_tool,
     get_tools_prompt_section,
@@ -35,7 +35,7 @@ from app.services.agent_tools import (
 
 # Lazy import para evitar errores si el servicio no está disponible
 try:
-    from app.services.langgraph_agents import ContableAgent
+    from app.infrastructure.ai.langgraph_agents import ContableAgent
     HAS_LANGGRAPH = True
 except ImportError:
     HAS_LANGGRAPH = False

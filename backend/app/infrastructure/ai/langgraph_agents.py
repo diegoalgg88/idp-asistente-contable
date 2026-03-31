@@ -23,8 +23,8 @@ from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMe
 from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 
-from app.services.nvidia_nim import get_extraction_service
-from app.services.rag_service import get_rag_service
+from app.infrastructure.ai.nvidia_nim import get_extraction_service
+from app.infrastructure.ai.rag_service import get_rag_service
 from app.core.config import settings
 
 
@@ -342,7 +342,7 @@ INSTRUCCIONES CRÍTICAS:
                     "tool_call_id": str(msg.tool_call_id)
                 })
 
-        from app.services.agent_tools import AGENT_TOOL_DEFINITIONS
+        from app.infrastructure.orchestration.agent_tools import AGENT_TOOL_DEFINITIONS
         native_tools = [{"type": "function", "function": tool_def} for tool_def in AGENT_TOOL_DEFINITIONS]
 
         response_data = self.nvidia_service.generate_response(
@@ -413,7 +413,7 @@ INSTRUCCIONES CRÍTICAS:
         if not isinstance(last_message, AIMessage) or not last_message.tool_calls:
             return cast(ContableAgentState, state)
 
-        from app.services.agent_tools import execute_tool
+        from app.infrastructure.orchestration.agent_tools import execute_tool
         from app.db.session import SessionLocal
         
         db = SessionLocal()

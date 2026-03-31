@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.core.security import get_current_user
 from app.db.models import User
-from app.services.fiscal.tax_calculator import TaxCalculator
-from app.services.fiscal.declaraciones import DeclarationGenerator
-from app.services.fiscal.electronic_accounting import ElectronicAccountingGenerator
-from app.services.fiscal.papel_de_trabajo import PapelDeTrabajoService
+from app.domain.fiscal.tax_calculator import TaxCalculator
+from app.domain.fiscal.declaraciones import DeclarationGenerator
+from app.domain.fiscal.electronic_accounting import ElectronicAccountingGenerator
+from app.domain.fiscal.papel_de_trabajo import PapelDeTrabajoService
 
 router = APIRouter()
 
@@ -82,7 +82,7 @@ def generate_accounting_xml(payload: Dict[str, Any]):
 @router.post("/sync-sat")
 async def sync_sat_documents(payload: Dict[str, Any]):
     """Inicia la sincronización masiva de documentos desde el SAT."""
-    from app.services.fiscal.sat_massive_download import SATMassiveDownloadClient
+    from app.domain.fiscal.sat_massive_download import SATMassiveDownloadClient
     import os
     
     # En un entorno real, estos vendrían de la configuración del cliente/empresa
@@ -115,7 +115,7 @@ async def sync_sat_documents(payload: Dict[str, Any]):
 @router.get("/compliance-opinion")
 async def get_compliance_opinion(rfc: str):
     """Obtiene la Opinión del Cumplimiento 32-D vía scraper."""
-    from app.services.fiscal.scraper_32d import ComplianceOpinionScraper
+    from app.domain.fiscal.scraper_32d import ComplianceOpinionScraper
     
     scraper = ComplianceOpinionScraper(rfc)
     pdf_path = await scraper.get_opinion_pdf()

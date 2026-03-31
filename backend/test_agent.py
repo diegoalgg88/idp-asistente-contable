@@ -1,7 +1,7 @@
 import asyncio
 import json
 import logging
-from app.services.langgraph_agents import ContableAgent
+from app.infrastructure.ai.langgraph_agents import ContableAgent
 
 logging.basicConfig(level=logging.INFO)
 

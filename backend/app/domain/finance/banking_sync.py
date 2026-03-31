@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from fastapi import Depends
 
-from app.services.reconciliation.bank_parser import BankStatementParser
-from app.services.finance.matching_engine import matching_engine
+from app.domain.reconciliation.bank_parser import BankStatementParser
+from app.domain.finance.matching_engine import matching_engine
 from app.db.database import get_db
 from app.db.models_reconciliation import (
     BankStatement,

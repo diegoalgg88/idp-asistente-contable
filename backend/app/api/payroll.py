@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from typing import Dict, Any
-from app.services.payroll.payroll_engine import engine as payroll_engine, SUAParser
-from app.services.payroll.spei_service import spei_service
+from app.domain.payroll.payroll_engine import engine as payroll_engine, SUAParser
+from app.domain.payroll.spei_service import spei_service
 from app.core.security import get_current_user
 from app.db.models import User
 

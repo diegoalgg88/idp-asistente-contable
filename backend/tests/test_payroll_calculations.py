@@ -1,5 +1,5 @@
 from decimal import Decimal
-from app.services.payroll.payroll_engine import IMSSCalculator, ISRCalculator
+from app.domain.payroll.payroll_engine import IMSSCalculator, ISRCalculator
 
 def test_imss_patronal_rate_2026():
     # SBC = 1000, UMA = 108.45 -> Ratio = 9.22

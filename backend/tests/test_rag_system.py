@@ -64,7 +64,7 @@ def test_embeddings_service():
     print("=" * 60)
     
     try:
-        from app.services.embeddings import get_embeddings_service
+        from app.infrastructure.ai.embeddings import get_embeddings_service
         
         service = get_embeddings_service()
         print("✓ Servicio de embeddings inicializado")
@@ -101,7 +101,7 @@ def test_chromadb_connection():
     print("=" * 60)
     
     try:
-        from app.services.rag_service import ChromaDBService
+        from app.infrastructure.ai.rag_service import ChromaDBService
         
         service = ChromaDBService()
         print("✓ ChromaDB client inicializado")
@@ -132,7 +132,7 @@ def test_rag_service():
     print("=" * 60)
     
     try:
-        from app.services.rag_service import get_rag_service
+        from app.infrastructure.ai.rag_service import get_rag_service
         
         service = get_rag_service()
         print("✓ RAG service inicializado")
@@ -182,7 +182,7 @@ def test_contable_agent_with_rag():
     print("=" * 60)
     
     try:
-        from app.services.langgraph_agents import ContableAgent
+        from app.infrastructure.ai.langgraph_agents import ContableAgent
         
         agent = ContableAgent(user_id=1)
         print("✓ ContableAgent inicializado con RAG")

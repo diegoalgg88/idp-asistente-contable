@@ -9,7 +9,7 @@ import asyncio
 from mcp.server import Server
 from mcp.types import Tool, TextContent, ImageContent, EmbeddedResource
 
-from app.services.agent_tools import AGENT_TOOL_DEFINITIONS, execute_tool
+from app.infrastructure.orchestration.agent_tools import AGENT_TOOL_DEFINITIONS, execute_tool
 from app.db.session import SessionLocal
 
 # Initialize MCP Server

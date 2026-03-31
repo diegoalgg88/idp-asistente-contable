@@ -191,7 +191,7 @@ class TestRateLimiter:
 
     def test_rate_limiter_creation(self):
         """Test rate limiter creation"""
-        from app.services.nvidia_nim import RateLimiter
+        from app.infrastructure.ai.nvidia_nim import RateLimiter
         
         limiter = RateLimiter(max_rpm=40)
         assert limiter.max_rpm == 40
@@ -199,7 +199,7 @@ class TestRateLimiter:
 
     def test_rate_limiter_thread_safe(self):
         """Test rate limiter is thread-safe"""
-        from app.services.nvidia_nim import RateLimiter
+        from app.infrastructure.ai.nvidia_nim import RateLimiter
         import threading
         
         limiter = RateLimiter(max_rpm=100)

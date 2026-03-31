@@ -5,9 +5,9 @@ Diseñado para ser inyectado como Node en un grafo (LangGraph).
 import logging
 from typing import Dict, Any
 
-from app.services.payroll.imss_calculator import IMSSCalculator
-from app.services.payroll.perceptions import PerceptionsManager
-from app.services.payroll.stamping import PayrollStamper
+from app.domain.payroll.imss_calculator import IMSSCalculator
+from app.domain.payroll.perceptions import PerceptionsManager
+from app.domain.payroll.stamping import PayrollStamper
 
 logger = logging.getLogger(__name__)
 

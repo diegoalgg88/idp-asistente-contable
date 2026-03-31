@@ -34,7 +34,7 @@ from app.db.models_reconciliation import (
     MatchStatus
 )
 from app.core.security import get_current_user
-from app.services.reconciliation import (
+from app.domain.reconciliation import (
     BankStatementParser,
     ExactMatchingEngine,
     FuzzyMatchingEngine,

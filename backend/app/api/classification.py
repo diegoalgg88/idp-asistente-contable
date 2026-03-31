@@ -23,7 +23,7 @@ from pydantic import BaseModel
 from app.db.database import get_db
 from app.db.models import Document, User
 from app.core.security import get_current_user
-from app.services.idp.account_classifier import AccountClassifier
+from app.domain.idp.account_classifier import AccountClassifier
 
 logger = logging.getLogger(__name__)
 

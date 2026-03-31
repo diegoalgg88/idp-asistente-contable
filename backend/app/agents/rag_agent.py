@@ -19,8 +19,8 @@ from typing import TypedDict, List, Optional, Dict, Any, Generator
 
 
 from app.core.config import settings
-from app.services.rag_service import get_rag_service, RAGService
-from app.services.nvidia_nim import get_extraction_service, NIMExtractionService
+from app.infrastructure.ai.rag_service import get_rag_service, RAGService
+from app.infrastructure.ai.nvidia_nim import get_extraction_service, NIMExtractionService
 
 
 # =============================================================================

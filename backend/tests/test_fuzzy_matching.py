@@ -6,7 +6,7 @@ import pytest
 from decimal import Decimal
 from datetime import datetime
 from unittest.mock import MagicMock
-from app.services.reconciliation.fuzzy_matching import FuzzyMatchingEngine
+from app.domain.reconciliation.fuzzy_matching import FuzzyMatchingEngine
 
 
 def _make_bank_tx(id, fecha, concepto, monto, tipo='cargo', concepto_limpio=None, proveedor=None):

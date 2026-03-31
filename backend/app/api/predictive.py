@@ -4,9 +4,9 @@ API de Dashboard Predictivo (Fase 10)
 from fastapi import APIRouter
 from typing import Dict, Any
 
-from app.services.predictive.tax_forecaster import TaxForecaster
-from app.services.predictive.cashflow_forecaster import CashflowForecaster
-from app.services.predictive.health_score import TaxHealthAnalyzer
+from app.domain.predictive.tax_forecaster import TaxForecaster
+from app.domain.predictive.cashflow_forecaster import CashflowForecaster
+from app.domain.predictive.health_score import TaxHealthAnalyzer
 
 router = APIRouter()
 

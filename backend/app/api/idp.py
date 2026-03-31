@@ -25,7 +25,7 @@ from sqlalchemy.orm import Session
 
 from app.db.database import get_db
 from app.db.models import Document, User
-from app.services.nvidia_nim import NIMExtractionService, process_batch_async
+from app.infrastructure.ai.nvidia_nim import NIMExtractionService, process_batch_async
 from app.core.config import settings
 from app.core.security import get_current_user
 

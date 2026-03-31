@@ -9,7 +9,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # Cargar variables de entorno
 load_dotenv()
 
-from app.services.langgraph_agents import get_contable_agent
+from app.infrastructure.ai.langgraph_agents import get_contable_agent
 
 def test_autonomous_react_loop():
     print("=== TEST: Autonomous ReAct Agent Loop ===")

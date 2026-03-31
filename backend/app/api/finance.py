@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 from app.db.database import get_db
 from app.db.models import User, Document
 from app.core.security import get_current_user
-from app.services.finance.banking_sync import BankingSyncService
-from app.services.predictive.cashflow_forecaster import CashflowForecaster
+from app.domain.finance.banking_sync import BankingSyncService
+from app.domain.predictive.cashflow_forecaster import CashflowForecaster
 
 router = APIRouter()
 

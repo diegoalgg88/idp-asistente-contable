@@ -26,7 +26,7 @@ import chromadb
 from chromadb.config import Settings
 
 from app.core.config import settings
-from app.services.embeddings import get_embeddings_service, NVIDIAEmbeddingsService
+from app.infrastructure.ai.embeddings import get_embeddings_service, NVIDIAEmbeddingsService
 
 
 class ChromaDBService:

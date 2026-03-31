@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import Conversation, Message, User
 from app.core.security import get_current_user
-from app.services.langgraph_agents import ContableAgent
+from app.infrastructure.ai.langgraph_agents import ContableAgent
 from app.db.models import Document
 
 
