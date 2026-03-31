@@ -3,10 +3,10 @@ Users API - Perfil, configuración, perfiles fiscales, suscripción
 """
 from typing import List, Optional
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import User
 from app.core.security import get_current_user
 
@@ -16,13 +16,20 @@ router = APIRouter()
 class UserProfile(BaseModel):
     id: int
     email: str
-    full_name: str
-    is_active: bool
+    nombre_completo: str = Field(alias="full_name")
+    esta_activo: bool = Field(alias="is_active")
+
+    class Config:
+        from_attributes = True
+        populate_by_name = True
 
 
 class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
+    nombre_completo: Optional[str] = Field(None, alias="full_name")
     email: Optional[str] = None
+
+    class Config:
+        populate_by_name = True
 
 
 class UserSettings(BaseModel):
@@ -54,20 +61,20 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
-        full_name=current_user.full_name or "",
-        is_active=bool(current_user.is_active),
+        nombre_completo=current_user.nombre_completo or "",
+        esta_activo=bool(current_user.esta_activo),
     )
 
 
 @router.put("/me", response_model=UserProfile)
 async def update_me(
     data: UserUpdate,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Actualiza el perfil del usuario."""
-    if data.full_name is not None:
-        current_user.full_name = data.full_name
+    if data.nombre_completo is not None:
+        current_user.nombre_completo = data.nombre_completo
     if data.email is not None:
         current_user.email = data.email
     db.commit()
@@ -75,14 +82,14 @@ async def update_me(
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
-        full_name=current_user.full_name or "",
-        is_active=bool(current_user.is_active),
+        nombre_completo=current_user.nombre_completo or "",
+        esta_activo=bool(current_user.esta_activo),
     )
 
 
 @router.get("/me/settings", response_model=UserSettings)
 async def get_settings(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Configuración del usuario persistida en DB."""
@@ -106,7 +113,7 @@ async def get_settings(
 @router.put("/me/settings", response_model=UserSettings)
 async def update_settings(
     data: UserSettings,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Actualiza configuración del usuario en la base de datos."""

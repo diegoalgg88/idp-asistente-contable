@@ -7,13 +7,13 @@ export interface ExtractionData {
 export interface Document {
   id: string;
   user_id: number;
-  original_filename: string;
-  file_path: string;
+  nombre_original: string;
+  ruta_archivo: string;
   file_url: string;
   document_type: string;
   status: DocumentStatus;
-  confidence_score: number;
-  extracted_data: ExtractionData;
+  puntuacion_confianza: number;
+  datos_extraidos: ExtractionData;
   created_at: string;
 }
 

@@ -21,9 +21,10 @@ from typing import List, Optional, Dict, Any
 
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, desc
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import Conversation, Message, User
 from app.core.config import settings
 from app.core.security import get_current_user
@@ -170,7 +171,7 @@ def _clean_response(text: str) -> str:
 async def run_react_loop(
     message: str,
     history: List[Dict[str, str]],
-    db: Session,
+    db: AsyncSession,
     user_id: int,
     model: Optional[str] = None,
     context: Optional[Dict[str, Any]] = None,
@@ -212,7 +213,7 @@ async def run_react_loop(
         
         for iteration in range(max_iterations):
             # Generar respuesta del agente
-            agent_response = agent.generate_response(
+            agent_response = await agent.generate_response(
                 message=message if iteration == 0 else f"Resultados de herramientas:\n{json.dumps(tool_results, ensure_ascii=False, indent=2)}\n\nGenera tu respuesta final al usuario.",
                 history=history,
                 context={
@@ -247,7 +248,7 @@ async def run_react_loop(
                 tool_params = tool_req.get("params", {})
                 
                 try:
-                    result = execute_tool(tool_name, tool_params, db, user_id)
+                    result = await execute_tool(tool_name, tool_params, db, user_id)
                     tool_results[tool_name] = result
                     
                     all_tool_calls.append(ToolCallInfo(
@@ -300,7 +301,7 @@ async def run_react_loop(
 @router.post("/chat", response_model=AgentChatResponse)
 async def agent_chat(
     request: AgentChatRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> AgentChatResponse:
     """
@@ -325,10 +326,11 @@ async def agent_chat(
     if request.conversation_id:
         try:
             conv_id = int(request.conversation_id)
-            conversation = db.query(Conversation).filter(
+            result = await db.execute(select(Conversation).where(
                 Conversation.id == conv_id,
                 Conversation.user_id == current_user.id,
-            ).first()
+            ))
+            conversation = result.scalar_one_or_none()
         except ValueError:
             pass
 
@@ -338,8 +340,8 @@ async def agent_chat(
             title=request.message[:50] + "..." if len(request.message) > 50 else request.message,
         )
         db.add(conversation)
-        db.commit()
-        db.refresh(conversation)
+        await db.commit()
+        await db.refresh(conversation)
 
     # Guardar mensaje del usuario
     user_msg = Message(
@@ -348,16 +350,16 @@ async def agent_chat(
         content=request.message,
     )
     db.add(user_msg)
-    db.commit()
+    await db.commit()
 
     # Obtener historial
-    recent_messages = (
-        db.query(Message)
-        .filter(Message.conversation_id == conversation.id)
+    result = await db.execute(
+        select(Message)
+        .where(Message.conversation_id == conversation.id)
         .order_by(Message.created_at.desc())
         .limit(10)
-        .all()
     )
+    recent_messages = result.scalars().all()
     history = [
         {"role": msg.role, "content": msg.content}
         for msg in reversed(recent_messages)
@@ -386,7 +388,7 @@ async def agent_chat(
             },
         )
         db.add(assistant_msg)
-        db.commit()
+        await db.commit()
 
         return AgentChatResponse(
             conversation_id=str(conversation.id),
@@ -406,7 +408,7 @@ async def agent_chat(
             metadata={"error": True},
         )
         db.add(error_msg)
-        db.commit()
+        await db.commit()
 
         raise HTTPException(status_code=500, detail=f"Error en el agente: {str(e)}")
 

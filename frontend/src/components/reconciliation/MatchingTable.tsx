@@ -212,7 +212,7 @@ export const MatchingTable: React.FC<MatchingTableProps> = ({
               >
                 {/* Tipo de match */}
                 <TableCell>
-                  {getMatchTypeBadge(match.match_type, match.confidence_score)}
+                  {getMatchTypeBadge(match.match_type, match.puntuacion_confianza)}
                 </TableCell>
 
                 {/* Confianza */}
@@ -220,10 +220,10 @@ export const MatchingTable: React.FC<MatchingTableProps> = ({
                   <div
                     className={`
                       inline-flex items-center px-2 py-1 rounded-md text-xs font-medium
-                      ${getConfidenceColor(match.confidence_score)}
+                      ${getConfidenceColor(match.puntuacion_confianza)}
                     `}
                   >
-                    {(match.confidence_score * 100).toFixed(0)}%
+                    {(match.puntuacion_confianza * 100).toFixed(0)}%
                   </div>
                 </TableCell>
 

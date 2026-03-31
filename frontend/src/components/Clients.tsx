@@ -110,13 +110,14 @@ export default function Clients() {
                                         { label: 'Acta Constitutiva / Identificación', ok: client.kyc_status === 'Completo' },
                                         { label: 'Comprobante de Domicilio', ok: true }
                                     ].map((doc, i) => (
-                                        <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-white/5 group/item hover:bg-white/5 transition-colors">
+                                        <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-white/5 group/item hover:bg-white/5 transition-colors" id={`verificacion-documento-${i}`}>
                                             <span className="text-[11px] font-bold text-foreground/80">{doc.label}</span>
                                             <div className="flex items-center gap-2">
                                                 {doc.label.includes('32D') && (
                                                     <Button 
                                                         variant="ghost" 
                                                         size="icon" 
+                                                        id="boton-buscar-opinion"
                                                         className="h-5 w-5 hover:text-primary"
                                                         onClick={async () => {
                                                             toast.promise(
@@ -125,9 +126,9 @@ export default function Clients() {
                                                                     return await fiscalService.getComplianceOpinion(client.rfc);
                                                                 },
                                                                 {
-                                                                    loading: 'Scrapeando Opinión SAT...',
+                                                                    loading: 'Obteniendo Opinión SAT...',
                                                                     success: (data: any) => `Opinión obtenida: ${data.status}`,
-                                                                    error: 'Error en el Scraper'
+                                                                    error: 'Error al obtener opinión'
                                                                 }
                                                             );
                                                         }}
@@ -157,7 +158,7 @@ export default function Clients() {
                 <div className="absolute -bottom-px left-0 w-32 h-px bg-primary" />
                 <div className="space-y-3">
                     <h2 className="text-4xl font-black text-foreground italic tracking-tight uppercase tracking-tighter">
-                        {activeView === 'morales' ? 'MOLARES' :
+                        {activeView === 'morales' ? 'MORALES' :
                             activeView === 'fisicas' ? 'FÍSICAS' :
                                 activeView === 'prospectos' ? 'PROSPECTOS' : 'CARTERA'}
                         <span className="text-primary tracking-normal not-italic lowercase font-serif font-light opacity-60 px-2">&</span>
@@ -174,6 +175,7 @@ export default function Clients() {
                     <div className="relative flex-1 md:min-w-[300px]">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-40" />
                         <Input
+                            id="campo-busqueda-clientes"
                             placeholder="BUSCAR RFC, NOMBRE..."
                             className="bg-muted/20 border-border/40 pl-12 h-10 rounded-full text-[10px] font-black uppercase tracking-widest focus:ring-primary focus:border-primary/50"
                             value={searchTerm}
@@ -183,7 +185,7 @@ export default function Clients() {
                     
                     <Dialog open={isRegisterOpen} onOpenChange={setIsRegisterOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 px-8 rounded-full transition-all shrink-0">
+                            <Button id="boton-registrar-cliente" className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 px-8 rounded-full transition-all shrink-0">
                                 <UserPlus className="w-4 h-4 mr-2" />
                                 Registrar
                             </Button>
@@ -277,13 +279,13 @@ export default function Clients() {
                             <CardContent className="space-y-6 p-5 pt-0 relative z-10">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
-                                        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Status</p>
+                                        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Estado</p>
                                         <Badge className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${client.status === "Activo" ? "bg-green-500/5 text-green-500 border-none" : client.status === "Prospecto" ? "bg-blue-500/5 text-blue-400 border-none" : "bg-red-500/5 text-red-500 border-none"}`}>
                                             {client.status}
                                         </Badge>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-40">KYC Verify</p>
+                                        <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Verif. KYC</p>
                                         <Badge variant="outline" className="border-border/60 text-muted-foreground text-[9px] font-black uppercase tracking-wider px-3 py-1 rounded-full">{client.kyc_status}</Badge>
                                     </div>
                                 </div>
@@ -299,7 +301,7 @@ export default function Clients() {
                                 </div>
                                 <div className="pt-4 flex gap-3">
                                     <Button variant="outline" className="flex-1 glass-card border-border/50 text-[9px] font-black uppercase tracking-[0.1em] h-10 rounded-xl hover:bg-muted/50">Expediente</Button>
-                                    <Button className="flex-1 bg-primary text-primary-foreground shadow-lg shadow-primary/10 hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 rounded-xl transition-all">
+                                    <Button id={`boton-auditar-${client.id}`} className="flex-1 bg-primary text-primary-foreground shadow-lg shadow-primary/10 hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 rounded-xl transition-all">
                                         <ShieldCheck className="h-3.5 w-3.5 mr-2" /> Auditar
                                     </Button>
                                 </div>
@@ -308,9 +310,9 @@ export default function Clients() {
                         </Card>
                     ))}
                     {filteredClients.length === 0 && (
-                        <div className="col-span-full py-40 text-center border-2 border-dashed border-border/30 rounded-3xl">
+                        <div id="mensaje-vacio-clientes" className="col-span-full py-40 text-center border-2 border-dashed border-border/30 rounded-3xl">
                             <Users className="h-20 w-20 text-muted-foreground opacity-[0.05] mx-auto mb-6" />
-                            <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em] opacity-40">Database Empty / Filters Mismatch</p>
+                            <p className="text-[11px] font-black text-muted-foreground uppercase tracking-[0.4em] opacity-40">Base de datos vacía / Sin coincidencias</p>
                         </div>
                     )}
                 </div>

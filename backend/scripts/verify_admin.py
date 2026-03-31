@@ -23,19 +23,19 @@ try:
     if admin:
         print(f"✓ Usuario admin existe: {admin.email}")
         print(f"  ID: {admin.id}")
-        print(f"  Activo: {admin.is_active}")
+        print(f"  Activo: {admin.esta_activo}")
         
         # Actualizar password
-        admin.hashed_password = get_password_hash("admin123")
+        admin.contrasena_hash = get_password_hash("admin123")
         db.commit()
         print("✓ Contraseña actualizada a: admin123")
     else:
         # Crear usuario admin
         admin = User(
             email="admin@idp.com",
-            hashed_password=get_password_hash("admin123"),
-            full_name="Administrador",
-            is_active=True
+            contrasena_hash=get_password_hash("admin123"),
+            nombre_completo="Administrador",
+            esta_activo=True
         )
         db.add(admin)
         db.commit()
@@ -47,7 +47,7 @@ try:
     print("\n📋 Todos los usuarios:")
     users = db.query(User).all()
     for u in users:
-        print(f"  - {u.email} (ID: {u.id}, Activo: {u.is_active})")
+        print(f"  - {u.email} (ID: {u.id}, Activo: {u.esta_activo})")
         
 finally:
     db.close()

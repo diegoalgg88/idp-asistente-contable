@@ -16,8 +16,8 @@ Features:
 
 import asyncio
 from datetime import datetime
-from typing import Dict, Any, List
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 from app.db.models import Workflow, Document
 from app.main import broadcast_workflow_progress
@@ -35,11 +35,11 @@ class WorkflowEngine:
     - monthly_closing: Cierra el mes contable
     """
     
-    def __init__(self, db: Session, user_id: int, workflow_id: int):
+    def __init__(self, db: AsyncSession, user_id: int, workflow_id: int):
         self.db = db
         self.user_id = user_id
         self.workflow_id = workflow_id
-        self.banking_service = BankingSyncService()
+        self.banking_service = BankingSyncService(db)
         
     async def execute_idp_ocr_workflow(self, document_ids: List[int]) -> Dict[str, Any]:
         """
@@ -51,7 +51,7 @@ class WorkflowEngine:
         Returns:
             Dict con resultados del workflow
         """
-        workflow = self.db.query(Workflow).get(self.workflow_id)
+        workflow = await self.db.get(Workflow, self.workflow_id)
         if not workflow:
             return {"error": "Workflow not found"}
         
@@ -59,9 +59,9 @@ class WorkflowEngine:
         processed = 0
         
         # Iniciar workflow
-        workflow.status = "running"
-        workflow.started_at = datetime.utcnow()
-        self.db.commit()
+        workflow.estado = "running"
+        workflow.iniciado_en = datetime.utcnow()
+        await self.db.commit()
         
         await broadcast_workflow_progress(
             self.workflow_id, 0, "running",
@@ -74,7 +74,7 @@ class WorkflowEngine:
         for i, doc_id in enumerate(document_ids):
             try:
                 # Obtener documento
-                doc = self.db.query(Document).get(doc_id)
+                doc = await self.db.get(Document, doc_id)
                 if not doc:
                     errors.append({"doc_id": doc_id, "error": "Document not found"})
                     continue
@@ -86,8 +86,8 @@ class WorkflowEngine:
                 await broadcast_workflow_progress(
                     self.workflow_id, progress, "running",
                     step=processed,
-                    step_message=f"Procesando {doc.original_filename}...",
-                    current_document=doc.original_filename,
+                    step_message=f"Procesando {doc.nombre_original}...",
+                    current_document=doc.nombre_original,
                     documents_processed=processed,
                     documents_total=total_docs
                 )
@@ -96,12 +96,12 @@ class WorkflowEngine:
                 await asyncio.sleep(1)  # Simular OCR
                 
                 # Actualizar documento
-                doc.status = "completed"
-                doc.confidence_score = 0.95  # Simular score alto
+                doc.estado = "completed"
+                doc.puntuacion_confianza = 0.95  # Simular score alto
                 
                 results.append({
                     "doc_id": doc_id,
-                    "filename": doc.original_filename,
+                    "filename": doc.nombre_original,
                     "status": "completed",
                     "confidence": 0.95
                 })
@@ -110,19 +110,19 @@ class WorkflowEngine:
                 
             except Exception as e:
                 errors.append({"doc_id": doc_id, "error": str(e)})
-                self.db.rollback()
+                await self.db.rollback()
         
         # Completar workflow
-        workflow.status = "completed"
-        workflow.completed_at = datetime.utcnow()
-        workflow.progress = 100
-        workflow.metadata_json = {
+        workflow.estado = "completed"
+        workflow.completado_en = datetime.utcnow()
+        workflow.progreso = 100
+        workflow.metadatos_json = {
             "results": results,
             "errors": errors,
             "total_processed": processed,
             "total_errors": len(errors)
         }
-        self.db.commit()
+        await self.db.commit()
         
         await broadcast_workflow_progress(
             self.workflow_id, 100, "completed",
@@ -154,13 +154,13 @@ class WorkflowEngine:
         Returns:
             Dict con resultados de la conciliación
         """
-        workflow = self.db.query(Workflow).get(self.workflow_id)
+        workflow = await self.db.get(Workflow, self.workflow_id)
         if not workflow:
             return {"error": "Workflow not found"}
         
-        workflow.status = "running"
-        workflow.started_at = datetime.utcnow()
-        self.db.commit()
+        workflow.estado = "running"
+        workflow.iniciado_en = datetime.utcnow()
+        await self.db.commit()
         
         total_steps = 5
         steps = [
@@ -198,17 +198,17 @@ class WorkflowEngine:
                 unmatched_docs = [{"amount": 300, "rfc": "XAXX010101000"}]
         
         # Completar workflow
-        workflow.status = "completed"
-        workflow.completed_at = datetime.utcnow()
-        workflow.progress = 100
-        workflow.metadata_json = {
+        workflow.estado = "completed"
+        workflow.completado_en = datetime.utcnow()
+        workflow.progreso = 100
+        workflow.metadatos_json = {
             "matches": matches,
             "unmatched_bank": unmatched_bank,
             "unmatched_docs": unmatched_docs,
             "total_matches": len(matches),
             "reconciliation_rate": len(matches) / max(len(bank_statement_ids), 1)
         }
-        self.db.commit()
+        await self.db.commit()
         
         await broadcast_workflow_progress(
             self.workflow_id, 100, "completed",
@@ -241,13 +241,13 @@ class WorkflowEngine:
         Returns:
             Dict con resultados del cierre
         """
-        workflow = self.db.query(Workflow).get(self.workflow_id)
+        workflow = await self.db.get(Workflow, self.workflow_id)
         if not workflow:
             return {"error": "Workflow not found"}
         
-        workflow.status = "running"
-        workflow.started_at = datetime.utcnow()
-        self.db.commit()
+        workflow.estado = "running"
+        workflow.iniciado_en = datetime.utcnow()
+        await self.db.commit()
         
         closing_steps = [
             "Verificando todos los CFDI del mes...",
@@ -287,11 +287,11 @@ class WorkflowEngine:
                 results["total_cfdi"] = 124
         
         # Completar workflow
-        workflow.status = "completed"
-        workflow.completed_at = datetime.utcnow()
-        workflow.progress = 100
-        workflow.metadata_json = results
-        self.db.commit()
+        workflow.estado = "completed"
+        workflow.completado_en = datetime.utcnow()
+        workflow.progreso = 100
+        workflow.metadatos_json = results
+        await self.db.commit()
         
         await broadcast_workflow_progress(
             self.workflow_id, 100, "completed",
@@ -303,7 +303,7 @@ class WorkflowEngine:
 
 
 # Factory function
-def get_workflow_engine(db: Session, user_id: int, workflow_id: int) -> WorkflowEngine:
+def get_workflow_engine(db: AsyncSession, user_id: int, workflow_id: int) -> WorkflowEngine:
     """
     Factory para crear WorkflowEngine instances.
     

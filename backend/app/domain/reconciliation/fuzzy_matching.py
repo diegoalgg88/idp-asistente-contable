@@ -119,9 +119,9 @@ class FuzzyMatchingEngine:
                 # Verificar match fuzzy
                 match_result = self._check_fuzzy_match(bank_tx, cfdi)
                 
-                if match_result is not None and match_result.confidence_score >= self.THRESHOLD_FUZZY_MEDIUM:
+                if match_result is not None and match_result.puntuacion_confianza >= self.THRESHOLD_FUZZY_MEDIUM:
                     # Guardar mejor match (mayor confianza)
-                    if best_match is None or match_result.confidence_score > best_match.confidence_score:
+                    if best_match is None or match_result.puntuacion_confianza > best_match.puntuacion_confianza:
                         best_match = match_result
             
             if best_match:
@@ -129,12 +129,12 @@ class FuzzyMatchingEngine:
                 matched_cfdi_ids.add(best_match.cfdi.id)
                 
                 # Actualizar estado de transacción
-                if best_match.confidence_score >= self.THRESHOLD_FUZZY_HIGH:
+                if best_match.puntuacion_confianza >= self.THRESHOLD_FUZZY_HIGH:
                     bank_tx.match_status = 'fuzzy'
                 else:
                     bank_tx.match_status = 'llm'  # Requiere validación LLM
                 
-                bank_tx.confidence_score = best_match.confidence_score
+                bank_tx.puntuacion_confianza = best_match.puntuacion_confianza
             else:
                 self.unmatched.append(bank_tx)
                 bank_tx.match_status = 'unmatched'
@@ -162,7 +162,7 @@ class FuzzyMatchingEngine:
             Optional[MatchResult]: Resultado si hay match, None si no
         """
         # Extraer datos del CFDI
-        cfdi_data = cfdi.extracted_data or {}
+        cfdi_data = cfdi.datos_extraidos or {}
         
         # Obtener monto CFDI
         cfdi_monto = self._get_cfdi_amount(cfdi_data)
@@ -233,7 +233,7 @@ class FuzzyMatchingEngine:
         
         return MatchResult(
             match_type='fuzzy',
-            confidence_score=confidence,
+            puntuacion_confianza=confidence,
             bank_transaction=bank_tx,
             cfdi=cfdi,
             match_details=match_details

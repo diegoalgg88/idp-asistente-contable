@@ -80,10 +80,10 @@ def validate_files():
     ]
     
     all_exist = True
-    for file_path in required_files:
-        full_path = backend_path / file_path
+    for ruta_archivo in required_files:
+        full_path = backend_path / ruta_archivo
         exists = full_path.exists() and full_path.is_file()
-        print_check(f"{file_path}", exists)
+        print_check(f"{ruta_archivo}", exists)
         all_exist = all_exist and exists
     
     return all_exist

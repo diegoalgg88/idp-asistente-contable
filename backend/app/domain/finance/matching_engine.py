@@ -66,7 +66,7 @@ class MatchingEngine:
         """Busca documentos con monto exacto y fecha cercana (+/- tolerance)"""
         matches = []
         for doc in documents:
-            data = doc.extracted_data or {}
+            data = doc.datos_extraidos or {}
             monto_doc = Decimal(str(data.get('total', 0)))
             
             # Comparación de montos con Decimal
@@ -87,7 +87,7 @@ class MatchingEngine:
         """Busca documentos con monto exacto pero variaciones en concepto/nombre"""
         matches = []
         for doc in documents:
-            data = doc.extracted_data or {}
+            data = doc.datos_extraidos or {}
             monto_doc = Decimal(str(data.get('total', 0)))
             
             if abs(tx.monto - monto_doc) < Decimal('0.01'):
@@ -105,7 +105,7 @@ class MatchingEngine:
         """Filtra documentos que podrían ser match para enviar a LLM"""
         candidates = []
         for doc in documents:
-            data = doc.extracted_data or {}
+            data = doc.datos_extraidos or {}
             monto_doc = Decimal(str(data.get('total', 0)))
             
             # Diferencia de monto de hasta 5% (posibles comisiones o redondeos)
@@ -130,7 +130,7 @@ class MatchingEngine:
         """
         
         for i, doc in enumerate(candidates):
-            data = doc.extracted_data or {}
+            data = doc.datos_extraidos or {}
             prompt += f"""
             [{i}] ID: {doc.id}
             - Fecha: {data.get('fecha')}

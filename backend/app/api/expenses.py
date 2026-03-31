@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import User, Document
 from app.core.security import get_current_user
 
@@ -33,7 +33,7 @@ class PendingExpense(BaseModel):
 
 @router.get("/categories", response_model=List[ExpenseCategory])
 async def get_categories(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Categorías de gasto basadas en documentos reales."""
@@ -49,7 +49,7 @@ async def get_categories(
     # Agrupar por categoría (esto es simplificado)
     category_totals = {}
     for doc in docs:
-        data = doc.extracted_data or {}
+        data = doc.datos_extraidos or {}
         cat = data.get("category", "Otros")
         total = data.get("total", 0.0)
         category_totals[cat] = category_totals.get(cat, 0.0) + float(total)
@@ -80,7 +80,7 @@ async def get_categories(
 
 @router.get("/pending", response_model=List[PendingExpense])
 async def get_pending(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Gastos pendientes de clasificación (basados en documentos reales)."""
@@ -92,7 +92,7 @@ async def get_pending(
     
     results = []
     for doc in docs:
-        data = doc.extracted_data or {}
+        data = doc.datos_extraidos or {}
         results.append(PendingExpense(
             id=str(doc.id),
             vendor=data.get("rfc_emisor") or data.get("nombre_emisor", "Proveedor"),
@@ -122,7 +122,7 @@ async def get_pending(
 
 @router.post("/classify")
 async def classify_expenses(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Ejecuta motor de clasificación IA sobre documentos reales."""
@@ -135,7 +135,7 @@ async def classify_expenses(
 
 @router.get("/budget")
 async def get_budget(
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Presupuesto general dinámico."""
@@ -145,7 +145,7 @@ async def get_budget(
         Document.status == "completed"
     ).all()
     
-    total_spent = sum(float((doc.extracted_data or {}).get("total", 0)) for doc in docs)
+    total_spent = sum(float((doc.datos_extraidos or {}).get("total", 0)) for doc in docs)
     total_budget = 196000.00 # Placeholder total budget
     
     return {

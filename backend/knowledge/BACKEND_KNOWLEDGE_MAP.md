@@ -470,9 +470,9 @@ class User(Base):
 
     id: int                      # Primary key, index
     email: str                   # Unique, index, not null
-    hashed_password: str         # Not null (bcrypt)
-    full_name: str              # Optional
-    is_active: int              # Default: 1
+    contrasena_hash: str         # Not null (bcrypt)
+    nombre_completo: str              # Optional
+    esta_activo: int              # Default: 1
     created_at: datetime        # Default: utcnow
     updated_at: datetime        # Default: utcnow, onupdate
 
@@ -490,10 +490,10 @@ class Document(Base):
     id: int                      # Primary key, index
     user_id: int                 # Foreign key → users.id
     document_type: str           # Not null (factura, recibo, etc.)
-    file_path: str               # Not null
-    original_filename: str       # Optional
-    extracted_data: JSON         # Extracted entities
-    confidence_score: float      # 0-1 confidence
+    ruta_archivo: str               # Not null
+    nombre_original: str       # Optional
+    datos_extraidos: JSON         # Extracted entities
+    puntuacion_confianza: float      # 0-1 confidence
     status: str                  # pending, processing, completed, failed
     created_at: datetime
     updated_at: datetime
@@ -552,7 +552,7 @@ class BankTransaction(Base):
     rfc_proveedor: str           # RFC del proveedor
     match_status: str            # unmatched, exact, fuzzy, llm, confirmed, rejected
     cfdi_id: int                 # Foreign key → documents.id
-    confidence_score: float      # Score de confianza del match
+    puntuacion_confianza: float      # Score de confianza del match
     revisado_por: int            # Usuario que revisó
     revisado_at: datetime
 
@@ -571,7 +571,7 @@ class ReconciliationMatch(Base):
     bank_transaction_id: int     # Unique, Foreign key → bank_transactions.id
     cfdi_id: int                 # Foreign key → documents.id
     match_type: str              # exact, fuzzy, llm_confirmed, llm_review
-    confidence_score: float      # 0-1 confidence
+    puntuacion_confianza: float      # 0-1 confidence
     match_details: JSON          # Detalles del match
     estado: str                  # pending, confirmed, rejected
     rechazo_razon: str           # Razón de rechazo
@@ -601,8 +601,8 @@ class ReconciliationBatch(Base):
     total_matches_llm: int       # Matches LLM
     total_unmatched: int         # Transacciones sin match
     progreso: float              # 0-100%
-    started_at: datetime
-    completed_at: datetime
+    iniciado_en: datetime
+    completado_en: datetime
     error_message: str
     metadata: JSON
     created_at: datetime
@@ -694,13 +694,13 @@ class TokenData(BaseModel):
 class UserCreate(BaseModel):
     email: str
     password: str
-    full_name: Optional[str]
+    nombre_completo: Optional[str]
 
 class UserResponse(BaseModel):
     id: int
     email: str
-    full_name: Optional[str]
-    is_active: bool
+    nombre_completo: Optional[str]
+    esta_activo: bool
     created_at: datetime
 ```
 
@@ -714,8 +714,8 @@ class DocumentProcessingRequest(BaseModel):
 class DocumentProcessingResponse(BaseModel):
     document_id: str
     status: str
-    extracted_data: Optional[Dict[str, Any]]
-    confidence_score: Optional[float]
+    datos_extraidos: Optional[Dict[str, Any]]
+    puntuacion_confianza: Optional[float]
     latency: Optional[float]
     message: str
 
@@ -905,7 +905,7 @@ main.py
 
 **Métodos Principales:**
 ```python
-def process_document(file_path: str, document_type: str) -> Dict
+def process_document(ruta_archivo: str, document_type: str) -> Dict
 def _pdf_to_png(pdf_path: str, dpi: int = 400) -> List[bytes]
 def _enhance_image(image_bytes: bytes) -> bytes
 def _extract_entities(image_bytes: bytes) -> Dict
@@ -1421,7 +1421,7 @@ class CalendarEvent(Base):
     type (fiscal/nomina/seguridad_social)
     status (pendiente/completado/en_preparacion/vencido)
     priority (alta/media/baja)
-    is_recurring, metadata_json
+    is_recurring, metadatos_json
 ```
 
 #### Endpoints
@@ -1449,7 +1449,7 @@ class Workflow(Base):
     id, user_id, name, description, type
     status (pending/running/completed/failed/cancelled)
     progress (0-100), steps_total, steps_completed
-    metadata_json, started_at, completed_at
+    metadatos_json, iniciado_en, completado_en
 ```
 
 #### Workflow Engine
@@ -1575,7 +1575,7 @@ TOOL_EXECUTORS = {
 |-----|--------|-------------|
 | **Saldo Conciliado** | `BankTransaction` | SUM(credits) - SUM(debits) |
 | **Documentos** | `Document` | COUNT by status |
-| **Precisión Extracción** | `Document.confidence_score` | AVG * 100 |
+| **Precisión Extracción** | `Document.puntuacion_confianza` | AVG * 100 |
 | **IDP Score** | Algorithm | Base 10 - pending*0.5 + bonuses |
 | **Clientes** | `Client` | COUNT with status filter |
 

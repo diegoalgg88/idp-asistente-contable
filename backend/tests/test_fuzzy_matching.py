@@ -20,7 +20,7 @@ def _make_bank_tx(id, fecha, concepto, monto, tipo='cargo', concepto_limpio=None
     tx.tipo = tipo
     tx.proveedor = proveedor
     tx.match_status = 'unmatched'
-    tx.confidence_score = None
+    tx.puntuacion_confianza = None
     return tx
 
 
@@ -29,7 +29,7 @@ def _make_cfdi(id, total, fecha_str, emisor_nombre, concepto=''):
     cfdi = MagicMock()
     cfdi.id = id
     cfdi.document_type = 'cfdi'
-    cfdi.extracted_data = {
+    cfdi.datos_extraidos = {
         'total': total,
         'fecha': fecha_str,
         'emisor_nombre': emisor_nombre,
@@ -87,7 +87,7 @@ def test_fuzzy_match_bbva_sample():
     matches, unmatched = engine.match([tx], [cfdi])
     assert len(matches) == 1, f"Expected 1 match, got {len(matches)}. Unmatched: {len(unmatched)}"
     assert matches[0].cfdi.id == 101
-    assert matches[0].confidence_score >= 0.70
+    assert matches[0].puntuacion_confianza >= 0.70
     assert matches[0].match_type == 'fuzzy'
 
 
@@ -112,7 +112,7 @@ def test_fuzzy_match_exact_amount_different_concept():
 
     matches, unmatched = engine.match([tx], [cfdi])
     # These have very different concepts so should not fuzzy match
-    assert len(unmatched) >= 1 or (len(matches) == 1 and matches[0].confidence_score < 0.85)
+    assert len(unmatched) >= 1 or (len(matches) == 1 and matches[0].puntuacion_confianza < 0.85)
 
 
 def test_levenshtein_similarity_direct():

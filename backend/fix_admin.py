@@ -18,17 +18,17 @@ try:
     if admin_user:
         # Corregir email y contraseña
         admin_user.email = "admin@idp.com"
-        admin_user.hashed_password = get_password_hash("admin123")
-        admin_user.full_name = "Administrador"
-        admin_user.is_active = True
+        admin_user.contrasena_hash = get_password_hash("admin123")
+        admin_user.nombre_completo = "Administrador"
+        admin_user.esta_activo = True
         print(f"✓ Usuario corregido: {admin_user.email}")
     else:
         # Crear nuevo usuario
         admin_user = User(
             email="admin@idp.com",
-            hashed_password=get_password_hash("admin123"),
-            full_name="Administrador",
-            is_active=True,
+            contrasena_hash=get_password_hash("admin123"),
+            nombre_completo="Administrador",
+            esta_activo=True,
         )
         db.add(admin_user)
         print("✓ Usuario admin creado: admin@idp.com")

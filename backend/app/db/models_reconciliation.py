@@ -81,9 +81,9 @@ class BankTransaction(Base):
     referencia = Column(String, index=True)  # Referencia bancaria
     proveedor = Column(String)  # Nombre del proveedor (extraído)
     rfc_proveedor = Column(String, index=True)  # RFC del proveedor
-    match_status = Column(String, default=MatchStatus.UNMATCHED, index=True)
+    estado_match = Column(String, default=MatchStatus.UNMATCHED, index=True)
     cfdi_id = Column(Integer, ForeignKey("documents.id"))  # CFDI matcheado
-    confidence_score = Column(Float)  # Score de confianza del match
+    puntuacion_confianza = Column(Float)  # Score de confianza del match
     revisado_por = Column(Integer, ForeignKey("users.id"))  # Usuario que revisó
     revisado_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -106,8 +106,8 @@ class ReconciliationMatch(Base):
     id = Column(Integer, primary_key=True, index=True)
     bank_transaction_id = Column(Integer, ForeignKey("bank_transactions.id"), nullable=False, unique=True)
     cfdi_id = Column(Integer, ForeignKey("documents.id"), nullable=False)
-    match_type = Column(String, nullable=False)  # exact, fuzzy, llm
-    confidence_score = Column(Float, nullable=False)
+    tipo_match = Column(String, nullable=False)  # exact, fuzzy, llm
+    puntuacion_confianza = Column(Float, nullable=False)
     match_details = Column(JSON)  # Detalles del match (campos comparados)
     estado = Column(String, default="pending")  # pending, confirmed, rejected
     rechazo_razon = Column(Text)  # Razón de rechazo (si aplica)
@@ -140,9 +140,9 @@ class ReconciliationBatch(Base):
     total_matches_llm = Column(Integer, default=0)
     total_unmatched = Column(Integer, default=0)
     progreso = Column(Float, default=0.0)  # 0-100
-    started_at = Column(DateTime)
-    completed_at = Column(DateTime)
-    error_message = Column(Text)
+    iniciado_en = Column(DateTime)
+    completado_en = Column(DateTime)
+    mensaje_error = Column(Text)
     batch_metadata = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

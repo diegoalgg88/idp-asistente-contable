@@ -86,7 +86,7 @@ export default function Expenses() {
                                     <div className="p-8 rounded-full bg-muted/20 group-hover:scale-110 transition-transform duration-700">
                                         <PieChart className="h-20 w-20 opacity-20 group-hover:opacity-100" />
                                     </div>
-                                    <p className="text-[10px] font-black uppercase tracking-[0.4em]">Map de Distribución • IA Engine</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.4em]">Mapa de Distribución • Motor IA</p>
                                 </div>
                             </Card>
                             <Card className="glass-card border-border/40 premium-shadow rounded-3xl p-10 flex flex-col justify-center">
@@ -117,7 +117,7 @@ export default function Expenses() {
                                 const borderColors = ['border-blue-500/30', 'border-green-500/30', 'border-red-500/30', 'border-yellow-500/30']
                                 const textColors = ['text-blue-500', 'text-green-500', 'text-red-500', 'text-yellow-500']
                                 return (
-                                    <Card key={i} className={`glass-card ${borderColors[i % 4]} premium-shadow rounded-3xl overflow-hidden group hover:scale-[1.05] transition-all duration-500`}>
+                                    <Card key={i} id={`tarjeta-categoria-${i}`} className={`glass-card ${borderColors[i % 4]} premium-shadow rounded-3xl overflow-hidden group hover:scale-[1.05] transition-all duration-500`}>
                                         <CardContent className="p-8 relative">
                                             <div className="flex justify-between items-start mb-6">
                                                 <p className="text-[9px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-40 italic">{cat.name}</p>
@@ -187,7 +187,7 @@ export default function Expenses() {
                                     </CardHeader>
                                     <CardContent className="px-8 pb-8 space-y-8">
                                         <p className="text-[13px] font-bold text-muted-foreground leading-relaxed italic opacity-80">
-                                            "El motor ha identificado que el <span className="text-primary font-black">{budget?.utilization || 0}%</span> del presupuesto ha sido utilizado. {budget?.remaining ? `Disponibilidad residual: $${budget.remaining.toLocaleString()} MNX.` : 'Análisis en curso.'}"
+                                            "El motor ha identificado que el <span className="text-primary font-black">{budget?.utilization || 0}%</span> del presupuesto ha sido utilizado. {budget?.remaining ? `Disponibilidad residual: $${budget.remaining.toLocaleString()} MXN.` : 'Análisis en curso.'}"
                                         </p>
                                         <div className="p-6 bg-muted/30 rounded-2xl border border-white/5 flex items-start gap-5 group hover:bg-primary/5 transition-all duration-500">
                                             <div className="p-2 rounded-lg bg-green-500/10 text-green-500 mt-1">
@@ -229,10 +229,10 @@ export default function Expenses() {
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <Button onClick={() => classifyExpenses()} variant="outline" className="glass-card border-border/50 text-[9px] font-black uppercase tracking-wider h-10 px-8 hover:bg-muted/50 transition-all rounded-full group">
+                    <Button id="boton-reescanear-boveda" onClick={() => classifyExpenses()} variant="outline" className="glass-card border-border/50 text-[9px] font-black uppercase tracking-wider h-10 px-8 hover:bg-muted/50 transition-all rounded-full group">
                         <ScanSearch className="h-4 w-4 mr-3 opacity-40 group-hover:opacity-100 transition-opacity" /> Re-escanear Bóveda
                     </Button>
-                    <Button className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 px-10 rounded-full transition-all group overflow-hidden relative">
+                    <Button id="boton-gestionar-taxonomia" className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 px-10 rounded-full transition-all group overflow-hidden relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                         <Tags className="h-4 w-4 mr-3 group-hover:scale-110 transition-transform" /> Gestionar Taxonomía
                     </Button>

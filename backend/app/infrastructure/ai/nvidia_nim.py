@@ -25,6 +25,7 @@ import functools
 from typing import Dict, List, Optional, Any, Union, cast
 from pathlib import Path
 import requests
+import httpx
 import asyncio
 from datetime import datetime
 
@@ -497,16 +498,77 @@ class NIMExtractionService:
                 return {"content": f"Error en NIM LLM: {str(e)}", "tool_calls": []}
             return f"Error en NIM LLM: {str(e)}"
 
-    def stream_response(
+    async def async_generate_response(
+        self,
+        prompt: Optional[str] = None,
+        system_message: str = "Eres el Agente Fiscal de IDP Asistente Contable...",
+        messages_list: Optional[List[Dict[str, Any]]] = None,
+        model: Optional[str] = None,
+        temperature: float = 0.5,
+        max_tokens: int = 1024,
+        tools: Optional[List[Dict[str, Any]]] = None,
+    ) -> Union[str, Dict[str, Any]]:
+        """
+        Genera una respuesta de texto usando NVIDIA NIM LLM (Asíncrono).
+        """
+        # Note: Rate limiter wait_if_needed is sync, we could use a lock but for now:
+        self._check_rate_limit()
+
+        url = f"{settings.LLM_BASE_URL}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+
+        if messages_list:
+            messages = messages_list
+        else:
+            messages = [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": prompt or ""}
+            ]
+
+        payload = {
+            "model": model or settings.LLM_MODEL,
+            "messages": messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "stream": False
+        }
+        
+        if tools:
+            payload["tools"] = tools
+
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            try:
+                response = await client.post(url, headers=headers, json=payload)
+                if response.status_code != 200:
+                    return f"Error {response.status_code}: {response.text}"
+
+                result = response.json()
+                message = result.get("choices", [{}])[0].get("message", {})
+                
+                if tools:
+                    return {
+                        "content": message.get("content", ""),
+                        "tool_calls": message.get("tool_calls", [])
+                    }
+                return message.get("content", "")
+            except Exception as e:
+                if tools:
+                    return {"content": f"Error en NIM LLM: {str(e)}", "tool_calls": []}
+                return f"Error en NIM LLM: {str(e)}"
+
+    async def async_stream_response(
         self,
         prompt: str,
-        system_message: str = "Eres el Agente Fiscal de IDP Asistente Contable, un asistente experto en contabilidad y fiscalidad mexicana. Tu objetivo es proporcionar respuestas precisas, profesionales y útiles basadas en la legislación fiscal vigente en México.",
+        system_message: str = "Eres el Agente Fiscal de IDP Asistente Contable...",
         model: Optional[str] = None,
         temperature: float = 0.5,
         max_tokens: int = 1024
     ):
         """
-        Genera una respuesta en streaming usando NVIDIA NIM LLM.
+        Genera una respuesta en streaming usando NVIDIA NIM LLM (Asíncrono).
         """
         self._check_rate_limit()
 
@@ -529,28 +591,29 @@ class NIMExtractionService:
             "stream": True
         }
 
-        try:
-            with requests.post(url, headers=headers, json=payload, timeout=self.timeout, stream=True) as response:
-                if response.status_code != 200:
-                    yield f"Error {response.status_code}"
-                    return
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            try:
+                async with client.stream("POST", url, headers=headers, json=payload) as response:
+                    if response.status_code != 200:
+                        yield f"Error {response.status_code}"
+                        return
 
-                for line in response.iter_lines():
-                    if line:
-                        line_text = line.decode("utf-8").strip()
-                        if line_text.startswith("data: "):
-                            data_str = line_text[6:]
-                            if data_str == "[DONE]":
-                                break
-                            try:
-                                data = json.loads(data_str)
-                                content = data["choices"][0]["delta"].get("content", "")
-                                if content:
-                                    yield content
-                            except Exception:
-                                continue
-        except Exception as e:
-            yield f"\n[Error: {str(e)}]"
+                    async for line in response.aiter_lines():
+                        if line:
+                            line_text = line.strip()
+                            if line_text.startswith("data: "):
+                                data_str = line_text[6:]
+                                if data_str == "[DONE]":
+                                    break
+                                try:
+                                    data = json.loads(data_str)
+                                    content = data["choices"][0]["delta"].get("content", "")
+                                    if content:
+                                        yield content
+                                except Exception:
+                                    continue
+            except Exception as e:
+                yield f"\n[Error: {str(e)}]"
 
 # =============================================================================
 # SERVICE FACTORY

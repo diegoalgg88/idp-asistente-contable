@@ -20,13 +20,13 @@ class MatchResult:
     def __init__(
         self,
         match_type: str,
-        confidence_score: float,
+        puntuacion_confianza: float,
         bank_transaction: BankTransaction,
         cfdi: Document,
         match_details: Dict
     ):
         self.match_type = match_type
-        self.confidence_score = confidence_score
+        self.puntuacion_confianza = puntuacion_confianza
         self.bank_transaction = bank_transaction
         self.cfdi = cfdi
         self.match_details = match_details
@@ -35,7 +35,7 @@ class MatchResult:
         """Convierte a diccionario"""
         return {
             'match_type': self.match_type,
-            'confidence_score': self.confidence_score,
+            'puntuacion_confianza': self.puntuacion_confianza,
             'bank_transaction_id': self.bank_transaction.id,
             'cfdi_id': self.cfdi.id,
             'match_details': self.match_details
@@ -97,14 +97,14 @@ class ExactMatchingEngine:
                 
                 if match_result:
                     # Guardar mejor match (mayor confianza)
-                    if not best_match or match_result.confidence_score > best_match.confidence_score:
+                    if not best_match or match_result.puntuacion_confianza > best_match.puntuacion_confianza:
                         best_match = match_result
             
             if best_match:
                 self.matches.append(best_match)
                 matched_cfdi_ids.add(best_match.cfdi.id)
                 bank_tx.match_status = 'exact'
-                bank_tx.confidence_score = best_match.confidence_score
+                bank_tx.puntuacion_confianza = best_match.puntuacion_confianza
             else:
                 self.unmatched.append(bank_tx)
                 bank_tx.match_status = 'unmatched'
@@ -129,7 +129,7 @@ class ExactMatchingEngine:
             Optional[MatchResult]: Resultado si hay match, None si no
         """
         # Extraer datos del CFDI
-        cfdi_data = cfdi.extracted_data or {}
+        cfdi_data = cfdi.datos_extraidos or {}
         
         # Obtener monto CFDI
         cfdi_monto = self._get_cfdi_amount(cfdi_data)
@@ -173,7 +173,7 @@ class ExactMatchingEngine:
         
         return MatchResult(
             match_type='exact',
-            confidence_score=confidence,
+            puntuacion_confianza=confidence,
             bank_transaction=bank_tx,
             cfdi=cfdi,
             match_details=match_details

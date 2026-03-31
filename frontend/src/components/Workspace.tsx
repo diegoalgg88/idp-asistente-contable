@@ -131,13 +131,13 @@ export default function Workspace() {
             <div className="h-full flex items-center justify-center bg-background">
                 <div className="text-center space-y-4">
                     <h1 
-                        id="lcp-dashboard-title"
+                        id="lcp-tablero-titulo"
                         className="text-4xl font-black text-foreground italic tracking-tight uppercase animate-pulse"
                         {...({ fetchpriority: 'high' } as any)}
                     >
-                        Cargando Dashboard...
+                        Cargando Tablero...
                     </h1>
-                    <div className="text-muted-foreground animate-pulse text-sm uppercase tracking-widest font-bold">Conectando con IDP Engine</div>
+                    <div className="text-muted-foreground animate-pulse text-sm uppercase tracking-widest font-bold">Conectando con el Motor IDP</div>
                 </div>
             </div>
         )
@@ -591,11 +591,11 @@ export default function Workspace() {
                                                 </div>
                                                 <div className="mt-2 flex gap-1">
                                                     <Badge className={`${
-                                                        wf.status === 'completed' ? 'bg-green-500/10 text-green-400' :
-                                                        wf.status === 'running' ? 'bg-blue-500/10 text-blue-400' :
+                                                        wf.status === 'completado' ? 'bg-green-500/10 text-green-400' :
+                                                        wf.status === 'ejecutando' ? 'bg-blue-500/10 text-blue-400' :
                                                         'bg-yellow-500/10 text-yellow-400'
                                                     } text-[7px] font-bold uppercase`}>
-                                                        {wf.status === 'running' ? '⏳ Ejecutando' : wf.status}
+                                                        {wf.status === 'ejecutando' ? '⏳ Ejecutando' : wf.status}
                                                     </Badge>
                                                     <Badge className="bg-purple-500/10 text-purple-400 text-[7px] font-bold uppercase">
                                                         {wf.steps_completed}/{wf.steps_total} pasos
@@ -641,7 +641,7 @@ export default function Workspace() {
                 <div className="absolute -bottom-px left-0 w-32 h-px bg-primary" />
                 <div className="space-y-3">
                     <h1
-                        id="lcp-dashboard-main-title"
+                        id="titulo-principal-workbench"
                         className="text-4xl font-black text-foreground italic tracking-tight uppercase"
                         {...({ fetchpriority: 'high' } as any)}
                     >
@@ -649,9 +649,9 @@ export default function Workspace() {
                     </h1>
                     <p className="text-[9px] font-black text-muted-foreground tracking-[0.3em] uppercase flex items-center gap-2">
                         <ShieldCheck className="h-3 w-3 text-primary" />
-                        <span>IDP ENGINE ACTIVE</span>
+                        <span>MOTOR IDP ACTIVO</span>
                         <span className="h-3 w-px bg-border/50 mx-1" />
-                        <span>MODEL: {metrics?.model?.split('/').pop() || 'llama-3.3-70b'}</span>
+                        <span>MODELO: {metrics?.model?.split('/').pop() || 'llama-3.3-70b'}</span>
                     </p>
                 </div>
                 <div className="flex gap-3">

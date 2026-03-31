@@ -37,7 +37,7 @@ class TaxAdvisorService:
                 {"doc": "06-calculo-isr-iva.md", "relevance": 0.95},
                 {"doc": "07-asesoria-fiscal.md", "relevance": 0.88}
             ],
-            "confidence_score": 0.92,
+            "puntuacion_confianza": 0.92,
             "disclaimer": "Esta respuesta es generada por IA y debe ser validada por un contador certificado."
         }
 

@@ -133,7 +133,7 @@ Responde SOLO con el JSON válido.
                 llm_confidence, llm_reason, flags = result
                 
                 # Actualizar match con información LLM
-                match.confidence_score = llm_confidence
+                match.puntuacion_confianza = llm_confidence
                 match.match_details['llm_reason'] = llm_reason
                 match.match_details['llm_flags'] = flags
                 
@@ -175,7 +175,7 @@ Responde SOLO con el JSON válido.
         """
         # Preparar datos para el prompt
         bank_tx = match.bank_transaction
-        cfdi_data = match.cfdi.extracted_data or {}
+        cfdi_data = match.cfdi.datos_extraidos or {}
         
         # Calcular diferencias
         monto_diff_pct = float(abs(bank_tx.monto - match.cfdi.total) / match.cfdi.total * 100) if match.cfdi.total else 0
@@ -196,7 +196,7 @@ Responde SOLO con el JSON válido.
             cfdi_uso=self._get_cfdi_field(cfdi_data, 'uso_cfdi'),
             monto_diff_pct=monto_diff_pct,
             dias_diff=dias_diff,
-            fuzzy_score=match.confidence_score
+            fuzzy_score=match.puntuacion_confianza
         )
         
         # Llamar a NVIDIA NIM
@@ -215,7 +215,7 @@ Responde SOLO con el JSON válido.
         except Exception as e:
             logger.error(f"Error calling NVIDIA NIM: {e}")
             # Fallback: usar fuzzy score original
-            return match.confidence_score, 'Error en validación LLM', ['LLM_ERROR']
+            return match.puntuacion_confianza, 'Error en validación LLM', ['LLM_ERROR']
     
     async def _call_nvidia_nim(self, prompt: str) -> str:
         """
@@ -353,13 +353,13 @@ class MatchResult:
     def __init__(
         self,
         match_type: str,
-        confidence_score: float,
+        puntuacion_confianza: float,
         bank_transaction: BankTransaction,
         cfdi: Document,
         match_details: Dict
     ):
         self.match_type = match_type
-        self.confidence_score = confidence_score
+        self.puntuacion_confianza = puntuacion_confianza
         self.bank_transaction = bank_transaction
         self.cfdi = cfdi
         self.match_details = match_details

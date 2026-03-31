@@ -13,7 +13,7 @@ from fastapi import Depends
 
 from app.domain.reconciliation.bank_parser import BankStatementParser
 from app.domain.finance.matching_engine import matching_engine
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models_reconciliation import (
     BankStatement,
     BankTransaction,
@@ -34,13 +34,13 @@ class BankingSyncService:
         self.db = db
         self.parser = BankStatementParser()
 
-    async def process_file_upload(self, file_path: str, user_id: int, original_filename: str) -> Dict:
+    async def process_file_upload(self, ruta_archivo: str, user_id: int, nombre_original: str) -> Dict:
         """
         Punto de entrada para el procesamiento de archivos subidos.
         """
         # 1. Parsear el archivo
         try:
-            transactions, bank_code, bank_name = self.parser.parse(file_path)
+            transactions, bank_code, bank_name = self.parser.parse(ruta_archivo)
         except Exception as e:
             logger.error(f"Failed to parse bank statement: {str(e)}")
             raise ValueError(f"Formato de archivo inválido o banco no soportado: {str(e)}")
@@ -56,8 +56,8 @@ class BankingSyncService:
             fecha_fin=max(tx.fecha for tx in transactions),
             saldo_inicial=transactions[0].saldo or Decimal('0'),
             saldo_final=transactions[-1].saldo or Decimal('0'),
-            archivo_path=file_path,
-            archivo_nombre=original_filename,
+            archivo_path=ruta_archivo,
+            archivo_nombre=nombre_original,
             estado=BankStatementStatus.PROCESSING,
             total_transacciones=len(transactions)
         )
@@ -105,7 +105,7 @@ class BankingSyncService:
         result = await self.db.execute(
             select(Document).where(
                 Document.user_id == batch.user_id,
-                Document.document_type == "cfdi"
+                Document.tipo_documento == "cfdi"
             )
         )
         cfdis = result.scalars().all()
@@ -121,17 +121,17 @@ class BankingSyncService:
                 db_match = ReconciliationMatch(
                     bank_transaction_id=tx.id,
                     cfdi_id=match_result['document'].id,
-                    match_type=match_result['status'],
-                    confidence_score=match_result['score'],
+                    tipo_match=match_result['status'],
+                    puntuacion_confianza=match_result['score'],
                     match_details={'details': match_result['details']},
                     estado="pending" if match_result['score'] < 0.95 else "confirmed"
                 )
                 self.db.add(db_match)
                 
                 # Actualizar estatus en la transacción
-                tx.match_status = match_result['status']
+                tx.estado_match = match_result['status']
                 tx.cfdi_id = match_result['document'].id
-                tx.confidence_score = match_result['score']
+                tx.puntuacion_confianza = match_result['score']
                 
                 if match_result['status'] == "exact": exact_count += 1
                 elif match_result['status'] == "fuzzy": fuzzy_count += 1
@@ -141,9 +141,9 @@ class BankingSyncService:
         batch.total_matches_fuzzy = fuzzy_count
         batch.total_matches_llm = llm_count
         batch.estado = "completed"
-        batch.completed_at = datetime.utcnow()
+        batch.completado_en = datetime.utcnow()
         
         await self.db.commit()
 
-async def get_banking_sync_service(db: AsyncSession = Depends(get_db)):
+async def get_banking_sync_service(db: AsyncSession = Depends(get_async_db)):
     return BankingSyncService(db)

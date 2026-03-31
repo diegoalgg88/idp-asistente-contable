@@ -9,6 +9,7 @@ Funcionalidades:
 - Dependencia para obtener usuario actual
 """
 
+import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Annotated, Any, TYPE_CHECKING
 from jose import JWTError, jwt, ExpiredSignatureError
@@ -16,6 +17,8 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -41,31 +44,32 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token")
 # PASSWORD HASHING
 # =============================================================================
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, contrasena_hash: str) -> bool:
     """
-    Verifica una contraseña contra un hash.
-
-    Args:
-        plain_password: Contraseña en texto plano
-        hashed_password: Hash de contraseña
-
-    Returns:
-        bool: True si la contraseña coincide
+    Verifica una contraseña contra un hash usando bcrypt directamente
+    (bypass broke passlib[bcrypt] v1.7.4 + bcrypt 4.0+ bug).
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # Codificar a bytes
+        password_bytes = plain_password.encode('utf-8')
+        hashed_bytes = contrasena_hash.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except Exception as e:
+        print(f"Error verificando password: {e}")
+        return False
 
 
 def get_password_hash(password: str) -> str:
     """
-    Hashea una contraseña usando bcrypt.
-
-    Args:
-        password: Contraseña a hashear
-
-    Returns:
-        str: Hash de la contraseña
+    Hashea una contraseña usando bcrypt directamente.
     """
-    return pwd_context.hash(password)
+    # Codificar a bytes
+    password_bytes = password.encode('utf-8')
+    # Generar salt y hashear
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    # Devolver como string
+    return hashed.decode('utf-8')
 
 
 # =============================================================================
@@ -162,47 +166,34 @@ def verify_token(token: str) -> Optional[dict]:
 # USER AUTHENTICATION
 # =============================================================================
 
-def authenticate_user(
-    db: Session,
+async def authenticate_user(
+    db: AsyncSession,
     email: str,
     password: str
 ) -> Optional[User]:
     """
-    Autentica un usuario con email y contraseña.
-
-    Args:
-        db: Sesión de base de datos
-        email: Email del usuario
-        password: Contraseña en texto plano
-
-    Returns:
-        Optional[User]: Usuario si la autenticación es exitosa, None si falla
+    Autentica un usuario con email y contraseña (Asíncrono).
     """
     from app.db.models import User as DBUser
-    user = db.query(DBUser).filter(DBUser.email == email).first()
+    
+    result = await db.execute(select(DBUser).where(DBUser.email == email))
+    user = result.scalar_one_or_none()
     
     if not user:
         return None
     
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.contrasena_hash):
         return None
     
     return user
 
 
-def get_current_user_from_token(
+async def get_current_user_from_token(
     token: str,
-    db: Session
+    db: AsyncSession
 ) -> Optional[User]:
     """
-    Obtiene el usuario actual desde un token JWT.
-
-    Args:
-        token: Token JWT
-        db: Sesión de base de datos
-
-    Returns:
-        Optional[User]: Usuario o None si el token es inválido
+    Obtiene el usuario actual desde un token JWT (Asíncrono).
     """
     payload = decode_access_token(token)
     
@@ -220,9 +211,10 @@ def get_current_user_from_token(
         return None
     
     from app.db.models import User as DBUser
-    user = db.query(DBUser).filter(DBUser.id == user_id).first()
+    result = await db.execute(select(DBUser).where(DBUser.id == user_id))
+    user = result.scalar_one_or_none()
     
-    if user is None or not user.is_active:
+    if user is None or not user.esta_activo:
         return None
     
     return user
@@ -230,54 +222,53 @@ def get_current_user_from_token(
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
+    db: Annotated[AsyncSession, Depends(lambda: __import__('app.db.database', fromlist=['get_async_db']).get_async_db)],
 ) -> User:
     """
-    Dependencia para obtener el usuario actual desde un token JWT.
-
-    Args:
-        token: Token JWT (extraído automáticamente del header Authorization)
-
-    Returns:
-        User: Usuario autenticado
-
-    Raises:
-        HTTPException: 401 si el token es inválido o expirado
+    Dependencia para obtener el usuario actual (Asíncrono).
     """
-    # Import db dependencies locally to avoid circular import
-    from app.db.database import get_db
+    # Import cleaner way to get dependency if possible, but avoiding circular import
+    from app.db.database import get_async_db
     
-    db = next(get_db())
+    # Simple trick: we use the dependency directly
+    # In FastAPI, you normally wouldn't call it like this, but this is a dependency itself
+    # However, to be extra safe and follow standard patterns:
+    pass
+
+# We will rewrite the get_current_user dependency slightly to make it properly usable in FastAPI
+async def get_current_user(
+    token: Annotated[str, Depends(oauth2_scheme)],
+) -> User:
+    from app.db.database import AsyncSessionLocal
+    from app.db.models import User as DBUser
+    
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    payload = decode_access_token(token)
+    if payload is None:
+        raise credentials_exception
+    
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise credentials_exception
+        
     try:
-        credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        user_id_int = int(user_id)
+    except ValueError:
+        raise credentials_exception
         
-        payload = decode_access_token(token)
+    async with AsyncSessionLocal() as db:
+        result = await db.execute(select(DBUser).where(DBUser.id == user_id_int))
+        user = result.scalar_one_or_none()
         
-        if payload is None:
+        if user is None or not user.esta_activo:
             raise credentials_exception
-        
-        user_id = payload.get("sub")
-        
-        if user_id is None:
-            raise credentials_exception
-        
-        try:
-            user_id = int(user_id)
-        except ValueError:
-            raise credentials_exception
-        
-        from app.db.models import User as DBUser
-        user = db.query(DBUser).filter(DBUser.id == user_id).first()
-        
-        if user is None or not user.is_active:
-            raise credentials_exception
-        
+            
         return user
-    finally:
-        db.close()
 
 
 async def get_current_active_user(
@@ -295,7 +286,7 @@ async def get_current_active_user(
     Raises:
         HTTPException: 400 si el usuario está inactivo
     """
-    if not current_user.is_active:
+    if not current_user.esta_activo:
         raise HTTPException(status_code=400, detail="Inactive user")
     
     return current_user
@@ -349,15 +340,15 @@ class UserCreate(BaseModel):
     """User creation model"""
     email: str
     password: str
-    full_name: Optional[str] = None
+    nombre_completo: Optional[str] = None
 
 
 class UserResponse(BaseModel):
     """User response model"""
     id: int
     email: str
-    full_name: Optional[str]
-    is_active: bool
+    nombre_completo: Optional[str]
+    esta_activo: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}

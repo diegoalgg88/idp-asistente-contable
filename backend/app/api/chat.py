@@ -15,9 +15,10 @@ from typing import List, Optional, Dict, Any, AsyncGenerator, cast
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func, delete, desc, text
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import Conversation, Message, User
 from app.core.security import get_current_user
 from app.infrastructure.ai.langgraph_agents import ContableAgent
@@ -59,8 +60,11 @@ class ChatResponse(BaseModel):
     conversation_id: str
     message: ChatMessage
     sources: Optional[List[str]] = Field(None, description="Fuentes de información utilizadas")
-    confidence: float = Field(..., description="Score de confianza (0-1)")
+    puntuacion_confianza: float = Field(alias="confidence", description="Score de confianza (0-1)")
     metadata: Optional[Dict[str, Any]] = Field(None, description="Metadatos adicionales")
+
+    class Config:
+        populate_by_name = True
 
 
 class ConversationSummary(BaseModel):
@@ -76,8 +80,11 @@ class ContextItem(BaseModel):
     """Context item for mentions"""
     id: str
     name: str
-    type: str  # document, client, project, etc.
+    tipo: str = Field(alias="type")  # document, client, project, etc.
     metadata: Optional[Dict[str, Any]] = None
+
+    class Config:
+        populate_by_name = True
 
 
 class ContextItemsResponse(BaseModel):
@@ -89,8 +96,8 @@ class ContextItemsResponse(BaseModel):
 # HELPER FUNCTIONS
 # =============================================================================
 
-def get_or_create_conversation(
-    db: Session,
+async def get_or_create_conversation(
+    db: AsyncSession,
     user_id: int,
     conversation_id: Optional[str] = None,
     initial_message: Optional[str] = None
@@ -110,10 +117,11 @@ def get_or_create_conversation(
     if conversation_id:
         try:
             conv_id = int(conversation_id)
-            conversation = db.query(Conversation).filter(
+            result = await db.execute(select(Conversation).where(
                 Conversation.id == conv_id,
                 Conversation.user_id == user_id
-            ).first()
+            ))
+            conversation = result.scalar_one_or_none()
             
             if conversation:
                 return conversation
@@ -131,14 +139,14 @@ def get_or_create_conversation(
     conversation.user_id = user_id
     conversation.title = title
     db.add(conversation)
-    db.commit()
-    db.refresh(conversation)
+    await db.commit()
+    await db.refresh(conversation)
 
     return conversation
 
 
-def save_message(
-    db: Session,
+async def save_message(
+    db: AsyncSession,
     conversation_id: int,
     role: str,
     content: str,
@@ -161,10 +169,10 @@ def save_message(
     message.conversation_id = conversation_id
     message.role = role
     message.content = content
-    message.msg_metadata = metadata
+    message.metadatos = metadata
     db.add(message)
-    db.commit()
-    db.refresh(message)
+    await db.commit()
+    await db.refresh(message)
     return message
 
 
@@ -175,7 +183,7 @@ def save_message(
 @router.post("/message", response_model=ChatResponse)
 async def send_message(
     request: ChatRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> ChatResponse:
     """
@@ -196,7 +204,7 @@ async def send_message(
         ChatResponse: Respuesta del asistente con fuentes y confianza
     """
     # Obtener o crear conversación
-    conversation = get_or_create_conversation(
+    conversation = await get_or_create_conversation(
         db=db,
         user_id=current_user.id,
         conversation_id=request.conversation_id,
@@ -204,7 +212,7 @@ async def send_message(
     )
 
     # Guardar mensaje del usuario
-    save_message(
+    await save_message(
         db=db,
         conversation_id=conversation.id,
         role="user",
@@ -217,9 +225,10 @@ async def send_message(
         agent = ContableAgent()
 
         # Obtener historial de conversación (últimos 10 mensajes)
-        recent_messages = db.query(Message).filter(
+        result = await db.execute(select(Message).where(
             Message.conversation_id == conversation.id
-        ).order_by(Message.created_at.desc()).limit(10).all()
+        ).order_by(Message.created_at.desc()).limit(10))
+        recent_messages = result.scalars().all()
         
         # Ordenar cronológicamente
         recent_messages = list(reversed(recent_messages))
@@ -234,8 +243,8 @@ async def send_message(
         if request.context_items:
             full_context["context_items"] = request.context_items
 
-        # Generar respuesta con el agente
-        response_data = agent.generate_response(
+        # Generar respuesta con el agente (Awaiting async method)
+        response_data = await agent.generate_response(
             message=request.message,
             history=history,
             context=full_context,
@@ -243,14 +252,14 @@ async def send_message(
         )
 
         # Guardar respuesta del asistente
-        assistant_message = save_message(
+        assistant_message = await save_message(
             db=db,
             conversation_id=conversation.id,
             role="assistant",
             content=response_data.get("content", ""),
             metadata={
                 "sources": response_data.get("sources", []),
-                "confidence": response_data.get("confidence", 0.0),
+                "puntuacion_confianza": response_data.get("confidence", 0.0),
                 "model_used": response_data.get("model_used", "unknown"),
             }
         )
@@ -259,7 +268,7 @@ async def send_message(
         if not conversation.title and request.message:
             msg_text = str(request.message)
             conversation.title = msg_text[:50] + "..." if len(msg_text) > 50 else msg_text
-            db.commit()
+            await db.commit()
 
         response_msg = ChatMessage(
             role="assistant",
@@ -269,7 +278,7 @@ async def send_message(
             conversation_id=str(conversation.id),
             message=response_msg,
             sources=cast(Optional[List[str]], response_data.get("sources")),
-            confidence=float(response_data.get("confidence", 0.0)),
+            puntuacion_confianza=float(response_data.get("confidence", 0.0)),
             metadata={
                 "model_used": response_data.get("model_used"),
                 "latency": response_data.get("latency"),
@@ -278,7 +287,7 @@ async def send_message(
 
     except Exception as e:
         # Guardar mensaje de error
-        save_message(
+        await save_message(
             db=db,
             conversation_id=conversation.id,
             role="assistant",
@@ -292,7 +301,7 @@ async def send_message(
 @router.post("/message/stream")
 async def send_message_stream(
     request: ChatRequest,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -308,7 +317,7 @@ async def send_message_stream(
         StreamingResponse: Stream de tokens en formato SSE
     """
     # Obtener o crear conversación
-    conversation = get_or_create_conversation(
+    conversation = await get_or_create_conversation(
         db=db,
         user_id=current_user.id,
         conversation_id=request.conversation_id,
@@ -316,7 +325,7 @@ async def send_message_stream(
     )
 
     # Guardar mensaje del usuario
-    save_message(
+    await save_message(
         db=db,
         conversation_id=conversation.id,
         role="user",
@@ -330,9 +339,10 @@ async def send_message_stream(
             agent = ContableAgent()
 
             # Obtener historial
-            recent_messages = db.query(Message).filter(
+            result = await db.execute(select(Message).where(
                 Message.conversation_id == conversation.id
-            ).order_by(Message.created_at.desc()).limit(10).all()
+            ).order_by(Message.created_at.desc()).limit(10))
+            recent_messages = result.scalars().all()
             
             history = [
                 {"role": msg.role, "content": msg.content}
@@ -348,8 +358,8 @@ async def send_message_stream(
             if request.context_items:
                 full_context["context_items"] = request.context_items
 
-            # Stream de tokens
-            for chunk in agent.stream_response(
+            # Stream de tokens (Awaiting async generator)
+            async for chunk in agent.stream_response(
                 message=request.message,
                 history=history,
                 context=full_context
@@ -362,19 +372,22 @@ async def send_message_stream(
                     elif chunk.get("type") == "metadata":
                         sources = chunk.get("sources", [])
                         confidence = chunk.get("confidence", 0.0)
+                    elif chunk.get("type") == "done":
+                        sources = chunk.get("sources", sources)
+                        confidence = chunk.get("confidence", confidence)
                 else:
                     full_response += str(chunk)
                     yield f"data: {chunk}\n\n"
 
             # Guardar respuesta completa
-            save_message(
+            await save_message(
                 db=db,
                 conversation_id=conversation.id,
                 role="assistant",
                 content=full_response,
                 metadata={
                     "sources": sources,
-                    "confidence": confidence,
+                    "puntuacion_confianza": confidence,
                 }
             )
 
@@ -396,7 +409,7 @@ async def send_message_stream(
 @router.get("/conversation/{conversation_id}", response_model=ConversationDetailResponse)
 async def get_conversation(
     conversation_id: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> ConversationDetailResponse:
     """
@@ -412,18 +425,20 @@ async def get_conversation(
     except ValueError:
         raise HTTPException(status_code=400, detail="ID de conversación inválido")
 
-    conversation = db.query(Conversation).filter(
+    result = await db.execute(select(Conversation).where(
         Conversation.id == conv_id,
         Conversation.user_id == current_user.id
-    ).first()
+    ))
+    conversation = result.scalar_one_or_none()
 
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversación no encontrada")
 
     # Obtener mensajes ordenados cronológicamente
-    messages = db.query(Message).filter(
+    result = await db.execute(select(Message).where(
         Message.conversation_id == conv_id
-    ).order_by(Message.created_at.asc()).all()
+    ).order_by(Message.created_at.asc()))
+    messages = result.scalars().all()
 
     response = ConversationDetailResponse(
         id=str(conversation.id),
@@ -442,7 +457,7 @@ async def get_conversation(
 @router.delete("/conversation/{conversation_id}")
 async def delete_conversation(
     conversation_id: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -462,22 +477,23 @@ async def delete_conversation(
     except ValueError:
         raise HTTPException(status_code=400, detail=f"ID de conversación debe ser entero, recibido: {conversation_id}")
 
-    conversation = db.query(Conversation).filter(
+    result = await db.execute(select(Conversation).where(
         Conversation.id == conv_id,
         Conversation.user_id == current_user.id
-    ).first()
+    ))
+    conversation = result.scalar_one_or_none()
 
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversación no encontrada")
 
     # Eliminar mensajes primero (cascade)
-    db.query(Message).filter(
+    await db.execute(delete(Message).where(
         Message.conversation_id == conv_id
-    ).delete()
+    ))
 
     # Eliminar conversación
-    db.delete(conversation)
-    db.commit()
+    await db.delete(conversation)
+    await db.commit()
 
     return {"message": f"Conversación {conversation_id} eliminada exitosamente"}
 
@@ -485,7 +501,7 @@ async def delete_conversation(
 @router.get("/conversations", response_model=List[ConversationSummary])
 async def list_conversations(
     limit: int = Query(default=20, ge=1, le=100, description="Número máximo de conversaciones"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> List[ConversationSummary]:
     """
@@ -496,18 +512,20 @@ async def list_conversations(
     Returns:
         List[ConversationSummary]: Lista de conversaciones ordenadas por fecha
     """
-    conversations = db.query(Conversation).filter(
+    result = await db.execute(select(Conversation).where(
         Conversation.user_id == current_user.id
     ).order_by(
         Conversation.updated_at.desc()
-    ).limit(limit).all()
+    ).limit(limit))
+    conversations = result.scalars().all()
 
     results = []
     for conv in conversations:
         # Contar mensajes
-        message_count = db.query(Message).filter(
+        result = await db.execute(select(func.count(Message.id)).where(
             Message.conversation_id == conv.id
-        ).count()
+        ))
+        message_count = result.scalar() or 0
 
         summary = ConversationSummary(
             conversation_id=str(conv.id),
@@ -523,7 +541,7 @@ async def list_conversations(
 
 @router.get("/context-items", response_model=ContextItemsResponse)
 async def get_context_items(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> ContextItemsResponse:
     """
@@ -531,19 +549,20 @@ async def get_context_items(
     Incluye documentos recientes y clientes.
     """
     # Documentos recientes
-    documents = db.query(Document).filter(
+    result = await db.execute(select(Document).where(
         Document.user_id == current_user.id
-    ).order_by(Document.created_at.desc()).limit(20).all()
+    ).order_by(Document.created_at.desc()).limit(20))
+    documents = result.scalars().all()
 
     items = []
     for doc in documents:
         item = ContextItem(
             id=str(doc.id),
-            name=doc.original_filename,
+            name=doc.nombre_original,
             type="document",
             metadata={
-                "doc_type": doc.document_type,
-                "status": doc.status
+                "doc_type": doc.tipo_documento,
+                "status": doc.estado
             }
         )
         items.append(item)

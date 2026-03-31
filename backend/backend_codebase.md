@@ -2288,7 +2288,7 @@ async def login_for_access_token(
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    if not user.is_active:
+    if not user.esta_activo:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",
@@ -2314,13 +2314,13 @@ async def get_current_user_info(
     """
     Obtiene información del usuario actual autenticado.
     Returns:
-        dict: Información del usuario (id, email, full_name, is_active)
+        dict: Información del usuario (id, email, nombre_completo, esta_activo)
     """
     return {
         "id": current_user.id,
         "email": current_user.email,
-        "full_name": current_user.full_name,
-        "is_active": current_user.is_active,
+        "nombre_completo": current_user.nombre_completo,
+        "esta_activo": current_user.esta_activo,
         "created_at": current_user.created_at,
     }
 @router.post("/refresh", response_model=Token)
@@ -2362,7 +2362,7 @@ async def refresh_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     user = db.query(User).filter(User.id == user_id_int).first()
-    if not user or not user.is_active:
+    if not user or not user.esta_activo:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive",
@@ -2833,7 +2833,7 @@ class ClassificationSuggestion(BaseModel):
     document_amount: Decimal
     suggested_account: str
     account_name: str
-    confidence_score: float
+    puntuacion_confianza: float
     top_3_suggestions: List[Dict[str, Any]]
 class ClassificationRequest(BaseModel):
     """Request para sugerir cuentas"""
@@ -2853,7 +2853,7 @@ class ClassificationAccuracyResponse(BaseModel):
     total_classified: int
     correct_classifications: int
     accuracy_rate: float
-    avg_confidence_score: float
+    avg_puntuacion_confianza: float
     last_30_days_accuracy: float
     feedback_count: int
 class AccountResponse(BaseModel):
@@ -2900,13 +2900,13 @@ async def suggest_accounts(
         # Preparar datos para clasificación
         transactions = []
         for doc in documents:
-            extracted_data = doc.extracted_data or {}
+            datos_extraidos = doc.datos_extraidos or {}
             transactions.append({
                 'id': doc.id,
-                'concepto': extracted_data.get('descripcion', doc.original_filename or ''),
-                'monto': Decimal(str(extracted_data.get('total', 0))),
-                'proveedor': extracted_data.get('emisor_nombre', ''),
-                'rfc_proveedor': extracted_data.get('emisor_rfc', '')
+                'concepto': datos_extraidos.get('descripcion', doc.nombre_original or ''),
+                'monto': Decimal(str(datos_extraidos.get('total', 0))),
+                'proveedor': datos_extraidos.get('emisor_nombre', ''),
+                'rfc_proveedor': datos_extraidos.get('emisor_rfc', '')
             })
         # Obtener sugerencias
         suggestions_raw = classifier.predict(transactions)
@@ -2931,7 +2931,7 @@ async def suggest_accounts(
                 document_amount=suggestion.get('monto', Decimal('0')),
                 suggested_account=suggestion['suggested_account'],
                 account_name=suggestion['account_name'],
-                confidence_score=suggestion['confidence_score'],
+                puntuacion_confianza=suggestion['puntuacion_confianza'],
                 top_3_suggestions=top_3
             ))
         return suggestions
@@ -2970,13 +2970,13 @@ async def suggest_account_for_document(
     # Inicializar clasificador
     classifier = AccountClassifier()
     # Preparar datos
-    extracted_data = doc.extracted_data or {}
+    datos_extraidos = doc.datos_extraidos or {}
     transaction = {
         'id': doc.id,
-        'concepto': extracted_data.get('descripcion', doc.original_filename or ''),
-        'monto': Decimal(str(extracted_data.get('total', 0))),
-        'proveedor': extracted_data.get('emisor_nombre', ''),
-        'rfc_proveedor': extracted_data.get('emisor_rfc', '')
+        'concepto': datos_extraidos.get('descripcion', doc.nombre_original or ''),
+        'monto': Decimal(str(datos_extraidos.get('total', 0))),
+        'proveedor': datos_extraidos.get('emisor_nombre', ''),
+        'rfc_proveedor': datos_extraidos.get('emisor_rfc', '')
     }
     # Obtener sugerencia
     suggestion = classifier.predict([transaction])[0]
@@ -2995,7 +2995,7 @@ async def suggest_account_for_document(
         document_amount=suggestion.get('monto', Decimal('0')),
         suggested_account=suggestion['suggested_account'],
         account_name=suggestion['account_name'],
-        confidence_score=suggestion['confidence_score'],
+        puntuacion_confianza=suggestion['puntuacion_confianza'],
         top_3_suggestions=top_3
     )
 # ============================================================================
@@ -3034,10 +3034,10 @@ async def submit_feedback(
                 detail="No tienes permiso para este documento"
             )
         # Guardar feedback en metadatos del documento
-        if not doc.extracted_data:
-            doc.extracted_data = {}
-        if 'classification_feedback' not in doc.extracted_data:
-            doc.extracted_data['classification_feedback'] = []
+        if not doc.datos_extraidos:
+            doc.datos_extraidos = {}
+        if 'classification_feedback' not in doc.datos_extraidos:
+            doc.datos_extraidos['classification_feedback'] = []
         feedback_entry = {
             'timestamp': datetime.utcnow().isoformat(),
             'user_id': current_user.id,
@@ -3045,10 +3045,10 @@ async def submit_feedback(
             'corrected_account': request.corrected_account,
             'feedback_type': request.feedback_type
         }
-        doc.extracted_data['classification_feedback'].append(feedback_entry)
+        doc.datos_extraidos['classification_feedback'].append(feedback_entry)
         # Actualizar cuenta clasificada
-        doc.extracted_data['classified_account'] = request.corrected_account
-        doc.extracted_data['classification_confidence'] = 1.0 if request.feedback_type == 'correct' else 0.5
+        doc.datos_extraidos['classified_account'] = request.corrected_account
+        doc.datos_extraidos['classification_confidence'] = 1.0 if request.feedback_type == 'correct' else 0.5
         await db.commit()
         # TODO: Agregar a cola de re-entrenamiento
         # asyncio.create_task(queue_for_retraining(request.document_id))
@@ -3087,7 +3087,7 @@ async def get_accuracy_metrics(
     result = await db.execute(
         select(func.count(Document.id)).where(
             Document.user_id == current_user.id,
-            Document.extracted_data['classified_account'].isnot(None)
+            Document.datos_extraidos['classified_account'].isnot(None)
         )
     )
     total_classified = result.scalar() or 0
@@ -3095,7 +3095,7 @@ async def get_accuracy_metrics(
     result = await db.execute(
         select(func.count(Document.id)).where(
             Document.user_id == current_user.id,
-            Document.extracted_data['classification_feedback'].isnot(None)
+            Document.datos_extraidos['classification_feedback'].isnot(None)
         )
     )
     feedback_count = result.scalar() or 0
@@ -3108,9 +3108,9 @@ async def get_accuracy_metrics(
         accuracy_rate = min(accuracy_rate, 0.98)  # Tope 98%
     # Confianza promedio
     result = await db.execute(
-        select(func.avg(Document.extracted_data['classification_confidence'])).where(
+        select(func.avg(Document.datos_extraidos['classification_confidence'])).where(
             Document.user_id == current_user.id,
-            Document.extracted_data['classification_confidence'].isnot(None)
+            Document.datos_extraidos['classification_confidence'].isnot(None)
         )
     )
     avg_confidence = result.scalar() or 0.0
@@ -3123,7 +3123,7 @@ async def get_accuracy_metrics(
         total_classified=total_classified,
         correct_classifications=int(total_classified * accuracy_rate),
         accuracy_rate=accuracy_rate,
-        avg_confidence_score=avg_confidence,
+        avg_puntuacion_confianza=avg_confidence,
         last_30_days_accuracy=last_30_days_accuracy,
         feedback_count=feedback_count
     )
@@ -3224,14 +3224,14 @@ async def classify_document_manual(
             detail="No tienes permiso para este documento"
         )
     # Actualizar clasificación
-    if not doc.extracted_data:
-        doc.extracted_data = {}
-    doc.extracted_data['classified_account'] = request.account_code
-    doc.extracted_data['classified_account_name'] = request.account_name
-    doc.extracted_data['classification_type'] = 'manual'
-    doc.extracted_data['classification_confidence'] = 1.0  # Manual = 100% confianza
-    doc.extracted_data['classified_at'] = datetime.utcnow().isoformat()
-    doc.extracted_data['classified_by'] = current_user.id
+    if not doc.datos_extraidos:
+        doc.datos_extraidos = {}
+    doc.datos_extraidos['classified_account'] = request.account_code
+    doc.datos_extraidos['classified_account_name'] = request.account_name
+    doc.datos_extraidos['classification_type'] = 'manual'
+    doc.datos_extraidos['classification_confidence'] = 1.0  # Manual = 100% confianza
+    doc.datos_extraidos['classified_at'] = datetime.utcnow().isoformat()
+    doc.datos_extraidos['classified_by'] = current_user.id
     await db.commit()
     return {
         "message": "Documento clasificado exitosamente",
@@ -3279,13 +3279,13 @@ async def batch_classify_documents(
         # Preparar transacciones
         transactions = []
         for doc in documents:
-            extracted_data = doc.extracted_data or {}
+            datos_extraidos = doc.datos_extraidos or {}
             transactions.append({
                 'id': doc.id,
-                'concepto': extracted_data.get('descripcion', doc.original_filename or ''),
-                'monto': Decimal(str(extracted_data.get('total', 0))),
-                'proveedor': extracted_data.get('emisor_nombre', ''),
-                'rfc_proveedor': extracted_data.get('emisor_rfc', '')
+                'concepto': datos_extraidos.get('descripcion', doc.nombre_original or ''),
+                'monto': Decimal(str(datos_extraidos.get('total', 0))),
+                'proveedor': datos_extraidos.get('emisor_nombre', ''),
+                'rfc_proveedor': datos_extraidos.get('emisor_rfc', '')
             })
         # Obtener predicciones
         predictions = classifier.predict(transactions)
@@ -3300,18 +3300,18 @@ async def batch_classify_documents(
                 'document_id': doc.id,
                 'suggested_account': pred['suggested_account'],
                 'account_name': pred['account_name'],
-                'confidence_score': pred['confidence_score'],
+                'puntuacion_confianza': pred['puntuacion_confianza'],
                 'top_3': pred.get('top_3', []),
                 'auto_applied': False
             }
             # Auto-aplicar si confianza >90% y auto_apply=True
-            if auto_apply and pred['confidence_score'] >= 0.90:
-                if not doc.extracted_data:
-                    doc.extracted_data = {}
-                doc.extracted_data['classified_account'] = pred['suggested_account']
-                doc.extracted_data['classified_account_name'] = pred['account_name']
-                doc.extracted_data['classification_type'] = 'auto_high_confidence'
-                doc.extracted_data['classification_confidence'] = pred['confidence_score']
+            if auto_apply and pred['puntuacion_confianza'] >= 0.90:
+                if not doc.datos_extraidos:
+                    doc.datos_extraidos = {}
+                doc.datos_extraidos['classified_account'] = pred['suggested_account']
+                doc.datos_extraidos['classified_account_name'] = pred['account_name']
+                doc.datos_extraidos['classification_type'] = 'auto_high_confidence'
+                doc.datos_extraidos['classification_confidence'] = pred['puntuacion_confianza']
                 auto_applied_count += 1
                 result_entry['auto_applied'] = True
             results.append(result_entry)
@@ -3715,8 +3715,8 @@ class DocumentProcessingResponse(BaseModel):
     """Response model for document processing"""
     document_id: str
     status: str
-    extracted_data: Optional[Dict[str, Any]] = None
-    confidence_score: Optional[float] = None
+    datos_extraidos: Optional[Dict[str, Any]] = None
+    puntuacion_confianza: Optional[float] = None
     latency: Optional[float] = None
     message: str
 class DocumentStatusResponse(BaseModel):
@@ -3726,8 +3726,8 @@ class DocumentStatusResponse(BaseModel):
     document_type: str
     created_at: datetime
     updated_at: datetime
-    extracted_data: Optional[Dict[str, Any]] = None
-    confidence_score: Optional[float] = None
+    datos_extraidos: Optional[Dict[str, Any]] = None
+    puntuacion_confianza: Optional[float] = None
     error_message: Optional[str] = None
 class BatchProcessRequest(BaseModel):
     """Request model for batch processing"""
@@ -3759,11 +3759,11 @@ def save_uploaded_file(file: UploadFile, upload_dir: str = None) -> str:
     # Generar nombre único
     file_extension = Path(file.filename).suffix if file.filename else ".pdf"
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = os.path.join(upload_dir, unique_filename)
+    ruta_archivo = os.path.join(upload_dir, unique_filename)
     # Guardar archivo
-    with open(file_path, "wb") as buffer:
+    with open(ruta_archivo, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    return file_path
+    return ruta_archivo
 def extract_entities_from_result(result: Dict[str, Any]) -> Dict[str, Any]:
     """
     Extrae entidades del resultado del servicio NVIDIA.
@@ -3774,7 +3774,7 @@ def extract_entities_from_result(result: Dict[str, Any]) -> Dict[str, Any]:
     """
     entity_extraction = result.get("steps", {}).get("entity_extraction", {})
     return entity_extraction.get("entities", {})
-def calculate_confidence_score(result: Dict[str, Any]) -> float:
+def calculate_puntuacion_confianza(result: Dict[str, Any]) -> float:
     """
     Calcula score de confianza basado en el resultado.
     Args:
@@ -3835,13 +3835,13 @@ async def process_document(
         )
     try:
         # Guardar archivo
-        file_path = save_uploaded_file(file)
+        ruta_archivo = save_uploaded_file(file)
         # Crear registro en base de datos
         db_document = Document(
             user_id=current_user.id,
             document_type=document_type,
-            file_path=file_path,
-            original_filename=file.filename,
+            ruta_archivo=ruta_archivo,
+            nombre_original=file.filename,
             status="processing",
         )
         db.add(db_document)
@@ -3849,25 +3849,25 @@ async def process_document(
         db.refresh(db_document)
         # Procesar documento
         service = NIMExtractionService()
-        result = service.process_invoice(file_path)
+        result = service.process_invoice(ruta_archivo)
         # Actualizar registro en BD
         if result.get("status") == "success":
-            extracted_data = extract_entities_from_result(result)
-            confidence_score = calculate_confidence_score(result)
+            datos_extraidos = extract_entities_from_result(result)
+            puntuacion_confianza = calculate_puntuacion_confianza(result)
             db_document.status = "completed"
-            db_document.extracted_data = extracted_data
-            db_document.confidence_score = confidence_score
+            db_document.datos_extraidos = datos_extraidos
+            db_document.puntuacion_confianza = puntuacion_confianza
         else:
             db_document.status = "failed"
-            db_document.extracted_data = {"error": result.get("error", "Error desconocido")}
+            db_document.datos_extraidos = {"error": result.get("error", "Error desconocido")}
         db.commit()
         # Preparar respuesta
         if result.get("status") == "success":
             return DocumentProcessingResponse(
                 document_id=str(db_document.id),
                 status="completed",
-                extracted_data=extract_entities_from_result(result),
-                confidence_score=calculate_confidence_score(result),
+                datos_extraidos=extract_entities_from_result(result),
+                puntuacion_confianza=calculate_puntuacion_confianza(result),
                 latency=result.get("total_latency"),
                 message="Documento procesado exitosamente"
             )
@@ -3875,7 +3875,7 @@ async def process_document(
             return DocumentProcessingResponse(
                 document_id=str(db_document.id),
                 status="failed",
-                confidence_score=0.0,
+                puntuacion_confianza=0.0,
                 latency=result.get("total_latency"),
                 message=f"Error en procesamiento: {result.get('error', 'Error desconocido')}"
             )
@@ -3911,16 +3911,16 @@ async def batch_process_documents(
     estimated_time = f"~{total_documents * 10 / 60:.1f} minutos"
     # Crear registros en BD
     document_ids = []
-    file_paths = []
+    ruta_archivos = []
     for file in files:
         try:
-            file_path = save_uploaded_file(file)
-            file_paths.append(file_path)
+            ruta_archivo = save_uploaded_file(file)
+            ruta_archivos.append(ruta_archivo)
             db_document = Document(
                 user_id=current_user.id,
                 document_type=document_type,
-                file_path=file_path,
-                original_filename=file.filename,
+                ruta_archivo=ruta_archivo,
+                nombre_original=file.filename,
                 status="pending",
             )
             db.add(db_document)
@@ -3931,7 +3931,7 @@ async def batch_process_documents(
     # Procesar en background
     async def process_batch():
         try:
-            results = await process_batch_async(file_paths, max_workers=max_workers)
+            results = await process_batch_async(ruta_archivos, max_workers=max_workers)
             # Actualizar resultados en BD
             for i, result in enumerate(results):
                 if i < len(document_ids):
@@ -3939,11 +3939,11 @@ async def batch_process_documents(
                     if db_doc:
                         if result.get("status") == "success":
                             db_doc.status = "completed"
-                            db_doc.extracted_data = extract_entities_from_result(result)
-                            db_doc.confidence_score = calculate_confidence_score(result)
+                            db_doc.datos_extraidos = extract_entities_from_result(result)
+                            db_doc.puntuacion_confianza = calculate_puntuacion_confianza(result)
                         else:
                             db_doc.status = "failed"
-                            db_doc.extracted_data = {"error": result.get("error", "Error desconocido")}
+                            db_doc.datos_extraidos = {"error": result.get("error", "Error desconocido")}
             db.commit()
         except Exception as e:
             print(f"Error en procesamiento batch: {e}")
@@ -3985,9 +3985,9 @@ async def get_document_status(
         document_type=db_document.document_type,
         created_at=db_document.created_at,
         updated_at=db_document.updated_at,
-        extracted_data=db_document.extracted_data,
-        confidence_score=db_document.confidence_score,
-        error_message=db_document.extracted_data.get("error") if db_document.status == "failed" else None
+        datos_extraidos=db_document.datos_extraidos,
+        puntuacion_confianza=db_document.puntuacion_confianza,
+        error_message=db_document.datos_extraidos.get("error") if db_document.status == "failed" else None
     )
 @router.delete("/{document_id}")
 async def delete_document(
@@ -4013,8 +4013,8 @@ async def delete_document(
         raise HTTPException(status_code=404, detail="Documento no encontrado")
     # Eliminar archivo físico
     try:
-        if os.path.exists(db_document.file_path):
-            os.unlink(db_document.file_path)
+        if os.path.exists(db_document.ruta_archivo):
+            os.unlink(db_document.ruta_archivo)
     except Exception as e:
         print(f"Error eliminando archivo: {e}")
     # Eliminar registro de BD
@@ -4608,8 +4608,8 @@ class BatchStatusResponse(BaseModel):
     total_matches_fuzzy: int
     total_matches_llm: int
     total_unmatched: int
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
+    iniciado_en: Optional[datetime]
+    completado_en: Optional[datetime]
     error_message: Optional[str]
 class MatchResultResponse(BaseModel):
     """Resultado de match individual"""
@@ -4617,7 +4617,7 @@ class MatchResultResponse(BaseModel):
     bank_transaction_id: int
     cfdi_id: int
     match_type: str  # exact, fuzzy, llm_confirmed, llm_review
-    confidence_score: float
+    puntuacion_confianza: float
     bank_fecha: datetime
     bank_concepto: str
     bank_monto: Decimal
@@ -4689,10 +4689,10 @@ async def upload_bank_statement(
         import shutil
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
             tmp_file.write(content)
-            tmp_file_path = tmp_file.name
+            tmp_ruta_archivo = tmp_file.name
         # Parsear estado de cuenta
         parser = BankStatementParser()
-        transactions, banco_code, banco_nombre = parser.parse(tmp_file_path, banco)
+        transactions, banco_code, banco_nombre = parser.parse(tmp_ruta_archivo, banco)
         if not transactions:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -4706,7 +4706,7 @@ async def upload_bank_statement(
             fecha_fin=max(tx.fecha for tx in transactions),
             saldo_inicial=transactions[0].saldo if transactions[0].saldo else Decimal('0'),
             saldo_final=transactions[-1].saldo if transactions[-1].saldo else Decimal('0'),
-            archivo_path=tmp_file_path,
+            archivo_path=tmp_ruta_archivo,
             archivo_nombre=file.filename,
             archivo_size=file_size,
             estado=BankStatementStatus.PROCESSING,
@@ -4785,7 +4785,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
             return
         # Actualizar estado
         batch.estado = "processing"
-        batch.started_at = datetime.utcnow()
+        batch.iniciado_en = datetime.utcnow()
         await db.commit()
         # Obtener transacciones del batch
         result = await db.execute(
@@ -4812,14 +4812,14 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
                 bank_transaction_id=match_result.bank_transaction.id,
                 cfdi_id=match_result.cfdi.id,
                 match_type=match_result.match_type,
-                confidence_score=match_result.confidence_score,
+                puntuacion_confianza=match_result.puntuacion_confianza,
                 match_details=match_result.match_details,
                 estado="confirmed"
             )
             db.add(db_match)
             # Actualizar transacción
             match_result.bank_transaction.match_status = MatchStatus.EXACT
-            match_result.bank_transaction.confidence_score = match_result.confidence_score
+            match_result.bank_transaction.puntuacion_confianza = match_result.puntuacion_confianza
         await db.commit()
         batch.total_matches_exact = len(exact_matches)
         batch.progreso = 33.0
@@ -4835,7 +4835,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
         )
         # Guardar matches fuzzy (alto confianza)
         for match_result in fuzzy_matches:
-            if match_result.confidence_score >= fuzzy_engine.THRESHOLD_FUZZY_HIGH:
+            if match_result.puntuacion_confianza >= fuzzy_engine.THRESHOLD_FUZZY_HIGH:
                 estado = "confirmed"
             else:
                 estado = "pending"  # Requiere LLM o revisión humana
@@ -4843,7 +4843,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
                 bank_transaction_id=match_result.bank_transaction.id,
                 cfdi_id=match_result.cfdi.id,
                 match_type=match_result.match_type,
-                confidence_score=match_result.confidence_score,
+                puntuacion_confianza=match_result.puntuacion_confianza,
                 match_details=match_result.match_details,
                 estado=estado
             )
@@ -4853,7 +4853,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
                 MatchStatus.FUZZY if estado == "confirmed"
                 else MatchStatus.LLM
             )
-            match_result.bank_transaction.confidence_score = match_result.confidence_score
+            match_result.bank_transaction.puntuacion_confianza = match_result.puntuacion_confianza
         await db.commit()
         batch.total_matches_fuzzy = len(fuzzy_matches)
         batch.progreso = 66.0
@@ -4862,8 +4862,8 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
         # CAPA 3: LLM Validation (para fuzzy de confianza media)
         llm_matches_to_validate = [
             m for m in fuzzy_matches
-            if m.confidence_score < fuzzy_engine.THRESHOLD_FUZZY_HIGH
-            and m.confidence_score >= fuzzy_engine.THRESHOLD_FUZZY_MEDIUM
+            if m.puntuacion_confianza < fuzzy_engine.THRESHOLD_FUZZY_HIGH
+            and m.puntuacion_confianza >= fuzzy_engine.THRESHOLD_FUZZY_MEDIUM
         ]
         if llm_matches_to_validate:
             llm_engine = LLMValidationEngine()
@@ -4879,7 +4879,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
                 db_match = result.scalar_one_or_none()
                 if db_match:
                     db_match.match_type = match_result.match_type
-                    db_match.confidence_score = match_result.confidence_score
+                    db_match.puntuacion_confianza = match_result.puntuacion_confianza
                     db_match.match_details.update(match_result.match_details)
                     if match_result.match_type == 'llm_confirmed':
                         db_match.estado = "confirmed"
@@ -4891,7 +4891,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
             batch.total_matches_llm = len(llm_confirmed)
         batch.progreso = 100.0
         batch.estado = "completed"
-        batch.completed_at = datetime.utcnow()
+        batch.completado_en = datetime.utcnow()
         batch.total_unmatched = len(remaining_txs) - len(llm_rejected) if 'llm_rejected' in locals() else len(remaining_txs)
         await db.commit()
         logger.info(f"Batch {batch_id} completado: {batch.total_matches_exact} exact, {batch.total_matches_fuzzy} fuzzy, {batch.total_matches_llm} LLM")
@@ -4940,8 +4940,8 @@ async def get_batch_status(
         total_matches_fuzzy=batch.total_matches_fuzzy,
         total_matches_llm=batch.total_matches_llm,
         total_unmatched=batch.total_unmatched,
-        started_at=batch.started_at,
-        completed_at=batch.completed_at,
+        iniciado_en=batch.iniciado_en,
+        completado_en=batch.completado_en,
         error_message=batch.error_message
     )
 @router.get("/matches", response_model=List[MatchResultResponse])
@@ -4987,7 +4987,7 @@ async def get_matches(
     if estado:
         query = query.where(ReconciliationMatch.estado == estado)
     if confidence_min:
-        query = query.where(ReconciliationMatch.confidence_score >= confidence_min)
+        query = query.where(ReconciliationMatch.puntuacion_confianza >= confidence_min)
     query = query.limit(limit)
     result = await db.execute(query)
     matches = result.scalars().all()
@@ -5001,13 +5001,13 @@ async def get_matches(
             bank_transaction_id=match.bank_transaction_id,
             cfdi_id=match.cfdi_id,
             match_type=match.match_type,
-            confidence_score=float(match.confidence_score),
+            puntuacion_confianza=float(match.puntuacion_confianza),
             bank_fecha=bank_tx.fecha,
             bank_concepto=bank_tx.concepto,
             bank_monto=bank_tx.monto,
-            cfdi_fecha=cfdi.extracted_data.get('fecha') if cfdi.extracted_data else None,
-            cfdi_descripcion=cfdi.extracted_data.get('descripcion') if cfdi.extracted_data else None,
-            cfdi_monto=cfdi.extracted_data.get('total') if cfdi.extracted_data else None,
+            cfdi_fecha=cfdi.datos_extraidos.get('fecha') if cfdi.datos_extraidos else None,
+            cfdi_descripcion=cfdi.datos_extraidos.get('descripcion') if cfdi.datos_extraidos else None,
+            cfdi_monto=cfdi.datos_extraidos.get('total') if cfdi.datos_extraidos else None,
             estado=match.estado,
             llm_reason=match.match_details.get('llm_reason') if 'llm_reason' in match.match_details else None,
             llm_flags=match.match_details.get('llm_flags') if 'llm_flags' in match.match_details else None
@@ -5212,10 +5212,10 @@ router = APIRouter()
 class UserProfile(BaseModel):
     id: int
     email: str
-    full_name: str
-    is_active: bool
+    nombre_completo: str
+    esta_activo: bool
 class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
+    nombre_completo: Optional[str] = None
     email: Optional[str] = None
 class UserSettings(BaseModel):
     language: str = "es-MX"
@@ -5240,8 +5240,8 @@ async def get_me(current_user: User = Depends(get_current_user)):
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
-        full_name=current_user.full_name or "",
-        is_active=bool(current_user.is_active),
+        nombre_completo=current_user.nombre_completo or "",
+        esta_activo=bool(current_user.esta_activo),
     )
 @router.put("/me", response_model=UserProfile)
 async def update_me(
@@ -5250,8 +5250,8 @@ async def update_me(
     current_user: User = Depends(get_current_user),
 ):
     """Actualiza el perfil del usuario."""
-    if data.full_name is not None:
-        current_user.full_name = data.full_name
+    if data.nombre_completo is not None:
+        current_user.nombre_completo = data.nombre_completo
     if data.email is not None:
         current_user.email = data.email
     db.commit()
@@ -5259,8 +5259,8 @@ async def update_me(
     return UserProfile(
         id=current_user.id,
         email=current_user.email,
-        full_name=current_user.full_name or "",
-        is_active=bool(current_user.is_active),
+        nombre_completo=current_user.nombre_completo or "",
+        esta_activo=bool(current_user.esta_activo),
     )
 @router.get("/me/settings", response_model=UserSettings)
 async def get_settings(current_user: User = Depends(get_current_user)):
@@ -5839,16 +5839,16 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/token")
 # =============================================================================
 # PASSWORD HASHING
 # =============================================================================
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, contrasena_hash: str) -> bool:
     """
     Verifica una contraseña contra un hash.
     Args:
         plain_password: Contraseña en texto plano
-        hashed_password: Hash de contraseña
+        contrasena_hash: Hash de contraseña
     Returns:
         bool: True si la contraseña coincide
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password, contrasena_hash)
 def get_password_hash(password: str) -> str:
     """
     Hashea una contraseña usando bcrypt.
@@ -5948,7 +5948,7 @@ def authenticate_user(
     user = db.query(DBUser).filter(DBUser.email == email).first()
     if not user:
         return None
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.contrasena_hash):
         return None
     return user
 def get_current_user_from_token(
@@ -5975,7 +5975,7 @@ def get_current_user_from_token(
         return None
     from app.db.models import User as DBUser
     user = db.query(DBUser).filter(DBUser.id == user_id).first()
-    if user is None or not user.is_active:
+    if user is None or not user.esta_activo:
         return None
     return user
 async def get_current_user(
@@ -6012,7 +6012,7 @@ async def get_current_user(
             raise credentials_exception
         from app.db.models import User as DBUser
         user = db.query(DBUser).filter(DBUser.id == user_id).first()
-        if user is None or not user.is_active:
+        if user is None or not user.esta_activo:
             raise credentials_exception
         return user
     finally:
@@ -6029,7 +6029,7 @@ async def get_current_active_user(
     Raises:
         HTTPException: 400 si el usuario está inactivo
     """
-    if not current_user.is_active:
+    if not current_user.esta_activo:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 async def get_current_superuser(
@@ -6069,13 +6069,13 @@ class UserCreate(BaseModel):
     """User creation model"""
     email: str
     password: str
-    full_name: Optional[str] = None
+    nombre_completo: Optional[str] = None
 class UserResponse(BaseModel):
     """User response model"""
     id: int
     email: str
-    full_name: Optional[str]
-    is_active: bool
+    nombre_completo: Optional[str]
+    esta_activo: bool
     created_at: datetime
     class Config:
         from_attributes = True
@@ -6522,9 +6522,9 @@ def init_db():
         if not admin_user:
             admin_user = User(
                 email="admin",
-                hashed_password=get_password_hash("admin"),
-                full_name="Administrador",
-                is_active=True,
+                contrasena_hash=get_password_hash("admin"),
+                nombre_completo="Administrador",
+                esta_activo=True,
             )
             db.add(admin_user)
             db.commit()
@@ -6610,7 +6610,7 @@ class BankTransaction(Base):
     rfc_proveedor = Column(String, index=True)  # RFC del proveedor
     match_status = Column(String, default=MatchStatus.UNMATCHED, index=True)
     cfdi_id = Column(Integer, ForeignKey("documents.id"))  # CFDI matcheado
-    confidence_score = Column(Float)  # Score de confianza del match
+    puntuacion_confianza = Column(Float)  # Score de confianza del match
     revisado_por = Column(Integer, ForeignKey("users.id"))  # Usuario que revisó
     revisado_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -6629,7 +6629,7 @@ class ReconciliationMatch(Base):
     bank_transaction_id = Column(Integer, ForeignKey("bank_transactions.id"), nullable=False, unique=True)
     cfdi_id = Column(Integer, ForeignKey("documents.id"), nullable=False)
     match_type = Column(String, nullable=False)  # exact, fuzzy, llm
-    confidence_score = Column(Float, nullable=False)
+    puntuacion_confianza = Column(Float, nullable=False)
     match_details = Column(JSON)  # Detalles del match (campos comparados)
     estado = Column(String, default="pending")  # pending, confirmed, rejected
     rechazo_razon = Column(Text)  # Razón de rechazo (si aplica)
@@ -6657,8 +6657,8 @@ class ReconciliationBatch(Base):
     total_matches_llm = Column(Integer, default=0)
     total_unmatched = Column(Integer, default=0)
     progreso = Column(Float, default=0.0)  # 0-100
-    started_at = Column(DateTime)
-    completed_at = Column(DateTime)
+    iniciado_en = Column(DateTime)
+    completado_en = Column(DateTime)
     error_message = Column(Text)
     batch_metadata = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -6683,9 +6683,9 @@ class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    full_name = Column(String)
-    is_active = Column(Integer, default=1)
+    contrasena_hash = Column(String, nullable=False)
+    nombre_completo = Column(String)
+    esta_activo = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     # Relationships
@@ -6698,10 +6698,10 @@ class Document(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     document_type = Column(String, nullable=False)
-    file_path = Column(String, nullable=False)
-    original_filename = Column(String)
-    extracted_data = Column(JSON)
-    confidence_score = Column(Float)
+    ruta_archivo = Column(String, nullable=False)
+    nombre_original = Column(String)
+    datos_extraidos = Column(JSON)
+    puntuacion_confianza = Column(Float)
     status = Column(String, default="pending")  # pending, processing, completed, failed
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -6726,7 +6726,7 @@ class Message(Base):
     conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
     role = Column(String, nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
-    msg_metadata = Column(JSON)
+    metadatos = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
     # Relationships
     conversation = relationship("Conversation", back_populates="messages")
@@ -7230,7 +7230,7 @@ AGENT_TOOL_DEFINITIONS = [
                     "type": "string",
                     "description": "ID del documento almacenado en el sistema",
                 },
-                "file_path": {
+                "ruta_archivo": {
                     "type": "string",
                     "description": "Ruta al archivo XML (alternativa al ID)",
                 },
@@ -7374,7 +7374,7 @@ def _execute_analyze_cfdi(
 ) -> Dict[str, Any]:
     """Analiza un CFDI/factura XML."""
     document_id = params.get("document_id", "")
-    file_path = params.get("file_path", "")
+    ruta_archivo = params.get("ruta_archivo", "")
     # TODO: Integrar con NIMExtractionService y parseo de XML
     return {
         "document_id": document_id or "doc-xyz",
@@ -7432,10 +7432,10 @@ def _execute_search_documents(
         results.append({
             "id": str(doc.id),
             "type": doc.document_type,
-            "filename": doc.original_filename,
+            "filename": doc.nombre_original,
             "status": doc.status,
-            "confidence": doc.confidence_score,
-            "extracted_data": doc.extracted_data,
+            "confidence": doc.puntuacion_confianza,
+            "datos_extraidos": doc.datos_extraidos,
             "created_at": doc.created_at.isoformat() if doc.created_at else None,
         })
     return {
@@ -8350,7 +8350,7 @@ class TaxAdvisorService:
                 {"doc": "06-calculo-isr-iva.md", "relevance": 0.95},
                 {"doc": "07-asesoria-fiscal.md", "relevance": 0.88}
             ],
-            "confidence_score": 0.92,
+            "puntuacion_confianza": 0.92,
             "disclaimer": "Esta respuesta es generada por IA y debe ser validada por un contador certificado."
         }
     def _mock_rag_response(self, query: str) -> str:
@@ -8495,7 +8495,7 @@ INSTRUCCIONES: Responde ÚNICAMENTE con un objeto JSON (sin markdown, sin explic
 {{
     "suggested_account": "601-04-001",
     "account_name": "Servicios Públicos",
-    "confidence_score": 0.92,
+    "puntuacion_confianza": 0.92,
     "top_3": [
         {{"code": "601-04-001", "name": "Servicios Públicos", "confidence": 0.92}},
         {{"code": "601-08-001", "name": "Combustibles", "confidence": 0.05}},
@@ -8539,7 +8539,7 @@ INSTRUCCIONES: Responde ÚNICAMENTE con un objeto JSON (sin markdown, sin explic
             'monto': tx.get('monto', 0),
             'suggested_account': '601-01-001',
             'account_name': 'Sueldos y Salarios',
-            'confidence_score': 0.95,
+            'puntuacion_confianza': 0.95,
             'top_3': [
                 {'code': '601-01-001', 'name': 'Sueldos y Salarios', 'confidence': 0.95},
                 {'code': '601-10-001', 'name': 'Honorarios Profesionales', 'confidence': 0.80},
@@ -11134,21 +11134,21 @@ class BankStatementParser:
     def __init__(self):
         self.errors: List[str] = []
         self.warnings: List[str] = []
-    def detect_bank_format(self, file_path: str) -> Tuple[str, str]:
+    def detect_bank_format(self, ruta_archivo: str) -> Tuple[str, str]:
         """
         Detecta el banco por formato de columnas y patrones
         Args:
-            file_path: Ruta al archivo
+            ruta_archivo: Ruta al archivo
         Returns:
             Tuple[str, str]: (banco_detectado, nombre_completo)
         """
         try:
             # Detectar encoding
-            with open(file_path, 'rb') as f:
+            with open(ruta_archivo, 'rb') as f:
                 result = chardet.detect(f.read(10000))
                 encoding = result['encoding'] or 'utf-8'
             # Leer primeras líneas para detectar patrones
-            with open(file_path, 'r', encoding=encoding) as f:
+            with open(ruta_archivo, 'r', encoding=encoding) as f:
                 lines = f.readlines()[:10]
             # Unir líneas y buscar patrones (case-insensitive)
             content = ''.join(lines).lower()
@@ -11159,7 +11159,7 @@ class BankStatementParser:
                     bank_name = patterns[0].title()
                     return bank_code, bank_name
             # Si no hay patrón claro, intentar detectar por columnas
-            df = pd.read_csv(file_path, encoding=encoding, nrows=1)
+            df = pd.read_csv(ruta_archivo, encoding=encoding, nrows=1)
             columns = [col.lower().strip() for col in df.columns]
             # Verificar columnas mínimas requeridas
             mapped = self._map_columns(columns)
@@ -11194,26 +11194,26 @@ class BankStatementParser:
         return mapping
     def parse(
         self,
-        file_path: str,
+        ruta_archivo: str,
         banco: Optional[str] = None
     ) -> Tuple[List[BankTransaction], str, str]:
         """
         Parsea estado de cuenta y retorna lista de transacciones
         Args:
-            file_path: Ruta al archivo
+            ruta_archivo: Ruta al archivo
             banco: Nombre del banco (opcional, se detecta automáticamente si no se proporciona)
         Returns:
             Tuple: (transactions, banco_code, banco_nombre)
         """
         # Detectar banco si no se proporciona
         if banco is None:
-            banco_code, banco_nombre = self.detect_bank_format(file_path)
+            banco_code, banco_nombre = self.detect_bank_format(ruta_archivo)
         else:
             banco_code = banco.lower().replace(' ', '_').replace('á', 'a')
             banco_nombre = banco.title()
         logger.info(f"Parseando estado de cuenta: {banco_nombre}")
         # Detectar encoding
-        with open(file_path, 'rb') as f:
+        with open(ruta_archivo, 'rb') as f:
             result = chardet.detect(f.read(10000))
             encoding = result['encoding'] or 'utf-8'
         # Encodings comunes en bancos mexicanos (prioridad)
@@ -11222,18 +11222,18 @@ class BankStatementParser:
             # Intentar con encodings comunes si el detectado no es estándar
             for enc in common_encodings:
                 try:
-                    with open(file_path, 'r', encoding=enc) as f:
+                    with open(ruta_archivo, 'r', encoding=enc) as f:
                         f.read(1000)
                     encoding = enc
                     break
                 except:
                     continue
         # Leer archivo según extensión
-        file_ext = Path(file_path).suffix.lower()
+        file_ext = Path(ruta_archivo).suffix.lower()
         if file_ext in ['.csv']:
-            df = pd.read_csv(file_path, encoding=encoding)
+            df = pd.read_csv(ruta_archivo, encoding=encoding)
         elif file_ext in ['.xlsx', '.xls']:
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(ruta_archivo)
         else:
             raise ValueError(f"Formato no soportado: {file_ext}. Use .csv, .xlsx o .xls")
         # Mapear columnas
@@ -11428,48 +11428,48 @@ class BankStatementParser:
         # Eliminar espacios múltiples
         text = re.sub(r'\s+', ' ', text).strip()
         return text
-    def parse_bbva(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_bbva(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para BBVA México"""
-        return self.parse(file_path, banco='bbva')
-    def parse_santander(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='bbva')
+    def parse_santander(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Santander México"""
-        return self.parse(file_path, banco='santander')
-    def parse_banorte(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='santander')
+    def parse_banorte(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banorte"""
-        return self.parse(file_path, banco='banorte')
-    def parse_citibanamex(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='banorte')
+    def parse_citibanamex(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Citibanamex"""
-        return self.parse(file_path, banco='citibanamex')
-    def parse_scotiabank(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='citibanamex')
+    def parse_scotiabank(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Scotiabank"""
-        return self.parse(file_path, banco='scotiabank')
-    def parse_hsbc(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='scotiabank')
+    def parse_hsbc(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para HSBC"""
-        return self.parse(file_path, banco='hsbc')
-    def parse_inbursa(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='hsbc')
+    def parse_inbursa(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Inbursa"""
-        return self.parse(file_path, banco='inbursa')
-    def parse_banregio(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='inbursa')
+    def parse_banregio(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banregio"""
-        return self.parse(file_path, banco='banregio')
-    def parse_afirme(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='banregio')
+    def parse_afirme(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Afirme"""
-        return self.parse(file_path, banco='afirme')
-    def parse_bajio(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='afirme')
+    def parse_bajio(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banco del Bajío"""
-        return self.parse(file_path, banco='bajio')
-    def parse_bancoppel(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='bajio')
+    def parse_bancoppel(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para BanCoppel"""
-        return self.parse(file_path, banco='bancoppel')
-    def parse_azteca(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='bancoppel')
+    def parse_azteca(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banco Azteca"""
-        return self.parse(file_path, banco='azteca')
-    def parse_bancredito(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='azteca')
+    def parse_bancredito(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para BanCrédito"""
-        return self.parse(file_path, banco='bancredito')
-    def parse_multiva(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+        return self.parse(ruta_archivo, banco='bancredito')
+    def parse_multiva(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Multiva"""
-        return self.parse(file_path, banco='multiva')
+        return self.parse(ruta_archivo, banco='multiva')
     def get_errors(self) -> List[str]:
         """Retorna lista de errores"""
         return self.errors
@@ -11579,19 +11579,19 @@ class FuzzyMatchingEngine:
                     continue
                 # Verificar match fuzzy
                 match_result = self._check_fuzzy_match(bank_tx, cfdi)
-                if match_result and match_result.confidence_score >= self.THRESHOLD_FUZZY_MEDIUM:
+                if match_result and match_result.puntuacion_confianza >= self.THRESHOLD_FUZZY_MEDIUM:
                     # Guardar mejor match (mayor confianza)
-                    if not best_match or match_result.confidence_score > best_match.confidence_score:
+                    if not best_match or match_result.puntuacion_confianza > best_match.puntuacion_confianza:
                         best_match = match_result
             if best_match:
                 self.matches.append(best_match)
                 matched_cfdi_ids.add(best_match.cfdi.id)
                 # Actualizar estado de transacción
-                if best_match.confidence_score >= self.THRESHOLD_FUZZY_HIGH:
+                if best_match.puntuacion_confianza >= self.THRESHOLD_FUZZY_HIGH:
                     bank_tx.match_status = 'fuzzy'
                 else:
                     bank_tx.match_status = 'llm'  # Requiere validación LLM
-                bank_tx.confidence_score = best_match.confidence_score
+                bank_tx.puntuacion_confianza = best_match.puntuacion_confianza
             else:
                 self.unmatched.append(bank_tx)
                 bank_tx.match_status = 'unmatched'
@@ -11614,7 +11614,7 @@ class FuzzyMatchingEngine:
             Optional[MatchResult]: Resultado si hay match, None si no
         """
         # Extraer datos del CFDI
-        cfdi_data = cfdi.extracted_data or {}
+        cfdi_data = cfdi.datos_extraidos or {}
         # Obtener monto CFDI
         cfdi_monto = self._get_cfdi_amount(cfdi_data)
         if not cfdi_monto:
@@ -11673,7 +11673,7 @@ class FuzzyMatchingEngine:
         }
         return MatchResult(
             match_type='fuzzy',
-            confidence_score=confidence,
+            puntuacion_confianza=confidence,
             bank_transaction=bank_tx,
             cfdi=cfdi,
             match_details=match_details
@@ -11950,7 +11950,7 @@ Responde SOLO con el JSON válido.
                     continue
                 llm_confidence, llm_reason, flags = result
                 # Actualizar match con información LLM
-                match.confidence_score = llm_confidence
+                match.puntuacion_confianza = llm_confidence
                 match.match_details['llm_reason'] = llm_reason
                 match.match_details['llm_flags'] = flags
                 # Clasificar por confianza
@@ -11985,7 +11985,7 @@ Responde SOLO con el JSON válido.
         """
         # Preparar datos para el prompt
         bank_tx = match.bank_transaction
-        cfdi_data = match.cfdi.extracted_data or {}
+        cfdi_data = match.cfdi.datos_extraidos or {}
         # Calcular diferencias
         monto_diff_pct = float(abs(bank_tx.monto - match.cfdi.total) / match.cfdi.total * 100) if match.cfdi.total else 0
         dias_diff = abs((bank_tx.fecha - match.cfdi.fecha).days) if match.cfdi.fecha else 0
@@ -12004,7 +12004,7 @@ Responde SOLO con el JSON válido.
             cfdi_uso=self._get_cfdi_field(cfdi_data, 'uso_cfdi'),
             monto_diff_pct=monto_diff_pct,
             dias_diff=dias_diff,
-            fuzzy_score=match.confidence_score
+            fuzzy_score=match.puntuacion_confianza
         )
         # Llamar a NVIDIA NIM
         try:
@@ -12019,7 +12019,7 @@ Responde SOLO con el JSON válido.
         except Exception as e:
             logger.error(f"Error calling NVIDIA NIM: {e}")
             # Fallback: usar fuzzy score original
-            return match.confidence_score, 'Error en validación LLM', ['LLM_ERROR']
+            return match.puntuacion_confianza, 'Error en validación LLM', ['LLM_ERROR']
     async def _call_nvidia_nim(self, prompt: str) -> str:
         """
         Llama a NVIDIA NIM API
@@ -12129,13 +12129,13 @@ class MatchResult:
     def __init__(
         self,
         match_type: str,
-        confidence_score: float,
+        puntuacion_confianza: float,
         bank_transaction: BankTransaction,
         cfdi: Document,
         match_details: Dict
     ):
         self.match_type = match_type
-        self.confidence_score = confidence_score
+        self.puntuacion_confianza = puntuacion_confianza
         self.bank_transaction = bank_transaction
         self.cfdi = cfdi
         self.match_details = match_details
@@ -12159,13 +12159,13 @@ class MatchResult:
     def __init__(
         self,
         match_type: str,
-        confidence_score: float,
+        puntuacion_confianza: float,
         bank_transaction: BankTransaction,
         cfdi: Document,
         match_details: Dict
     ):
         self.match_type = match_type
-        self.confidence_score = confidence_score
+        self.puntuacion_confianza = puntuacion_confianza
         self.bank_transaction = bank_transaction
         self.cfdi = cfdi
         self.match_details = match_details
@@ -12173,7 +12173,7 @@ class MatchResult:
         """Convierte a diccionario"""
         return {
             'match_type': self.match_type,
-            'confidence_score': self.confidence_score,
+            'puntuacion_confianza': self.puntuacion_confianza,
             'bank_transaction_id': self.bank_transaction.id,
             'cfdi_id': self.cfdi.id,
             'match_details': self.match_details
@@ -12221,13 +12221,13 @@ class ExactMatchingEngine:
                 match_result = self._check_match(bank_tx, cfdi)
                 if match_result:
                     # Guardar mejor match (mayor confianza)
-                    if not best_match or match_result.confidence_score > best_match.confidence_score:
+                    if not best_match or match_result.puntuacion_confianza > best_match.puntuacion_confianza:
                         best_match = match_result
             if best_match:
                 self.matches.append(best_match)
                 matched_cfdi_ids.add(best_match.cfdi.id)
                 bank_tx.match_status = 'exact'
-                bank_tx.confidence_score = best_match.confidence_score
+                bank_tx.puntuacion_confianza = best_match.puntuacion_confianza
             else:
                 self.unmatched.append(bank_tx)
                 bank_tx.match_status = 'unmatched'
@@ -12247,7 +12247,7 @@ class ExactMatchingEngine:
             Optional[MatchResult]: Resultado si hay match, None si no
         """
         # Extraer datos del CFDI
-        cfdi_data = cfdi.extracted_data or {}
+        cfdi_data = cfdi.datos_extraidos or {}
         # Obtener monto CFDI
         cfdi_monto = self._get_cfdi_amount(cfdi_data)
         if not cfdi_monto:
@@ -12282,7 +12282,7 @@ class ExactMatchingEngine:
         }
         return MatchResult(
             match_type='exact',
-            confidence_score=confidence,
+            puntuacion_confianza=confidence,
             bank_transaction=bank_tx,
             cfdi=cfdi,
             match_details=match_details
@@ -12479,20 +12479,20 @@ def clear_python_cache():
             # Buscar archivos que coincidan con el patrón
             # Usamos `glob` aquí, aunque `rglob` podría ser más eficiente en algunos casos,
             # mantenemos el uso original.
-            for file_path in Path('.').rglob(file_pattern):
-                if file_path.is_file():
+            for ruta_archivo in Path('.').rglob(file_pattern):
+                if ruta_archivo.is_file():
                     # *** Lógica de Exclusión de Entornos Virtuales ***
-                    if is_in_excluded_dir(file_path, VIRTUAL_ENV_DIRS):
+                    if is_in_excluded_dir(ruta_archivo, VIRTUAL_ENV_DIRS):
                         # Nota: Es menos probable encontrar archivos cacheables fuera de los directorios excluidos,
                         # pero la verificación es segura.
                         continue
                     # **********************************************
                     try:
-                        file_path.unlink()
-                        print(f"🗑️ Archivo eliminado: {file_path}")
+                        ruta_archivo.unlink()
+                        print(f"🗑️ Archivo eliminado: {ruta_archivo}")
                         files_deleted += 1
                     except Exception as e:
-                        print(f"❌ Error eliminando {file_path}: {e}")
+                        print(f"❌ Error eliminando {ruta_archivo}: {e}")
         except Exception as e:
             print(f"❌ Error buscando {file_pattern}: {e}")
     # Eliminar carpetas .egg-info (que pueden tener nombres variables)
@@ -13080,9 +13080,9 @@ class User(Base):
 
     id: int                      # Primary key, index
     email: str                   # Unique, index, not null
-    hashed_password: str         # Not null (bcrypt)
-    full_name: str              # Optional
-    is_active: int              # Default: 1
+    contrasena_hash: str         # Not null (bcrypt)
+    nombre_completo: str              # Optional
+    esta_activo: int              # Default: 1
     created_at: datetime        # Default: utcnow
     updated_at: datetime        # Default: utcnow, onupdate
 
@@ -13100,10 +13100,10 @@ class Document(Base):
     id: int                      # Primary key, index
     user_id: int                 # Foreign key → users.id
     document_type: str           # Not null (factura, recibo, etc.)
-    file_path: str               # Not null
-    original_filename: str       # Optional
-    extracted_data: JSON         # Extracted entities
-    confidence_score: float      # 0-1 confidence
+    ruta_archivo: str               # Not null
+    nombre_original: str       # Optional
+    datos_extraidos: JSON         # Extracted entities
+    puntuacion_confianza: float      # 0-1 confidence
     status: str                  # pending, processing, completed, failed
     created_at: datetime
     updated_at: datetime
@@ -13162,7 +13162,7 @@ class BankTransaction(Base):
     rfc_proveedor: str           # RFC del proveedor
     match_status: str            # unmatched, exact, fuzzy, llm, confirmed, rejected
     cfdi_id: int                 # Foreign key → documents.id
-    confidence_score: float      # Score de confianza del match
+    puntuacion_confianza: float      # Score de confianza del match
     revisado_por: int            # Usuario que revisó
     revisado_at: datetime
 
@@ -13181,7 +13181,7 @@ class ReconciliationMatch(Base):
     bank_transaction_id: int     # Unique, Foreign key → bank_transactions.id
     cfdi_id: int                 # Foreign key → documents.id
     match_type: str              # exact, fuzzy, llm_confirmed, llm_review
-    confidence_score: float      # 0-1 confidence
+    puntuacion_confianza: float      # 0-1 confidence
     match_details: JSON          # Detalles del match
     estado: str                  # pending, confirmed, rejected
     rechazo_razon: str           # Razón de rechazo
@@ -13211,8 +13211,8 @@ class ReconciliationBatch(Base):
     total_matches_llm: int       # Matches LLM
     total_unmatched: int         # Transacciones sin match
     progreso: float              # 0-100%
-    started_at: datetime
-    completed_at: datetime
+    iniciado_en: datetime
+    completado_en: datetime
     error_message: str
     metadata: JSON
     created_at: datetime
@@ -13304,13 +13304,13 @@ class TokenData(BaseModel):
 class UserCreate(BaseModel):
     email: str
     password: str
-    full_name: Optional[str]
+    nombre_completo: Optional[str]
 
 class UserResponse(BaseModel):
     id: int
     email: str
-    full_name: Optional[str]
-    is_active: bool
+    nombre_completo: Optional[str]
+    esta_activo: bool
     created_at: datetime
 ```
 
@@ -13324,8 +13324,8 @@ class DocumentProcessingRequest(BaseModel):
 class DocumentProcessingResponse(BaseModel):
     document_id: str
     status: str
-    extracted_data: Optional[Dict[str, Any]]
-    confidence_score: Optional[float]
+    datos_extraidos: Optional[Dict[str, Any]]
+    puntuacion_confianza: Optional[float]
     latency: Optional[float]
     message: str
 
@@ -13515,7 +13515,7 @@ main.py
 
 **Métodos Principales:**
 ```python
-def process_document(file_path: str, document_type: str) -> Dict
+def process_document(ruta_archivo: str, document_type: str) -> Dict
 def _pdf_to_png(pdf_path: str, dpi: int = 400) -> List[bytes]
 def _enhance_image(image_bytes: bytes) -> bytes
 def _extract_entities(image_bytes: bytes) -> Dict
@@ -14512,9 +14512,9 @@ SENTRY_ENVIRONMENT=development
         "fields": [
           {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
           {"name": "email", "type": "String", "constraints": ["unique", "index", "not_null"]},
-          {"name": "hashed_password", "type": "String", "constraints": ["not_null"]},
-          {"name": "full_name", "type": "String", "constraints": []},
-          {"name": "is_active", "type": "Integer", "constraints": ["default:1"]},
+          {"name": "contrasena_hash", "type": "String", "constraints": ["not_null"]},
+          {"name": "nombre_completo", "type": "String", "constraints": []},
+          {"name": "esta_activo", "type": "Integer", "constraints": ["default:1"]},
           {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]},
           {"name": "updated_at", "type": "DateTime", "constraints": ["default:utcnow", "onupdate"]}
         ],
@@ -14528,10 +14528,10 @@ SENTRY_ENVIRONMENT=development
           {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
           {"name": "user_id", "type": "Integer", "constraints": ["foreign_key:users.id"]},
           {"name": "document_type", "type": "String", "constraints": ["not_null"]},
-          {"name": "file_path", "type": "String", "constraints": ["not_null"]},
-          {"name": "original_filename", "type": "String", "constraints": []},
-          {"name": "extracted_data", "type": "JSON", "constraints": []},
-          {"name": "confidence_score", "type": "Float", "constraints": []},
+          {"name": "ruta_archivo", "type": "String", "constraints": ["not_null"]},
+          {"name": "nombre_original", "type": "String", "constraints": []},
+          {"name": "datos_extraidos", "type": "JSON", "constraints": []},
+          {"name": "puntuacion_confianza", "type": "Float", "constraints": []},
           {"name": "status", "type": "String", "constraints": ["default:pending"]},
           {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]},
           {"name": "updated_at", "type": "DateTime", "constraints": ["default:utcnow", "onupdate"]}
@@ -15388,8 +15388,8 @@ def test_auth_me(access_token: str):
         user_data = response.json()
         print_success(f"User ID: {user_data.get('id', 'unknown')}")
         print_success(f"Email: {user_data.get('email', 'unknown')}")
-        print_success(f"Full name: {user_data.get('full_name', 'unknown')}")
-        print_success(f"Is active: {user_data.get('is_active', 'unknown')}")
+        print_success(f"Full name: {user_data.get('nombre_completo', 'unknown')}")
+        print_success(f"Is active: {user_data.get('esta_activo', 'unknown')}")
         return True
     except requests.exceptions.HTTPError as e:
         print_error(f"HTTP Error: {e.response.status_code}")
@@ -15962,10 +15962,10 @@ def validate_files():
         "tests/test_core.py",
     ]
     all_exist = True
-    for file_path in required_files:
-        full_path = backend_path / file_path
+    for ruta_archivo in required_files:
+        full_path = backend_path / ruta_archivo
         exists = full_path.exists() and full_path.is_file()
-        print_check(f"{file_path}", exists)
+        print_check(f"{ruta_archivo}", exists)
         all_exist = all_exist and exists
     return all_exist
 def validate_file_content():

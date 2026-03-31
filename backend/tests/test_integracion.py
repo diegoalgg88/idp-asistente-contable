@@ -131,8 +131,8 @@ def test_auth_me(access_token: str):
         
         print_success(f"User ID: {user_data.get('id', 'unknown')}")
         print_success(f"Email: {user_data.get('email', 'unknown')}")
-        print_success(f"Full name: {user_data.get('full_name', 'unknown')}")
-        print_success(f"Is active: {user_data.get('is_active', 'unknown')}")
+        print_success(f"Full name: {user_data.get('nombre_completo', 'unknown')}")
+        print_success(f"Is active: {user_data.get('esta_activo', 'unknown')}")
         return True
         
     except requests.exceptions.HTTPError as e:

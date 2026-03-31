@@ -4,11 +4,11 @@ Workspace API - Dashboard KPIs, Calendar, Metrics, Forecasting
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from sqlalchemy import func, extract, desc
+from pydantic import BaseModel, Field
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, extract, desc, select
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import Document, User
 from app.core.security import get_current_user
 from app.domain.predictive.cashflow_forecaster import CashflowForecaster
@@ -34,14 +34,17 @@ class CalendarEvent(BaseModel):
     id: str
     title: str
     date: str
-    type: str
-    status: str
+    tipo: str = Field(alias="type")
+    estado: str = Field(alias="status")
     priority: str
+
+    class Config:
+        populate_by_name = True
 
 
 @router.get("/dashboard", response_model=DashboardKPIs)
 async def get_dashboard(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """KPIs del dashboard principal con datos REALES de la base de datos."""
@@ -85,38 +88,49 @@ async def get_dashboard(
         db.commit()
     
     # Contar documentos
-    total = db.query(Document).filter(Document.user_id == current_user.id).count()
-    completed = db.query(Document).filter(
+    result_total = await db.execute(select(func.count(Document.id)).where(Document.user_id == current_user.id))
+    total = result_total.scalar()
+    
+    result_completed = await db.execute(select(func.count(Document.id)).where(
         Document.user_id == current_user.id, 
-        Document.status == "completed"
-    ).count()
-    pending = db.query(Document).filter(
+        Document.estado == "completed"
+    ))
+    completed = result_completed.scalar()
+    
+    result_pending = await db.execute(select(func.count(Document.id)).where(
         Document.user_id == current_user.id, 
-        Document.status == "pending"
-    ).count()
+        Document.estado == "pending"
+    ))
+    pending = result_pending.scalar()
     
     # Calcular saldo conciliado (suma de ingresos)
-    from app.db.models_reconciliation import BankTransaction
+    from app.db.models_reconciliation import BankTransaction, BankStatement
     
-    # Obtener transacciones bancarias del usuario
-    bank_transactions = db.query(BankTransaction).filter(
-        BankTransaction.user_id == current_user.id
-    ).all()
+    # Obtener transacciones bancarias del usuario usando JOIN con BankStatement
+    result = await db.execute(
+        select(BankTransaction).join(BankStatement).where(
+            BankStatement.user_id == current_user.id
+        )
+    )
+    bank_transactions = result.scalars().all()
     
-    # Calcular ingresos y egresos reales
-    total_income = sum(t.amount for t in bank_transactions if t.transaction_type == 'credit')
-    total_expenses = sum(t.amount for t in bank_transactions if t.transaction_type == 'debit')
+    # Calcular ingresos y egresos reales usando nombres de campos en español (monto, tipo)
+    total_income = sum(float(t.monto) for t in bank_transactions if t.tipo == 'abono')
+    total_expenses = sum(float(t.monto) for t in bank_transactions if t.tipo == 'cargo')
     monthly_revenue = total_income - total_expenses
     
     # Calcular precisión promedio de extracción
-    documents_with_confidence = db.query(Document).filter(
-        Document.user_id == current_user.id,
-        Document.confidence_score.isnot(None)
-    ).all()
+    result = await db.execute(
+        select(Document).where(
+            Document.user_id == current_user.id,
+            Document.puntuacion_confianza.isnot(None)
+        )
+    )
+    documents_with_confidence = result.scalars().all()
     
     average_confidence = 0.0
     if documents_with_confidence:
-        avg_score = sum(d.confidence_score for d in documents_with_confidence) / len(documents_with_confidence)
+        avg_score = sum(d.puntuacion_confianza for d in documents_with_confidence) / len(documents_with_confidence)
         average_confidence = round(avg_score * 100, 1)  # Convertir a porcentaje
     
     # Calcular IDP Score basado en factores reales
@@ -139,21 +153,28 @@ async def get_dashboard(
     
     # Contar clientes activos
     from app.db.models import Client
-    active_clients = db.query(Client).filter(
-        Client.user_id == current_user.id,
-        Client.status == "Activo"
-    ).count()
+    result = await db.execute(
+        select(func.count(Client.id)).where(
+            Client.user_id == current_user.id,
+            Client.estado == "Activo"
+        )
+    )
+    active_clients = result.scalar()
     
-    total_clients = db.query(Client).filter(Client.user_id == current_user.id).count()
+    result = await db.execute(select(func.count(Client.id)).where(Client.user_id == current_user.id))
+    total_clients = result.scalar()
     
     # Contar declaraciones pendientes (del calendario)
     from app.db.models import CalendarEvent
     
-    pending_declarations = db.query(CalendarEvent).filter(
-        CalendarEvent.user_id == current_user.id,
-        CalendarEvent.status == "pendiente",
-        CalendarEvent.date >= datetime.utcnow().date()
-    ).count()
+    result = await db.execute(
+        select(func.count(CalendarEvent.id)).where(
+            CalendarEvent.user_id == current_user.id,
+            CalendarEvent.estado == "pendiente",
+            CalendarEvent.date >= datetime.utcnow().date()
+        )
+    )
+    pending_declarations = result.scalar()
     
     return DashboardKPIs(
         total_documents=total,
@@ -171,7 +192,7 @@ async def get_dashboard(
 # Agregar workflows al response del dashboard (como campo extra)
 @router.get("/dashboard-full")
 async def get_dashboard_full(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Dashboard completo con workflows."""
@@ -181,20 +202,23 @@ async def get_dashboard_full(
     kpis = await get_dashboard(db, current_user)
     
     # Obtener workflows
-    workflows = db.query(Workflow).filter(
-        Workflow.user_id == current_user.id
-    ).order_by(Workflow.created_at.desc()).limit(5).all()
+    result = await db.execute(
+        select(Workflow).where(
+            Workflow.user_id == current_user.id
+        ).order_by(Workflow.created_at.desc()).limit(5)
+    )
+    workflows = result.scalars().all()
     
     return {
         **kpis.dict(),
         "workflows": [
             {
                 "id": str(wf.id),
-                "name": wf.name,
-                "description": wf.description,
-                "type": wf.type,
-                "status": wf.status,
-                "progress": wf.progress,
+                "name": wf.nombre,
+                "description": wf.descripcion,
+                "type": wf.tipo,
+                "status": wf.estado,
+                "progress": wf.progreso,
                 "steps_total": wf.steps_total,
                 "steps_completed": wf.steps_completed
             }
@@ -205,7 +229,7 @@ async def get_dashboard_full(
 
 @router.get("/calendar", response_model=List[CalendarEvent])
 async def get_calendar(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Eventos del calendario fiscal - Datos REALES de la base de datos."""
@@ -213,11 +237,14 @@ async def get_calendar(
     from datetime import datetime, timedelta
     
     # Obtener eventos del usuario (próximos 30 días)
-    events = db.query(CalendarEventModel).filter(
-        CalendarEventModel.user_id == current_user.id,
-        CalendarEventModel.date >= datetime.utcnow().date() - timedelta(days=7),
-        CalendarEventModel.date <= datetime.utcnow().date() + timedelta(days=60)
-    ).order_by(CalendarEventModel.date).all()
+    result = await db.execute(
+        select(CalendarEventModel).where(
+            CalendarEventModel.user_id == current_user.id,
+            CalendarEventModel.date >= datetime.utcnow().date() - timedelta(days=7),
+            CalendarEventModel.date <= datetime.utcnow().date() + timedelta(days=60)
+        ).order_by(CalendarEventModel.date)
+    )
+    events = result.scalars().all()
     
     # Si no hay eventos, crear eventos por defecto del mes actual
     if not events:
@@ -331,7 +358,7 @@ class CalendarEventUpdate(BaseModel):
 @router.post("/calendar", response_model=CalendarEvent)
 async def create_calendar_event(
     event: CalendarEventCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Crear nuevo evento en el calendario fiscal."""
@@ -341,26 +368,26 @@ async def create_calendar_event(
     db_event = CalendarEventModel(
         user_id=current_user.id,
         title=event.title,
-        description=event.description,
+        descripcion=event.description,
         date=datetime.fromisoformat(event.date),
-        type=event.type,
-        status="pendiente",
+        tipo=event.type,
+        estado="pendiente",
         priority=event.priority,
         is_recurring=1 if event.is_recurring else 0,
         metadata_json=event.metadata_json
     )
     
     db.add(db_event)
-    db.commit()
-    db.refresh(db_event)
+    await db.commit()
+    await db.refresh(db_event)
     
     return CalendarEvent(
         id=str(db_event.id),
         title=db_event.title,
-        description=db_event.description,
+        description=db_event.descripcion,
         date=db_event.date.strftime('%Y-%m-%d'),
-        type=db_event.type,
-        status=db_event.status,
+        type=db_event.tipo,
+        status=db_event.estado,
         priority=db_event.priority
     )
 
@@ -369,7 +396,7 @@ async def create_calendar_event(
 async def update_calendar_event(
     event_id: int,
     event_update: CalendarEventUpdate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Actualizar evento del calendario."""
@@ -388,29 +415,29 @@ async def update_calendar_event(
     if event_update.title is not None:
         db_event.title = event_update.title
     if event_update.description is not None:
-        db_event.description = event_update.description
+        db_event.descripcion = event_update.description
     if event_update.date is not None:
         db_event.date = datetime.fromisoformat(event_update.date)
     if event_update.type is not None:
-        db_event.type = event_update.type
+        db_event.tipo = event_update.type
     if event_update.status is not None:
-        db_event.status = event_update.status
+        db_event.estado = event_update.status
     if event_update.priority is not None:
         db_event.priority = event_update.priority
     if event_update.is_recurring is not None:
         db_event.is_recurring = 1 if event_update.is_recurring else 0
     
     db_event.updated_at = datetime.utcnow()
-    db.commit()
-    db.refresh(db_event)
+    await db.commit()
+    await db.refresh(db_event)
     
     return CalendarEvent(
         id=str(db_event.id),
         title=db_event.title,
-        description=db_event.description,
+        description=db_event.descripcion,
         date=db_event.date.strftime('%Y-%m-%d'),
-        type=db_event.type,
-        status=db_event.status,
+        type=db_event.tipo,
+        status=db_event.estado,
         priority=db_event.priority
     )
 
@@ -418,22 +445,25 @@ async def update_calendar_event(
 @router.delete("/calendar/{event_id}")
 async def delete_calendar_event(
     event_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Eliminar evento del calendario."""
     from app.db.models import CalendarEvent as CalendarEventModel
     
-    db_event = db.query(CalendarEventModel).filter(
-        CalendarEventModel.id == event_id,
-        CalendarEventModel.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(CalendarEventModel).where(
+            CalendarEventModel.id == event_id,
+            CalendarEventModel.user_id == current_user.id
+        )
+    )
+    db_event = result.scalar_one_or_none()
     
     if not db_event:
         raise HTTPException(status_code=404, detail="Evento no encontrado")
     
-    db.delete(db_event)
-    db.commit()
+    await db.delete(db_event)
+    await db.commit()
     
     return {"message": f"Evento {event_id} eliminado exitosamente"}
 
@@ -451,37 +481,43 @@ class WorkflowCreate(BaseModel):
 
 class WorkflowResponse(BaseModel):
     id: str
-    name: str
-    description: Optional[str]
-    type: str
-    status: str
-    progress: int
+    nombre: str = Field(alias="name")
+    descripcion: Optional[str] = Field(alias="description")
+    tipo: str = Field(alias="type")
+    estado: str = Field(alias="status")
+    progreso: int = Field(alias="progress")
     steps_total: int
     steps_completed: int
     created_at: str
     updated_at: str
 
+    class Config:
+        populate_by_name = True
+
 
 @router.get("/workflows", response_model=List[WorkflowResponse])
 async def list_workflows(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Listar workflows del usuario."""
     from app.db.models import Workflow
     
-    workflows = db.query(Workflow).filter(
-        Workflow.user_id == current_user.id
-    ).order_by(Workflow.created_at.desc()).limit(10).all()
+    result = await db.execute(
+        select(Workflow).where(
+            Workflow.user_id == current_user.id
+        ).order_by(Workflow.created_at.desc()).limit(10)
+    )
+    workflows = result.scalars().all()
     
     return [
         WorkflowResponse(
             id=str(wf.id),
-            name=wf.name,
-            description=wf.description,
-            type=wf.type,
-            status=wf.status,
-            progress=wf.progress,
+            nombre=wf.nombre,
+            descripcion=wf.descripcion,
+            tipo=wf.tipo,
+            estado=wf.estado,
+            progreso=wf.progreso,
             steps_total=wf.steps_total,
             steps_completed=wf.steps_completed,
             created_at=wf.created_at.isoformat(),
@@ -494,7 +530,7 @@ async def list_workflows(
 @router.post("/workflows", response_model=WorkflowResponse)
 async def create_workflow(
     workflow: WorkflowCreate,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Crear nuevo workflow."""
@@ -502,27 +538,27 @@ async def create_workflow(
     
     db_workflow = Workflow(
         user_id=current_user.id,
-        name=workflow.name,
-        description=workflow.description,
-        type=workflow.type,
-        status="pending",
-        progress=0,
+        nombre=workflow.name,
+        descripcion=workflow.description,
+        tipo=workflow.type,
+        estado="pending",
+        progreso=0,
         steps_total=5,  # Default steps
         steps_completed=0,
         metadata_json=workflow.metadata_json
     )
     
     db.add(db_workflow)
-    db.commit()
-    db.refresh(db_workflow)
+    await db.commit()
+    await db.refresh(db_workflow)
     
     return WorkflowResponse(
         id=str(db_workflow.id),
-        name=db_workflow.name,
-        description=db_workflow.description,
-        type=db_workflow.type,
-        status=db_workflow.status,
-        progress=db_workflow.progress,
+        nombre=db_workflow.nombre,
+        descripcion=db_workflow.descripcion,
+        tipo=db_workflow.tipo,
+        estado=db_workflow.estado,
+        progreso=db_workflow.progreso,
         steps_total=db_workflow.steps_total,
         steps_completed=db_workflow.steps_completed,
         created_at=db_workflow.created_at.isoformat(),
@@ -533,7 +569,7 @@ async def create_workflow(
 @router.post("/workflows/{workflow_id}/execute")
 async def execute_workflow(
     workflow_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
     workflow_type: Optional[str] = None,
     params: Optional[Dict] = None,
@@ -543,10 +579,13 @@ async def execute_workflow(
     from app.infrastructure.orchestration.workflow_engine import get_workflow_engine
     import asyncio
     
-    workflow = db.query(Workflow).filter(
-        Workflow.id == workflow_id,
-        Workflow.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(Workflow).where(
+            Workflow.id == workflow_id,
+            Workflow.user_id == current_user.id
+        )
+    )
+    workflow = result.scalar_one_or_none()
     
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow no encontrado")
@@ -573,9 +612,9 @@ async def execute_workflow(
                 
             else:
                 # Default: simulación básica
-                workflow.status = "running"
-                workflow.started_at = datetime.utcnow()
-                db.commit()
+                workflow.estado = "running"
+                workflow.iniciado_en = datetime.utcnow()
+                await db.commit()
                 
                 from app.main import broadcast_workflow_progress
                 await broadcast_workflow_progress(workflow_id, 0, "running", message="Iniciando workflow...")
@@ -583,30 +622,30 @@ async def execute_workflow(
                 for i in range(workflow.steps_total):
                     await asyncio.sleep(2)
                     workflow.steps_completed = i + 1
-                    workflow.progress = int((workflow.steps_completed / workflow.steps_total) * 100)
-                    db.commit()
+                    workflow.progreso = int((workflow.steps_completed / workflow.steps_total) * 100)
+                    await db.commit()
                     
                     await broadcast_workflow_progress(
-                        workflow_id, workflow.progress, "running",
+                        workflow_id, workflow.progreso, "running",
                         step=i + 1,
                         steps_completed=workflow.steps_completed,
                         steps_total=workflow.steps_total
                     )
                 
-                workflow.status = "completed"
-                workflow.completed_at = datetime.utcnow()
-                db.commit()
+                workflow.estado = "completed"
+                workflow.completado_en = datetime.utcnow()
+                await db.commit()
                 
                 await broadcast_workflow_progress(workflow_id, 100, "completed", message="Workflow completado")
                 return
         
         except Exception as e:
-            workflow.status = "failed"
+            workflow.estado = "failed"
             workflow.metadata_json["error"] = str(e)
-            db.commit()
+            await db.commit()
             
             from app.main import broadcast_workflow_progress
-            await broadcast_workflow_progress(workflow_id, workflow.progress, "failed", error=str(e))
+            await broadcast_workflow_progress(workflow_id, workflow.progreso, "failed", error=str(e))
     
     # Iniciar ejecución
     asyncio.create_task(run_workflow())
@@ -622,22 +661,25 @@ async def execute_workflow(
 @router.delete("/workflows/{workflow_id}")
 async def delete_workflow(
     workflow_id: int,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """Eliminar workflow."""
     from app.db.models import Workflow
     
-    workflow = db.query(Workflow).filter(
-        Workflow.id == workflow_id,
-        Workflow.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(Workflow).where(
+            Workflow.id == workflow_id,
+            Workflow.user_id == current_user.id
+        )
+    )
+    workflow = result.scalar_one_or_none()
     
     if not workflow:
         raise HTTPException(status_code=404, detail="Workflow no encontrado")
     
-    db.delete(workflow)
-    db.commit()
+    await db.delete(workflow)
+    await db.commit()
     
     return {"message": f"Workflow {workflow_id} eliminado exitosamente"}
 
@@ -718,7 +760,7 @@ class WorkspaceForecast(BaseModel):
 
 @router.get("/forecast", response_model=WorkspaceForecast)
 async def get_forecast(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -733,11 +775,14 @@ async def get_forecast(
     # 1. Obtener histórico de documentos (últimos 6 meses)
     six_months_ago = datetime.utcnow() - timedelta(days=180)
     
-    docs = db.query(Document).filter(
-        Document.user_id == current_user.id,
-        Document.status == "completed",
-        Document.created_at >= six_months_ago
-    ).all()
+    result = await db.execute(
+        select(Document).where(
+            Document.user_id == current_user.id,
+            Document.estado == "completed",
+            Document.created_at >= six_months_ago
+        )
+    )
+    docs = result.scalars().all()
     
     # 2. Agrupar por mes
     monthly_data: Dict[str, Dict[str, float]] = {}
@@ -746,8 +791,8 @@ async def get_forecast(
         if month_key not in monthly_data:
             monthly_data[month_key] = {'income': 0.0, 'expenses': 0.0}
         
-        doc_type = (doc.extracted_data or {}).get('type', 'other')
-        amount = float((doc.extracted_data or {}).get('total', 0))
+        doc_type = (doc.datos_extraidos or {}).get('type', 'other')
+        amount = float((doc.datos_extraidos or {}).get('total', 0))
         
         if doc_type == 'ingreso':
             monthly_data[month_key]['income'] += amount
@@ -852,7 +897,7 @@ async def get_forecast(
 
 @router.get("/kpi-trends", response_model=List[KpiTrendPoint])
 async def get_kpi_trends(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -867,22 +912,25 @@ async def get_kpi_trends(
     six_months_ago = datetime.utcnow() - timedelta(days=180)
     
     # Agrupar documentos por mes
-    docs = db.query(
-        extract('year', Document.created_at).label('year'),
-        extract('month', Document.created_at).label('month'),
-        func.count(Document.id).label('count'),
-        func.avg(Document.confidence_score).label('avg_confidence')
-    ).filter(
-        Document.user_id == current_user.id,
-        Document.status == "completed",
-        Document.created_at >= six_months_ago
-    ).group_by(
-        extract('year', Document.created_at),
-        extract('month', Document.created_at)
-    ).order_by(
-        desc(extract('year', Document.created_at)),
-        desc(extract('month', Document.created_at))
-    ).all()
+    result = await db.execute(
+        select(
+            extract('year', Document.created_at).label('year'),
+            extract('month', Document.created_at).label('month'),
+            func.count(Document.id).label('count'),
+            func.avg(Document.puntuacion_confianza).label('avg_confidence')
+        ).where(
+            Document.user_id == current_user.id,
+            Document.estado == "completed",
+            Document.created_at >= six_months_ago
+        ).group_by(
+            extract('year', Document.created_at),
+            extract('month', Document.created_at)
+        ).order_by(
+            desc(extract('year', Document.created_at)),
+            desc(extract('month', Document.created_at))
+        )
+    )
+    docs = result.all()
     
     trends = []
     

@@ -142,7 +142,7 @@ export default function Payroll() {
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Button className="h-full border border-dashed border-border bg-transparent hover:bg-muted/50 text-muted-foreground flex flex-col gap-2">
+                            <Button id="boton-importar-sua" className="h-full border border-dashed border-border bg-transparent hover:bg-muted/50 text-muted-foreground flex flex-col gap-2 transition-all">
                                 <FileSpreadsheet className="h-6 w-6" />
                                 <span className="text-[10px] font-bold uppercase">Importar archivo .SUA</span>
                             </Button>
@@ -154,7 +154,7 @@ export default function Payroll() {
                     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                             <Card className="glass-card border-border/40 premium-shadow rounded-3xl overflow-hidden group">
-                                <CardHeader className="pb-2 px-6 pt-5"><CardTitle className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Costo Total Periodo</CardTitle></CardHeader>
+                                <CardHeader className="pb-2 px-6 pt-5"><CardTitle className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-40">Costo Total del Periodo</CardTitle></CardHeader>
                                 <CardContent className="px-6 pb-6">
                                     <p className="text-2xl font-black text-foreground italic tracking-tighter">${summary?.cost_total?.toLocaleString() || '0'}</p>
                                     <span className="text-[10px] font-black text-green-500 uppercase flex items-center gap-1 mt-1">
@@ -189,10 +189,11 @@ export default function Payroll() {
                             <div className="lg:col-span-2 space-y-6">
                                 <Card className="glass-card border-border/40 premium-shadow rounded-3xl overflow-hidden group">
                                     <CardHeader className="bg-muted/30 border-b border-border/30 py-5 px-8 flex flex-row justify-between items-center">
-                                        <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Staff • Colaboradores Activos</CardTitle>
+                                        <CardTitle className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Personal • Colaboradores Activos</CardTitle>
                                         <div className="flex gap-2">
                                             <div className="w-40 h-8 bg-background/50 border border-border/40 rounded-full flex items-center px-4">
                                                 <Users className="w-3.5 h-3.5 text-muted-foreground/40" />
+                                                <input id="campo-busqueda-empleados" className="bg-transparent border-none outline-none text-[9px] font-black uppercase tracking-widest text-foreground px-2 w-full" placeholder="Buscar..." />
                                             </div>
                                         </div>
                                     </CardHeader>
@@ -220,7 +221,7 @@ export default function Payroll() {
                                         </div>
                                     </CardContent>
                                     <div className="p-5 bg-muted/20 border-t border-border/30 flex justify-center">
-                                        <Button variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-primary hover:bg-transparent transition-all"><UserPlus className="h-4 w-4 mr-3 opacity-40" /> Registrar nuevo integrante</Button>
+                                        <Button id="boton-registrar-empleado" variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 hover:text-primary hover:bg-transparent transition-all"><UserPlus className="h-4 w-4 mr-3 opacity-40" /> Registrar nuevo integrante</Button>
                                     </div>
                                 </Card>
                             </div>
@@ -271,10 +272,10 @@ export default function Payroll() {
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    <Button variant="outline" className="glass-card border-border/50 text-[9px] font-black uppercase tracking-wider h-10 px-8 hover:bg-muted/50 transition-all rounded-full group">
+                    <Button variant="outline" id="boton-listas-asistencia" className="glass-card border-border/50 text-[9px] font-black uppercase tracking-wider h-10 px-8 hover:bg-muted/50 transition-all rounded-full group">
                         <FileSpreadsheet className="h-3.5 w-3.5 mr-2 opacity-40 group-hover:opacity-100 transition-opacity" /> Listas de Asistencia
                     </Button>
-                    <Button onClick={() => dispersePayroll()} className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 px-10 rounded-full transition-all group overflow-hidden relative">
+                    <Button id="boton-dispersar-periodo" onClick={() => dispersePayroll()} className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-10 px-10 rounded-full transition-all group overflow-hidden relative">
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                         <Play className="h-3.5 w-3.5 mr-3 group-hover:scale-110 transition-transform" /> Dispersar periodo
                     </Button>

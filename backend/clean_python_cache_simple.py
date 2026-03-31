@@ -85,22 +85,22 @@ def clear_python_cache():
             # Buscar archivos que coincidan con el patrón
             # Usamos `glob` aquí, aunque `rglob` podría ser más eficiente en algunos casos,
             # mantenemos el uso original.
-            for file_path in Path('.').rglob(file_pattern):
-                if file_path.is_file():
+            for ruta_archivo in Path('.').rglob(file_pattern):
+                if ruta_archivo.is_file():
                     
                     # *** Lógica de Exclusión de Entornos Virtuales ***
-                    if is_in_excluded_dir(file_path, VIRTUAL_ENV_DIRS):
+                    if is_in_excluded_dir(ruta_archivo, VIRTUAL_ENV_DIRS):
                         # Nota: Es menos probable encontrar archivos cacheables fuera de los directorios excluidos,
                         # pero la verificación es segura.
                         continue
                     # **********************************************
                         
                     try:
-                        file_path.unlink()
-                        print(f"🗑️ Archivo eliminado: {file_path}")
+                        ruta_archivo.unlink()
+                        print(f"🗑️ Archivo eliminado: {ruta_archivo}")
                         files_deleted += 1
                     except Exception as e:
-                        print(f"❌ Error eliminando {file_path}: {e}")
+                        print(f"❌ Error eliminando {ruta_archivo}: {e}")
         except Exception as e:
             print(f"❌ Error buscando {file_pattern}: {e}")
     

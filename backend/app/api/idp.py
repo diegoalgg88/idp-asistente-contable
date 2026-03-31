@@ -21,9 +21,10 @@ import pandas as pd
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends, BackgroundTasks, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import Document, User
 from app.infrastructure.ai.nvidia_nim import NIMExtractionService, process_batch_async
 from app.core.config import settings
@@ -46,23 +47,29 @@ class DocumentProcessingRequest(BaseModel):
 class DocumentProcessingResponse(BaseModel):
     """Response model for document processing"""
     document_id: str
-    status: str
-    extracted_data: Optional[Dict[str, Any]] = None
-    confidence_score: Optional[float] = None
+    estado: str = Field(alias="status")
+    datos_extraidos: Optional[Dict[str, Any]] = None
+    puntuacion_confianza: Optional[float] = Field(None, alias="puntuacion_confianza")
     latency: Optional[float] = None
     message: str
+
+    class Config:
+        populate_by_name = True
 
 
 class DocumentStatusResponse(BaseModel):
     """Response model for document status"""
     document_id: str
-    status: str
-    document_type: str
+    estado: str = Field(alias="status")
+    tipo_documento: str = Field(alias="document_type")
     created_at: datetime
     updated_at: datetime
-    extracted_data: Optional[Dict[str, Any]] = None
-    confidence_score: Optional[float] = None
+    datos_extraidos: Optional[Dict[str, Any]] = None
+    puntuacion_confianza: Optional[float] = Field(None, alias="puntuacion_confianza")
     error_message: Optional[str] = None
+
+    class Config:
+        populate_by_name = True
 
 
 class BatchProcessRequest(BaseModel):
@@ -75,9 +82,12 @@ class BatchProcessResponse(BaseModel):
     """Response model for batch processing"""
     batch_id: str
     total_documents: int
-    status: str
+    estado: str = Field(alias="status")
     message: str
     estimated_time: Optional[str] = None
+
+    class Config:
+        populate_by_name = True
 
 
 # =============================================================================
@@ -104,13 +114,13 @@ def save_uploaded_file(file: UploadFile, upload_dir: Optional[str] = None) -> st
     # Generar nombre único
     file_extension = Path(file.filename).suffix if file.filename else ".pdf"
     unique_filename = f"{uuid.uuid4()}{file_extension}"
-    file_path = os.path.join(upload_dir, unique_filename)
+    ruta_archivo = os.path.join(upload_dir, unique_filename)
 
     # Guardar archivo
-    with open(file_path, "wb") as buffer:
+    with open(ruta_archivo, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return file_path
+    return ruta_archivo
 
 
 def extract_entities_from_result(result: Dict[str, Any]) -> Dict[str, Any]:
@@ -127,7 +137,7 @@ def extract_entities_from_result(result: Dict[str, Any]) -> Dict[str, Any]:
     return entity_extraction.get("entities", {})
 
 
-def calculate_confidence_score(result: Dict[str, Any]) -> float:
+def calculate_puntuacion_confianza(result: Dict[str, Any]) -> float:
     """
     Calcula score de confianza basado en el resultado.
 
@@ -163,7 +173,7 @@ def calculate_confidence_score(result: Dict[str, Any]) -> float:
 async def process_document(
     document_type: str = Query(..., description="Tipo de documento (factura, recibo, estado_cuenta, etc.)"),
     file: UploadFile = File(..., description="Archivo del documento (PDF, imagen)"),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> DocumentProcessingResponse:
     """
@@ -205,53 +215,53 @@ async def process_document(
 
     try:
         # Guardar archivo
-        file_path = save_uploaded_file(file)
+        ruta_archivo = save_uploaded_file(file)
 
         # Crear registro en base de datos
         db_document = Document(
             user_id=current_user.id,
-            document_type=document_type,
-            file_path=file_path,
-            original_filename=file.filename,
-            status="processing",
+            tipo_documento=document_type,
+            ruta_archivo=ruta_archivo,
+            nombre_original=file.filename,
+            estado="processing",
         )
         db.add(db_document)
-        db.commit()
-        db.refresh(db_document)
+        await db.commit()
+        await db.refresh(db_document)
 
         # Procesar documento
         service = NIMExtractionService()
-        result = service.process_invoice(file_path)
+        result = service.process_invoice(ruta_archivo)
 
         # Actualizar registro en BD
         if result.get("status") == "success":
-            extracted_data = extract_entities_from_result(result)
-            confidence_score = calculate_confidence_score(result)
+            datos_extraidos = extract_entities_from_result(result)
+            puntuacion_confianza = calculate_puntuacion_confianza(result)
             
-            db_document.status = "completed"
-            db_document.extracted_data = extracted_data
-            db_document.confidence_score = confidence_score
+            db_document.estado = "completed"
+            db_document.datos_extraidos = datos_extraidos
+            db_document.puntuacion_confianza = puntuacion_confianza
         else:
-            db_document.status = "failed"
-            db_document.extracted_data = {"error": result.get("error", "Error desconocido")}
+            db_document.estado = "failed"
+            db_document.datos_extraidos = {"error": result.get("error", "Error desconocido")}
 
-        db.commit()
+        await db.commit()
 
         # Preparar respuesta
         if result.get("status") == "success":
             return DocumentProcessingResponse(
                 document_id=str(db_document.id),
-                status="completed",
-                extracted_data=extract_entities_from_result(result),
-                confidence_score=calculate_confidence_score(result),
+                estado="completed",
+                datos_extraidos=datos_extraidos, # Use local var
+                puntuacion_confianza=puntuacion_confianza, # Use local var
                 latency=result.get("total_latency"),
                 message="Documento procesado exitosamente"
             )
         else:
             return DocumentProcessingResponse(
                 document_id=str(db_document.id),
-                status="failed",
-                confidence_score=0.0,
+                estado="failed",
+                puntuacion_confianza=0.0,
                 latency=result.get("total_latency"),
                 message=f"Error en procesamiento: {result.get('error', 'Error desconocido')}"
             )
@@ -266,7 +276,7 @@ async def batch_process_documents(
     files: List[UploadFile] = File(..., description="Lista de archivos a procesar"),
     max_workers: int = Query(default=4, ge=1, le=10, description="Número de workers paralelos"),
     background_tasks: BackgroundTasks = None,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> BatchProcessResponse:
     """
@@ -296,49 +306,50 @@ async def batch_process_documents(
 
     # Crear registros en BD
     document_ids = []
-    file_paths = []
+    ruta_archivos = []
 
     for file in files:
         try:
-            file_path = save_uploaded_file(file)
-            file_paths.append(file_path)
+            ruta_archivo = save_uploaded_file(file)
+            ruta_archivos.append(ruta_archivo)
 
             db_document = Document(
                 user_id=current_user.id,
-                document_type=document_type,
-                file_path=file_path,
-                original_filename=file.filename,
-                status="pending",
+                tipo_documento=document_type,
+                ruta_archivo=ruta_archivo,
+                nombre_original=file.filename,
+                estado="pending",
             )
             db.add(db_document)
             document_ids.append(db_document.id)
         except Exception:
             continue
 
-    db.commit()
+    await db.commit()
 
     # Procesar en background
     async def process_batch():
         try:
-            results = await process_batch_async(file_paths, max_workers=max_workers)
+            results = await process_batch_async(ruta_archivos, max_workers=max_workers)
 
             # Actualizar resultados en BD
             for i, result in enumerate(results):
                 if i < len(document_ids):
-                    db_doc = db.query(Document).filter(Document.id == document_ids[i]).first()
+                    result_doc = await db.execute(select(Document).where(Document.id == document_ids[i]))
+                    db_doc = result_doc.scalar_one_or_none()
                     if db_doc:
                         if result.get("status") == "success":
-                            db_doc.status = "completed"
-                            db_doc.extracted_data = extract_entities_from_result(result)
-                            db_doc.confidence_score = calculate_confidence_score(result)
+                            db_doc.estado = "completed"
+                            db_doc.datos_extraidos = extract_entities_from_result(result)
+                            db_doc.puntuacion_confianza = calculate_puntuacion_confianza(result)
                         else:
-                            db_doc.status = "failed"
-                            db_doc.extracted_data = {"error": result.get("error", "Error desconocido")}
+                            db_doc.estado = "failed"
+                            db_doc.datos_extraidos = {"error": result.get("error", "Error desconocido")}
             
-            db.commit()
+            await db.commit()
         except Exception as e:
             print(f"Error en procesamiento batch: {e}")
-            db.rollback()
+            await db.rollback()
 
     if background_tasks:
         background_tasks.add_task(lambda: asyncio.run(process_batch()))
@@ -346,7 +357,7 @@ async def batch_process_documents(
     return BatchProcessResponse(
         batch_id=batch_id,
         total_documents=total_documents,
-        status="queued",
+        estado="queued",
         message=f"Procesando {total_documents} documentos en segundo plano",
         estimated_time=estimated_time
     )
@@ -355,7 +366,7 @@ async def batch_process_documents(
 @router.get("/{document_id}", response_model=DocumentStatusResponse)
 async def get_document_status(
     document_id: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ) -> DocumentStatusResponse:
     """
@@ -371,30 +382,33 @@ async def get_document_status(
     except ValueError:
         raise HTTPException(status_code=400, detail="ID de documento inválido")
 
-    db_document = db.query(Document).filter(
-        Document.id == doc_id,
-        Document.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(Document).where(
+            Document.id == doc_id,
+            Document.user_id == current_user.id
+        )
+    )
+    db_document = result.scalar_one_or_none()
 
     if not db_document:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
 
     return DocumentStatusResponse(
         document_id=str(db_document.id),
-        status=db_document.status,
-        document_type=db_document.document_type,
+        estado=db_document.estado,
+        tipo_documento=db_document.tipo_documento,
         created_at=db_document.created_at,
         updated_at=db_document.updated_at,
-        extracted_data=db_document.extracted_data,
-        confidence_score=db_document.confidence_score,
-        error_message=db_document.extracted_data.get("error") if db_document.status == "failed" else None
+        datos_extraidos=db_document.datos_extraidos,
+        puntuacion_confianza=db_document.puntuacion_confianza,
+        error_message=db_document.datos_extraidos.get("error") if db_document.estado == "failed" else None
     )
 
 
 @router.delete("/{document_id}")
 async def delete_document(
     document_id: str,
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -410,46 +424,50 @@ async def delete_document(
     except ValueError:
         raise HTTPException(status_code=400, detail="ID de documento inválido")
 
-    db_document = db.query(Document).filter(
-        Document.id == doc_id,
-        Document.user_id == current_user.id
-    ).first()
+    result = await db.execute(
+        select(Document).where(
+            Document.id == doc_id,
+            Document.user_id == current_user.id
+        )
+    )
+    db_document = result.scalar_one_or_none()
 
     if not db_document:
         raise HTTPException(status_code=404, detail="Documento no encontrado")
 
     # Eliminar archivo físico
     try:
-        if os.path.exists(db_document.file_path):
-            os.unlink(db_document.file_path)
+        if os.path.exists(db_document.ruta_archivo):
+            os.unlink(db_document.ruta_archivo)
     except Exception as e:
         print(f"Error eliminando archivo: {e}")
 
     # Eliminar registro de BD
-    db.delete(db_document)
-    db.commit()
+    await db.delete(db_document)
+    await db.commit()
 
 @router.get("/export/xlsx")
 async def export_documents_xlsx(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """
     Exporta la lista de documentos procesados a un archivo Excel.
     """
-    documents = db.query(Document).filter(Document.user_id == current_user.id).all()
+    result = await db.execute(select(Document).where(Document.user_id == current_user.id))
+    documents = result.scalars().all()
     
     if not documents:
         raise HTTPException(status_code=404, detail="No hay documentos para exportar")
 
     data = []
     for doc in documents:
-        ext_data = doc.extracted_data or {}
+        ext_data = doc.datos_extraidos or {}
         data.append({
             "ID": doc.id,
-            "Nombre Original": doc.original_filename,
-            "Tipo": doc.document_type,
-            "Status": doc.status,
+            "Nombre Original": doc.nombre_original,
+            "Tipo": doc.tipo_documento,
+            "Status": doc.estado,
             "RFC Emisor": ext_data.get("rfc_emisor", "N/A"),
             "RFC Receptor": ext_data.get("rfc_receptor", "N/A"),
             "UUID": ext_data.get("uuid", "N/A"),

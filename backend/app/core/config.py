@@ -43,6 +43,10 @@ class Settings(BaseSettings):
     # Reranking
     RERANK_MODEL: str = "nvidia/nv-rerankqa-mistral-4b-v3"
 
+    # Search Services
+    TAVILY_API_KEY: str = ""
+    EXA_API_KEY: str = ""
+
     # ==================================================================
     # PROCESSING LIMITS
     # ==================================================================

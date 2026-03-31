@@ -15,7 +15,7 @@ Arquitectura:
 - Reranking para precisión en búsqueda
 """
 
-from typing import TypedDict, Annotated, List, Optional, Dict, Any, Generator, cast
+from typing import TypedDict, Annotated, List, Optional, Dict, Any, Generator, AsyncGenerator, cast
 import json
 import time
 
@@ -132,7 +132,7 @@ class ContableAgent:
         # Compilar grafo
         return workflow.compile()
 
-    def _classify_intent(self, state: ContableAgentState) -> Dict[str, Any]:
+    async def _classify_intent(self, state: ContableAgentState) -> Dict[str, Any]:
         """
         Clasifica la intención del usuario.
         """
@@ -151,7 +151,7 @@ class ContableAgent:
 
         Responde SOLO con la categoría (retrieval, reasoning, o direct)."""
 
-        classification = self.nvidia_service.generate_response(
+        classification = await self.nvidia_service.async_generate_response(
             prompt=f"Mensaje del usuario: {user_message}",
             system_message=system_prompt,
             temperature=0.0
@@ -191,7 +191,7 @@ class ContableAgent:
         else:
             return "direct"
 
-    def _retrieve_context(self, state: ContableAgentState) -> ContableAgentState:
+    async def _retrieve_context(self, state: ContableAgentState) -> ContableAgentState:
         """
         Recupera contexto relevante de la base de datos vectorial.
 
@@ -221,22 +221,24 @@ class ContableAgent:
             retrieved_docs = rag_result.get("context_docs", [])
             
             # Recuperar documentos específicos referenciados (@)
-            from app.db.session import SessionLocal
+            from app.db.database import AsyncSessionLocal
             from app.db.models import Document as DbDocument
-            db = SessionLocal()
-            try:
+            from sqlalchemy import select
+            
+            async with AsyncSessionLocal() as db:
                 for item_id in context_items:
                     if str(item_id).isdigit():
-                        doc = db.query(DbDocument).filter(DbDocument.id == int(item_id)).first()
+                        result = await db.execute(
+                            select(DbDocument).where(DbDocument.id == int(item_id))
+                        )
+                        doc = result.scalar_one_or_none()
                         if doc and doc not in retrieved_docs:
                             retrieved_docs.append({
-                                "content": doc.extracted_text or "Sin contenido extraído.",
-                                "source": doc.original_filename,
+                                "content": doc.ruta_archivo, # TODO: Usar contenido real extraído
+                                "source": doc.nombre_original,
                                 "document_id": str(doc.id),
-                                "relevance_score": 1.0 # Relevancia máxima por ser referente directo
+                                "relevance_score": 1.0
                             })
-            finally:
-                db.close()
                 
         except Exception as e:
             print(f"Error en RAG retrieval: {e}")
@@ -278,7 +280,7 @@ class ContableAgent:
             "iterations": int(cast(Any, state["iterations"]))
         }
 
-    def _reason_with_context(self, state: ContableAgentState) -> Dict[str, Any]:
+    async def _reason_with_context(self, state: ContableAgentState) -> Dict[str, Any]:
         """
         Realiza razonamiento contable con el contexto recuperado.
         """
@@ -345,7 +347,7 @@ INSTRUCCIONES CRÍTICAS:
         from app.infrastructure.orchestration.agent_tools import AGENT_TOOL_DEFINITIONS
         native_tools = [{"type": "function", "function": tool_def} for tool_def in AGENT_TOOL_DEFINITIONS]
 
-        response_data = self.nvidia_service.generate_response(
+        response_data = await self.nvidia_service.async_generate_response(
             messages_list=messages_for_nim,
             temperature=0.7,
             tools=native_tools
@@ -406,7 +408,7 @@ INSTRUCCIONES CRÍTICAS:
         
         return "end"
 
-    def _execute_agent_tools(self, state: ContableAgentState) -> ContableAgentState:
+    async def _execute_agent_tools(self, state: ContableAgentState) -> ContableAgentState:
         """Ejecuta las herramientas solicitadas y añade ToolMessages al estado"""
         last_message = state["messages"][-1]
         
@@ -414,11 +416,10 @@ INSTRUCCIONES CRÍTICAS:
             return cast(ContableAgentState, state)
 
         from app.infrastructure.orchestration.agent_tools import execute_tool
-        from app.db.session import SessionLocal
+        from app.db.database import AsyncSessionLocal
         
-        db = SessionLocal()
-        tool_messages = []
-        try:
+        async with AsyncSessionLocal() as db:
+            tool_messages = []
             for tool_call in last_message.tool_calls:
                 tool_name = tool_call["name"]
                 args = tool_call["args"]
@@ -426,7 +427,7 @@ INSTRUCCIONES CRÍTICAS:
                 
                 print(f"Ejecutando herramienta: {tool_name} con args: {args}")
                 
-                result = execute_tool(
+                result = await execute_tool(
                     tool_name=tool_name,
                     params=args,
                     db=db,
@@ -438,8 +439,6 @@ INSTRUCCIONES CRÍTICAS:
                     tool_call_id=tool_call_id
                 ))
             
-            # Preparar el retorno asegurando que todos los campos requeridos estén presentes
-            # y tengan el tipo correcto para satisfacer el linter de TypedDict
             return {
                 "messages": state["messages"] + tool_messages,
                 "user_message": str(state["user_message"]),
@@ -452,11 +451,8 @@ INSTRUCCIONES CRÍTICAS:
                 "latency": float(cast(Any, state["latency"])),
                 "iterations": int(cast(Any, state["iterations"]))
             }
-            
-        finally:
-            db.close()
 
-    def _generate_response(self, state: ContableAgentState) -> Dict[str, Any]:
+    async def _generate_response(self, state: ContableAgentState) -> Dict[str, Any]:
         """Genera la respuesta final con metadata"""
         
         response_obj = state.get("response", "")
@@ -470,7 +466,7 @@ INSTRUCCIONES CRÍTICAS:
         # Si la respuesta está vacía (ej. intent direct directo al responder) o solo tiene tool_calls
         if not response:
             system_prompt = "Eres el Agente Fiscal de IDP Asistente Contable, un asistente experto en contabilidad y fiscalidad mexicana. Ayuda al usuario con su consulta general de forma amable, concisa y profesional, manteniendo tu identidad como el agente oficial de la plataforma."
-            response_data = self.nvidia_service.generate_response(
+            response_data = await self.nvidia_service.async_generate_response(
                 prompt=state["user_message"],
                 system_message=system_prompt,
                 temperature=0.7
@@ -504,7 +500,7 @@ INSTRUCCIONES CRÍTICAS:
 
         return cast(Dict[str, Any], state)
 
-    def generate_response(
+    async def generate_response(
         self,
         message: str,
         history: Optional[List[Dict[str, str]]] = None,
@@ -536,7 +532,7 @@ INSTRUCCIONES CRÍTICAS:
             "iterations": 0
         }
 
-        final_state = self.graph.invoke(initial_state)
+        final_state = await self.graph.ainvoke(initial_state)
 
         return {
             "content": final_state["response"],
@@ -546,12 +542,12 @@ INSTRUCCIONES CRÍTICAS:
             "latency": final_state["latency"]
         }
 
-    def stream_response(
+    async def stream_response(
         self,
         message: str,
         history: Optional[List[Dict[str, str]]] = None,
         context: Optional[Dict[str, Any]] = None
-    ) -> Generator[Dict[str, Any], None, None]:
+    ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Genera una respuesta en streaming (token-por-token).
 
@@ -564,7 +560,7 @@ INSTRUCCIONES CRÍTICAS:
             Chunks de respuesta con metadata
         """
         # Primero, clasificar intención
-        intent_state = self._classify_intent({
+        intent_state = await self._classify_intent({
             "messages": [HumanMessage(content=message)],
             "user_message": message,
             "conversation_history": history or [],
@@ -613,7 +609,7 @@ INSTRUCCIONES CRÍTICAS:
         """
         # Stream de tokens
         full_response = ""
-        for chunk in self.nvidia_service.stream_response(
+        async for chunk in self.nvidia_service.async_stream_response(
             prompt=user_message,
             system_message=system_prompt
         ):
@@ -668,7 +664,7 @@ class LangGraphAgentsService:
         self.nvidia_service = get_extraction_service()
         self.contable_agent = ContableAgent()
 
-    def run_agent(
+    async def run_agent(
         self,
         agent_name: str,
         user_message: str,
@@ -681,7 +677,7 @@ class LangGraphAgentsService:
                  "content": msg.content if hasattr(msg, 'content') else msg["content"]}
                 for msg in (conversation_history or [])
             ]
-            return self.contable_agent.generate_response(
+            return await self.contable_agent.generate_response(
                 message=user_message,
                 history=history
             )

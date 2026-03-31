@@ -18,9 +18,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import Document, User
 from app.core.security import get_current_user
 from app.domain.idp.account_classifier import AccountClassifier
@@ -41,8 +41,11 @@ class ClassificationSuggestion(BaseModel):
     document_amount: Decimal
     suggested_account: str
     account_name: str
-    confidence_score: float
+    puntuacion_confianza: float = Field(alias="puntuacion_confianza")
     top_3_suggestions: List[Dict[str, Any]]
+
+    class Config:
+        populate_by_name = True
 
 
 class ClassificationRequest(BaseModel):
@@ -69,9 +72,12 @@ class ClassificationAccuracyResponse(BaseModel):
     total_classified: int
     correct_classifications: int
     accuracy_rate: float
-    avg_confidence_score: float
+    puntuacion_confianza_promedio: float = Field(alias="avg_puntuacion_confianza")
     last_30_days_accuracy: float
     feedback_count: int
+
+    class Config:
+        populate_by_name = True
 
 
 class AccountResponse(BaseModel):
@@ -90,7 +96,7 @@ class AccountResponse(BaseModel):
 async def suggest_accounts(
     request: ClassificationRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Sugiere cuentas contables para documentos
@@ -126,14 +132,14 @@ async def suggest_accounts(
         # Preparar datos para clasificación
         transactions = []
         for doc in documents:
-            extracted_data = doc.extracted_data or {}
+            datos_extraidos = doc.datos_extraidos or {}
             
             transactions.append({
                 'id': doc.id,
-                'concepto': extracted_data.get('descripcion', doc.original_filename or ''),
-                'monto': Decimal(str(extracted_data.get('total', 0))),
-                'proveedor': extracted_data.get('emisor_nombre', ''),
-                'rfc_proveedor': extracted_data.get('emisor_rfc', '')
+                'concepto': datos_extraidos.get('descripcion', doc.nombre_original or ''),
+                'monto': Decimal(str(datos_extraidos.get('total', 0))),
+                'proveedor': datos_extraidos.get('emisor_nombre', ''),
+                'rfc_proveedor': datos_extraidos.get('emisor_rfc', '')
             })
         
         # Obtener sugerencias
@@ -163,7 +169,7 @@ async def suggest_accounts(
                 document_amount=suggestion.get('monto', Decimal('0')),
                 suggested_account=suggestion['suggested_account'],
                 account_name=suggestion['account_name'],
-                confidence_score=suggestion['confidence_score'],
+                puntuacion_confianza=suggestion['puntuacion_confianza'],
                 top_3_suggestions=top_3
             ))
         
@@ -183,7 +189,7 @@ async def suggest_accounts(
 async def suggest_account_for_document(
     document_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Sugiere cuenta contable para un documento específico
@@ -211,13 +217,13 @@ async def suggest_account_for_document(
     classifier = AccountClassifier()
     
     # Preparar datos
-    extracted_data = doc.extracted_data or {}
+    datos_extraidos = doc.datos_extraidos or {}
     transaction = {
         'id': doc.id,
-        'concepto': extracted_data.get('descripcion', doc.original_filename or ''),
-        'monto': Decimal(str(extracted_data.get('total', 0))),
-        'proveedor': extracted_data.get('emisor_nombre', ''),
-        'rfc_proveedor': extracted_data.get('emisor_rfc', '')
+        'concepto': datos_extraidos.get('descripcion', doc.nombre_original or ''),
+        'monto': Decimal(str(datos_extraidos.get('total', 0))),
+        'proveedor': datos_extraidos.get('emisor_nombre', ''),
+        'rfc_proveedor': datos_extraidos.get('emisor_rfc', '')
     }
     
     # Obtener sugerencia
@@ -239,7 +245,7 @@ async def suggest_account_for_document(
         document_amount=suggestion.get('monto', Decimal('0')),
         suggested_account=suggestion['suggested_account'],
         account_name=suggestion['account_name'],
-        confidence_score=suggestion['confidence_score'],
+        puntuacion_confianza=suggestion['puntuacion_confianza'],
         top_3_suggestions=top_3
     )
 
@@ -252,7 +258,7 @@ async def suggest_account_for_document(
 async def submit_feedback(
     request: FeedbackRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Envía feedback para mejorar el modelo
@@ -286,11 +292,11 @@ async def submit_feedback(
             )
         
         # Guardar feedback en metadatos del documento
-        if not doc.extracted_data:
-            doc.extracted_data = {}
+        if not doc.datos_extraidos:
+            doc.datos_extraidos = {}
         
-        if 'classification_feedback' not in doc.extracted_data:
-            doc.extracted_data['classification_feedback'] = []
+        if 'classification_feedback' not in doc.datos_extraidos:
+            doc.datos_extraidos['classification_feedback'] = []
         
         feedback_entry = {
             'timestamp': datetime.utcnow().isoformat(),
@@ -300,11 +306,11 @@ async def submit_feedback(
             'feedback_type': request.feedback_type
         }
         
-        doc.extracted_data['classification_feedback'].append(feedback_entry)
+        doc.datos_extraidos['classification_feedback'].append(feedback_entry)
         
         # Actualizar cuenta clasificada
-        doc.extracted_data['classified_account'] = request.corrected_account
-        doc.extracted_data['classification_confidence'] = 1.0 if request.feedback_type == 'correct' else 0.5
+        doc.datos_extraidos['classified_account'] = request.corrected_account
+        doc.datos_extraidos['classification_confidence'] = 1.0 if request.feedback_type == 'correct' else 0.5
         
         await db.commit()
         
@@ -335,7 +341,7 @@ async def submit_feedback(
 @router.get("/accuracy", response_model=ClassificationAccuracyResponse)
 async def get_accuracy_metrics(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Obtiene métricas de precisión del clasificador
@@ -351,7 +357,7 @@ async def get_accuracy_metrics(
     result = await db.execute(
         select(func.count(Document.id)).where(
             Document.user_id == current_user.id,
-            Document.extracted_data['classified_account'].isnot(None)
+            Document.datos_extraidos['classified_account'].isnot(None)
         )
     )
     total_classified = result.scalar() or 0
@@ -360,7 +366,7 @@ async def get_accuracy_metrics(
     result = await db.execute(
         select(func.count(Document.id)).where(
             Document.user_id == current_user.id,
-            Document.extracted_data['classification_feedback'].isnot(None)
+            Document.datos_extraidos['classification_feedback'].isnot(None)
         )
     )
     feedback_count = result.scalar() or 0
@@ -375,9 +381,9 @@ async def get_accuracy_metrics(
     
     # Confianza promedio
     result = await db.execute(
-        select(func.avg(Document.extracted_data['classification_confidence'])).where(
+        select(func.avg(Document.datos_extraidos['classification_confidence'])).where(
             Document.user_id == current_user.id,
-            Document.extracted_data['classification_confidence'].isnot(None)
+            Document.datos_extraidos['classification_confidence'].isnot(None)
         )
     )
     avg_confidence = result.scalar() or 0.0
@@ -393,7 +399,7 @@ async def get_accuracy_metrics(
         total_classified=total_classified,
         correct_classifications=int(total_classified * accuracy_rate),
         accuracy_rate=accuracy_rate,
-        avg_confidence_score=avg_confidence,
+        avg_puntuacion_confianza=avg_confidence,
         last_30_days_accuracy=last_30_days_accuracy,
         feedback_count=feedback_count
     )
@@ -407,7 +413,7 @@ async def get_accuracy_metrics(
 async def get_available_accounts(
     category: Optional[str] = Query(None, description="Filtrar por categoría"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Lista cuentas contables disponibles (NIF B-3)
@@ -483,7 +489,7 @@ async def classify_document_manual(
     document_id: int,
     request: ClassificationManualRequest,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Clasifica manualmente un documento
@@ -515,15 +521,15 @@ async def classify_document_manual(
         )
     
     # Actualizar clasificación
-    if not doc.extracted_data:
-        doc.extracted_data = {}
+    if not doc.datos_extraidos:
+        doc.datos_extraidos = {}
     
-    doc.extracted_data['classified_account'] = request.account_code
-    doc.extracted_data['classified_account_name'] = request.account_name
-    doc.extracted_data['classification_type'] = 'manual'
-    doc.extracted_data['classification_confidence'] = 1.0  # Manual = 100% confianza
-    doc.extracted_data['classified_at'] = datetime.utcnow().isoformat()
-    doc.extracted_data['classified_by'] = current_user.id
+    doc.datos_extraidos['classified_account'] = request.account_code
+    doc.datos_extraidos['classified_account_name'] = request.account_name
+    doc.datos_extraidos['classification_type'] = 'manual'
+    doc.datos_extraidos['classification_confidence'] = 1.0  # Manual = 100% confianza
+    doc.datos_extraidos['classified_at'] = datetime.utcnow().isoformat()
+    doc.datos_extraidos['classified_by'] = current_user.id
     
     await db.commit()
     
@@ -545,7 +551,7 @@ async def batch_classify_documents(
     document_ids: List[int] = Query(..., description="IDs de documentos a clasificar"),
     auto_apply: bool = Query(False, description="Aplicar automáticamente si confianza >90%"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Clasifica múltiples documentos en batch
@@ -581,13 +587,13 @@ async def batch_classify_documents(
         # Preparar transacciones
         transactions = []
         for doc in documents:
-            extracted_data = doc.extracted_data or {}
+            datos_extraidos = doc.datos_extraidos or {}
             transactions.append({
                 'id': doc.id,
-                'concepto': extracted_data.get('descripcion', doc.original_filename or ''),
-                'monto': Decimal(str(extracted_data.get('total', 0))),
-                'proveedor': extracted_data.get('emisor_nombre', ''),
-                'rfc_proveedor': extracted_data.get('emisor_rfc', '')
+                'concepto': datos_extraidos.get('descripcion', doc.nombre_original or ''),
+                'monto': Decimal(str(datos_extraidos.get('total', 0))),
+                'proveedor': datos_extraidos.get('emisor_nombre', ''),
+                'rfc_proveedor': datos_extraidos.get('emisor_rfc', '')
             })
         
         # Obtener predicciones
@@ -607,20 +613,20 @@ async def batch_classify_documents(
                 'document_id': doc.id,
                 'suggested_account': pred['suggested_account'],
                 'account_name': pred['account_name'],
-                'confidence_score': pred['confidence_score'],
+                'puntuacion_confianza': pred['puntuacion_confianza'],
                 'top_3': pred.get('top_3', []),
                 'auto_applied': False
             }
             
             # Auto-aplicar si confianza >90% y auto_apply=True
-            if auto_apply and pred['confidence_score'] >= 0.90:
-                if not doc.extracted_data:
-                    doc.extracted_data = {}
+            if auto_apply and pred['puntuacion_confianza'] >= 0.90:
+                if not doc.datos_extraidos:
+                    doc.datos_extraidos = {}
                 
-                doc.extracted_data['classified_account'] = pred['suggested_account']
-                doc.extracted_data['classified_account_name'] = pred['account_name']
-                doc.extracted_data['classification_type'] = 'auto_high_confidence'
-                doc.extracted_data['classification_confidence'] = pred['confidence_score']
+                doc.datos_extraidos['classified_account'] = pred['suggested_account']
+                doc.datos_extraidos['classified_account_name'] = pred['account_name']
+                doc.datos_extraidos['classification_type'] = 'auto_high_confidence'
+                doc.datos_extraidos['classification_confidence'] = pred['puntuacion_confianza']
                 
                 auto_applied_count += 1
                 result_entry['auto_applied'] = True

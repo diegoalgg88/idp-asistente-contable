@@ -1,8 +1,8 @@
 export interface User {
   id: number;
   email: string;
-  full_name: string;
-  is_active: boolean;
+  nombre_completo: string;
+  esta_activo: boolean;
   created_at: string;
 }
 
@@ -11,6 +11,7 @@ export interface TokenResponse {
   refresh_token: string;
   token_type: string;
 }
+
 
 export interface ApiError {
   detail: string | Array<{ loc: string[]; msg: string; type: string }>;

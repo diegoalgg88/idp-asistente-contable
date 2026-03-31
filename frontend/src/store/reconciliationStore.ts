@@ -60,7 +60,7 @@ export interface MatchResult {
   bank_transaction_id: number;
   cfdi_id: number;
   match_type: 'exact' | 'fuzzy' | 'llm_confirmed' | 'llm_review';
-  confidence_score: number;
+  puntuacion_confianza: number;
   bank_fecha: string;
   bank_concepto: string;
   bank_monto: number;
@@ -202,7 +202,7 @@ export const useReconciliationStore = create<ReconciliationState>()(
           // Filtrar por confianza mínima
           if (filters.confidenceMin !== undefined) {
             filtered = filtered.filter(
-              (match) => match.confidence_score >= (filters.confidenceMin || 0)
+              (match) => match.puntuacion_confianza >= (filters.confidenceMin || 0)
             );
           }
 

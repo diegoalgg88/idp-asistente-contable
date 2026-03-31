@@ -39,7 +39,7 @@ const DocumentRow = memo(({
       </TableCell>
       <TableCell className="py-4">{getStatusBadge(doc.status)}</TableCell>
       <TableCell className="py-4 text-[11px] font-mono text-slate-400 italic">
-        {doc.confidence_score > 0 ? `${Math.round(doc.confidence_score)}%` : '---'}
+        {doc.puntuacion_confianza > 0 ? `${Math.round(doc.puntuacion_confianza)}%` : '---'}
       </TableCell>
       <TableCell className="text-right px-6 py-4">
         <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

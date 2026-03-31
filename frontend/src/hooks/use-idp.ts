@@ -7,8 +7,8 @@ export interface DocumentStatus {
   document_type: string;
   created_at: string;
   updated_at: string;
-  extracted_data?: any;
-  confidence_score?: number;
+  datos_extraidos?: any;
+  puntuacion_confianza?: number;
   error_message?: string;
 }
 

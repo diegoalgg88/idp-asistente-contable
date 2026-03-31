@@ -17,11 +17,12 @@ Arquitectura:
 import os
 import time
 import requests
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Optional, Callable, List
 from datetime import datetime
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete, update
 
-from app.db.models import Document
+from app.db.models import Document, Client, CalendarEvent, Workflow
 from app.core.config import settings
 
 
@@ -29,59 +30,47 @@ from app.core.config import settings
 # CALENDAR TOOLS - Calendar Management for Fiscal Events
 # =============================================================================
 
-def create_calendar_event_tool(
-    title: str,
-    date: str,
-    type: str = "fiscal",
-    priority: str = "media",
-    description: Optional[str] = None,
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    **kwargs
+# =============================================================================
+# CALENDAR TOOLS - Wrap internal tools for consistent (db, user_id, params) signature
+# =============================================================================
+
+async def _execute_create_calendar_event(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Crea un nuevo evento en el calendario fiscal del usuario.
-    
-    Args:
-        title: Título del evento (ej: "Declaración Mensual IVA")
-        date: Fecha del evento en formato YYYY-MM-DD
-        type: Tipo de evento (fiscal, nomina, seguridad_social, cliente)
-        priority: Prioridad (alta, media, baja)
-        description: Descripción opcional del evento
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-    
-    Returns:
-        Dict con el resultado de la operación
-    """
+    """Crea un nuevo evento en el calendario fiscal."""
     from app.db.models import CalendarEvent
     from datetime import datetime
     
     start_time = time.time()
+    title = params.get("title", "")
+    date_str = params.get("date", "")
+    tipo = params.get("type", "fiscal")
+    priority = params.get("priority", "media")
+    description = params.get("description")
     
     try:
         if not db or user_id is None:
             return {"error": "user_id and db session required"}
         
         # Parse date
-        event_date = datetime.fromisoformat(date)
+        event_date = datetime.fromisoformat(date_str)
         
         # Create event
         new_event = CalendarEvent(
             user_id=user_id,
             title=title,
-            description=description,
+            descripcion=description,
             date=event_date,
-            type=type,
-            status="pendiente",
-            priority=priority,
+            tipo=tipo,
+            estado="pendiente",
+            prioridad=priority,
             is_recurring=0,
-            metadata_json=kwargs.get("metadata", {})
+            metadatos_json=params.get("metadata", {})
         )
         
         db.add(new_event)
-        db.commit()
-        db.refresh(new_event)
+        await db.commit()
+        await db.refresh(new_event)
         
         return {
             "success": True,
@@ -89,8 +78,8 @@ def create_calendar_event_tool(
                 "id": str(new_event.id),
                 "title": new_event.title,
                 "date": new_event.date.strftime('%Y-%m-%d'),
-                "type": new_event.type,
-                "status": new_event.status,
+                "type": new_event.tipo,
+                "status": new_event.estado,
                 "priority": new_event.priority
             },
             "_meta": {
@@ -99,74 +88,43 @@ def create_calendar_event_tool(
                 "status": "success",
             },
         }
-        
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "create_calendar_event",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
-
-def update_calendar_event_tool(
-    event_id: int,
-    status: Optional[str] = None,
-    title: Optional[str] = None,
-    date: Optional[str] = None,
-    priority: Optional[str] = None,
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    **kwargs
+async def _execute_update_calendar_event(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Actualiza un evento del calendario fiscal.
-    
-    Args:
-        event_id: ID del evento a actualizar
-        status: Nuevo estado (pendiente, completado, en_preparacion, vencido)
-        title: Nuevo título
-        date: Nueva fecha (YYYY-MM-DD)
-        priority: Nueva prioridad
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-    
-    Returns:
-        Dict con el resultado de la operación
-    """
+    """Actualiza un evento del calendario."""
     from app.db.models import CalendarEvent
     from datetime import datetime
     
     start_time = time.time()
+    event_id = int(params.get("event_id", 0))
+    status = params.get("status")
+    title = params.get("title")
+    date_str = params.get("date")
+    priority = params.get("priority")
     
     try:
-        if not db or user_id is None:
-            return {"error": "user_id and db session required"}
-        
-        # Get event
-        event = db.query(CalendarEvent).filter(
-            CalendarEvent.id == event_id,
-            CalendarEvent.user_id == user_id
-        ).first()
+        result = await db.execute(
+            select(CalendarEvent).where(
+                CalendarEvent.id == event_id,
+                CalendarEvent.user_id == user_id
+            )
+        )
+        event = result.scalar_one_or_none()
         
         if not event:
-            return {"error": f"Event {event_id} not found"}
+            return {"error": f"Evento {event_id} no encontrado"}
         
-        # Update fields
-        if status:
-            event.status = status
-        if title:
-            event.title = title
-        if date:
-            event.date = datetime.fromisoformat(date)
-        if priority:
-            event.priority = priority
+        if status: event.estado = status
+        if title: event.title = title
+        if date_str: event.fecha = datetime.fromisoformat(date_str)
+        if priority: event.priority = priority
         
         event.updated_at = datetime.utcnow()
-        db.commit()
-        db.refresh(event)
+        await db.commit()
+        await db.refresh(event)
         
         return {
             "success": True,
@@ -174,436 +132,114 @@ def update_calendar_event_tool(
                 "id": str(event.id),
                 "title": event.title,
                 "date": event.date.strftime('%Y-%m-%d'),
-                "status": event.status,
-                "priority": event.priority
+                "status": event.estado
             },
-            "_meta": {
-                "tool": "update_calendar_event",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "success",
-            },
+            "_meta": {"tool": "update_calendar_event"}
         }
-        
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "update_calendar_event",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
-
-def delete_calendar_event_tool(
-    event_id: int,
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    **kwargs
+async def _execute_delete_calendar_event(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Elimina un evento del calendario fiscal.
-    
-    Args:
-        event_id: ID del evento a eliminar
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-    
-    Returns:
-        Dict con el resultado de la operación
-    """
+    """Elimina un evento del calendario."""
     from app.db.models import CalendarEvent
-    
-    start_time = time.time()
-    
+    event_id = int(params.get("event_id", 0))
     try:
-        if not db or user_id is None:
-            return {"error": "user_id and db session required"}
-        
-        # Get event
-        event = db.query(CalendarEvent).filter(
-            CalendarEvent.id == event_id,
-            CalendarEvent.user_id == user_id
-        ).first()
-        
-        if not event:
-            return {"error": f"Event {event_id} not found"}
-        
-        db.delete(event)
-        db.commit()
-        
-        return {
-            "success": True,
-            "message": f"Evento {event_id} eliminado exitosamente",
-            "_meta": {
-                "tool": "delete_calendar_event",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "success",
-            },
-        }
-        
+        result = await db.execute(select(CalendarEvent).where(CalendarEvent.id == event_id, CalendarEvent.user_id == user_id))
+        event = result.scalar_one_or_none()
+        if not event: return {"error": f"Evento {event_id} no encontrado"}
+        await db.delete(event)
+        await db.commit()
+        return {"success": True, "message": f"Evento {event_id} eliminado"}
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "delete_calendar_event",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
-
-def list_calendar_events_tool(
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    limit: int = 10,
-    **kwargs
+async def _execute_list_calendar_events(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Lista eventos del calendario fiscal del usuario.
-    
-    Args:
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-        limit: Máximo número de eventos a retornar
-    
-    Returns:
-        Dict con la lista de eventos
-    """
+    """Lista eventos del calendario."""
     from app.db.models import CalendarEvent
     from datetime import datetime, timedelta
-    
-    start_time = time.time()
-    
+    limit = params.get("limit", 10)
     try:
-        if not db or user_id is None:
-            return {"error": "user_id and db session required"}
-        
-        # Get events (next 60 days)
         now = datetime.utcnow()
-        events = db.query(CalendarEvent).filter(
-            CalendarEvent.user_id == user_id,
-            CalendarEvent.date >= now - timedelta(days=7),
-            CalendarEvent.date <= now + timedelta(days=60)
-        ).order_by(CalendarEvent.date).limit(limit).all()
-        
-        return {
-            "success": True,
-            "events": [
-                {
-                    "id": str(e.id),
-                    "title": e.title,
-                    "date": e.date.strftime('%Y-%m-%d'),
-                    "type": e.type,
-                    "status": e.status,
-                    "priority": e.priority
-                }
-                for e in events
-            ],
-            "count": len(events),
-            "_meta": {
-                "tool": "list_calendar_events",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "success",
-            },
-        }
-        
+        from sqlalchemy import and_
+        result = await db.execute(select(CalendarEvent).where(and_(CalendarEvent.user_id == user_id, CalendarEvent.date >= now - timedelta(days=7))).order_by(CalendarEvent.date).limit(limit))
+        events = result.scalars().all()
+        return {"success": True, "events": [{"id": e.id, "title": e.title, "date": e.date.isoformat(), "status": e.estado} for e in events]}
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "list_calendar_events",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
 
 # =============================================================================
 # WORKFLOW TOOLS - Workflow Management for IA Agent
 # =============================================================================
 
-def execute_workflow_tool(
-    workflow_name: str,
-    workflow_type: str,
-    metadata: Optional[Dict] = None,
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    **kwargs
+# =============================================================================
+# WORKFLOW TOOLS - Wrap internal tools for consistent (db, user_id, params) signature
+# =============================================================================
+
+async def _execute_execute_workflow(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Ejecuta un nuevo workflow.
-    
-    Args:
-        workflow_name: Nombre del workflow (ej: "Cierre Mensual Marzo 2026")
-        workflow_type: Tipo (idp_ocr, bank_reconciliation, cierre_mensual, validacion_sat)
-        metadata: Datos adicionales (document_ids, bank_statement_ids, month, year, etc)
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-    
-    Returns:
-        Dict con resultado de la ejecución
-    """
+    """Inicia la ejecución de un workflow."""
     from app.db.models import Workflow
-    
     start_time = time.time()
-    
+    name = params.get("workflow_name", "")
+    tipo = params.get("workflow_type", "general")
+    metadata = params.get("metadata", {})
     try:
-        if not db or user_id is None:
-            return {"error": "user_id and db session required"}
-        
-        # Crear workflow
-        new_workflow = Workflow(
-            user_id=user_id,
-            name=workflow_name,
-            description=f"Workflow {workflow_type} iniciado por IA",
-            type=workflow_type,
-            status="pending",
-            progress=0,
-            steps_total=5,
-            steps_completed=0,
-            metadata_json=metadata or {}
-        )
-        
+        new_workflow = Workflow(user_id=user_id, nombre=name, tipo=tipo, estado="pendiente", progreso=0, metadatos_json=metadata)
         db.add(new_workflow)
-        db.commit()
-        db.refresh(new_workflow)
-        
-        # Auto-ejecutar si es tipo válido
-        if workflow_type in ["idp_ocr", "bank_reconciliation", "cierre_mensual", "validacion_sat"]:
-            # En producción, esto dispararía la ejecución real
-            new_workflow.status = "pending"
-            db.commit()
-        
-        return {
-            "success": True,
-            "workflow": {
-                "id": str(new_workflow.id),
-                "name": new_workflow.name,
-                "type": new_workflow.type,
-                "status": new_workflow.status,
-                "progress": new_workflow.progress
-            },
-            "message": f"Workflow '{workflow_name}' creado exitosamente. ID: {new_workflow.id}",
-            "_meta": {
-                "tool": "execute_workflow",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "success",
-            },
-        }
-        
+        await db.commit()
+        await db.refresh(new_workflow)
+        return {"success": True, "workflow": {"id": new_workflow.id, "status": new_workflow.estado}}
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "execute_workflow",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
-
-def get_workflow_status_tool(
-    workflow_id: int,
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    **kwargs
+async def _execute_get_workflow_status(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Obtiene el estatus actual de un workflow.
-    
-    Args:
-        workflow_id: ID del workflow
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-    
-    Returns:
-        Dict con estatus del workflow
-    """
+    """Obtiene el estatus de un workflow."""
     from app.db.models import Workflow
-    
-    start_time = time.time()
-    
+    workflow_id = int(params.get("workflow_id", 0))
     try:
-        if not db or user_id is None:
-            return {"error": "user_id and db session required"}
-        
-        workflow = db.query(Workflow).filter(
-            Workflow.id == workflow_id,
-            Workflow.user_id == user_id
-        ).first()
-        
-        if not workflow:
-            return {"error": f"Workflow {workflow_id} not found"}
-        
-        return {
-            "success": True,
-            "workflow": {
-                "id": str(workflow.id),
-                "name": workflow.name,
-                "type": workflow.type,
-                "status": workflow.status,
-                "progress": workflow.progress,
-                "steps_completed": workflow.steps_completed,
-                "steps_total": workflow.steps_total,
-                "started_at": workflow.started_at.isoformat() if workflow.started_at else None,
-                "completed_at": workflow.completed_at.isoformat() if workflow.completed_at else None,
-                "metadata": workflow.metadata_json
-            },
-            "_meta": {
-                "tool": "get_workflow_status",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "success",
-            },
-        }
-        
+        result = await db.execute(select(Workflow).where(Workflow.id == workflow_id, Workflow.user_id == user_id))
+        wf = result.scalar_one_or_none()
+        if not wf: return {"error": "Workflow no encontrado"}
+        return {"success": True, "status": wf.estado, "progress": wf.progreso}
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "get_workflow_status",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
-
-def cancel_workflow_tool(
-    workflow_id: int,
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    **kwargs
+async def _execute_cancel_workflow(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Cancela un workflow en ejecución.
-    
-    Args:
-        workflow_id: ID del workflow a cancelar
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-    
-    Returns:
-        Dict con resultado de la cancelación
-    """
+    """Cancela un workflow en progreso."""
     from app.db.models import Workflow
-    from datetime import datetime
-    
-    start_time = time.time()
-    
+    workflow_id = int(params.get("workflow_id", 0))
     try:
-        if not db or user_id is None:
-            return {"error": "user_id and db session required"}
-        
-        workflow = db.query(Workflow).filter(
-            Workflow.id == workflow_id,
-            Workflow.user_id == user_id
-        ).first()
-        
-        if not workflow:
-            return {"error": f"Workflow {workflow_id} not found"}
-        
-        if workflow.status == "completed":
-            return {"error": "Cannot cancel a completed workflow"}
-        
-        workflow.status = "cancelled"
-        workflow.updated_at = datetime.utcnow()
-        workflow.metadata_json["cancelled_at"] = datetime.utcnow().isoformat()
-        workflow.metadata_json["cancel_reason"] = kwargs.get("reason", "User requested")
-        
-        db.commit()
-        
-        return {
-            "success": True,
-            "message": f"Workflow {workflow_id} cancelado exitosamente",
-            "workflow": {
-                "id": str(workflow.id),
-                "name": workflow.name,
-                "status": workflow.status,
-                "progress": workflow.progress
-            },
-            "_meta": {
-                "tool": "cancel_workflow",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "success",
-            },
-        }
-        
+        result = await db.execute(select(Workflow).where(Workflow.id == workflow_id, Workflow.user_id == user_id))
+        wf = result.scalar_one_or_none()
+        if not wf: return {"error": "Workflow no encontrado"}
+        wf.estado = "cancelado"
+        await db.commit()
+        return {"success": True, "message": "Workflow cancelado"}
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "cancel_workflow",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
-
-def list_workflows_tool(
-    user_id: Optional[int] = None,
-    db: Optional[Session] = None,
-    limit: int = 10,
-    status_filter: Optional[str] = None,
-    **kwargs
+async def _execute_list_workflows(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """
-    Lista workflows del usuario.
-    
-    Args:
-        user_id: ID del usuario (requerido)
-        db: Sesión de base de datos (requerida)
-        limit: Máximo de workflows a retornar
-        status_filter: Filtrar por estado (pending, running, completed, cancelled, failed)
-    
-    Returns:
-        Dict con lista de workflows
-    """
+    """Lista los workflows registrados."""
     from app.db.models import Workflow
-    
-    start_time = time.time()
-    
+    limit = params.get("limit", 10)
     try:
-        if not db or user_id is None:
-            return {"error": "user_id and db session required"}
-        
-        query = db.query(Workflow).filter(Workflow.user_id == user_id)
-        
-        if status_filter:
-            query = query.filter(Workflow.status == status_filter)
-        
-        workflows = query.order_by(Workflow.created_at.desc()).limit(limit).all()
-        
-        return {
-            "success": True,
-            "workflows": [
-                {
-                    "id": str(wf.id),
-                    "name": wf.name,
-                    "type": wf.type,
-                    "status": wf.status,
-                    "progress": wf.progress,
-                    "created_at": wf.created_at.isoformat(),
-                    "completed_at": wf.completed_at.isoformat() if wf.completed_at else None
-                }
-                for wf in workflows
-            ],
-            "count": len(workflows),
-            "_meta": {
-                "tool": "list_workflows",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "success",
-            },
-        }
-        
+        result = await db.execute(select(Workflow).where(Workflow.user_id == user_id).order_by(Workflow.created_at.desc()).limit(limit))
+        workflows = result.scalars().all()
+        return {"success": True, "workflows": [{"id": wf.id, "name": wf.nombre, "status": wf.estado} for wf in workflows]}
     except Exception as e:
-        return {
-            "error": str(e),
-            "_meta": {
-                "tool": "list_workflows",
-                "latency": float(f"{(time.time() - start_time):.3f}"),
-                "status": "error",
-            },
-        }
+        return {"error": str(e)}
 
 
 # =============================================================================
@@ -689,7 +325,7 @@ AGENT_TOOL_DEFINITIONS = [
                     "type": "string",
                     "description": "ID del documento almacenado en el sistema",
                 },
-                "file_path": {
+                "ruta_archivo": {
                     "type": "string",
                     "description": "Ruta al archivo XML (alternativa al ID)",
                 },
@@ -1023,8 +659,8 @@ AGENT_TOOL_DEFINITIONS = [
 # TOOL EXECUTORS (Funciones reales que el backend ejecuta)
 # =============================================================================
 
-def _execute_get_clients_list(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_get_clients_list(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Ejecuta la búsqueda de clientes en la base de datos."""
     # TODO: Crear modelo Client cuando se implemente la tabla de clientes
@@ -1063,8 +699,33 @@ def _execute_get_clients_list(
     ]
 
     status_filter = params.get("status_filter", "all")
+    
+    # Consulta real a la DB
     if status_filter and status_filter != "all":
-        clients = [c for c in clients if c["status"] == status_filter]
+        result = await db.execute(
+            select(Client).where(
+                Client.user_id == user_id,
+                Client.estado == status_filter
+            )
+        )
+    else:
+        result = await db.execute(
+            select(Client).where(Client.user_id == user_id)
+        )
+    
+    db_clients = result.scalars().all()
+    
+    clients = []
+    for c in db_clients:
+        clients.append({
+            "id": str(c.id),
+            "name": c.name,
+            "rfc": c.rfc,
+            "type": c.tipo,
+            "status": c.estado,
+            "email": c.email,
+            "phone": c.phone,
+        })
 
     return {
         "total": len(clients),
@@ -1073,43 +734,78 @@ def _execute_get_clients_list(
     }
 
 
-def _execute_get_client_expediente(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_get_client_expediente(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Recupera el expediente del cliente."""
     client_id = params.get("client_id", "")
     rfc = params.get("rfc", "")
 
-    # TODO: Consultar tabla real de clientes y expedientes
+    # Consultar tabla real de clientes
+    result = await db.execute(
+        select(Client).where(
+            (Client.id == int(client_id)) if client_id.isdigit() else (Client.rfc == rfc),
+            Client.user_id == user_id
+        )
+    )
+    client = result.scalar_one_or_none()
+    
+    if not client:
+        return {"error": f"Cliente no encontrado: {client_id or rfc}"}
+    
+    # Consultar documentos KYC
+    from app.db.models import KYCDocument
+    result = await db.execute(
+        select(KYCDocument).where(KYCDocument.client_id == client.id)
+    )
+    kyc_docs = result.scalars().all()
     return {
-        "client_id": client_id or "1",
-        "rfc": rfc or "SCN210101ABC",
-        "name": "Servicios Contables del Norte SA de CV",
+        "client_id": str(client.id),
+        "rfc": client.rfc,
+        "name": client.name,
         "kyc_documents": [
-            {"name": "Constancia de Situación Fiscal", "status": "Vigente", "expires": "2026-06-30"},
-            {"name": "Opinión de Cumplimiento", "status": "Vigente", "expires": "2026-03-31"},
-            {"name": "Acta Constitutiva", "status": "Completo", "expires": None},
-            {"name": "INE Representante Legal", "status": "Pendiente", "expires": None},
+            {
+                "name": d.name, 
+                "status": d.estado, 
+                "expires": d.expiry_date.strftime("%Y-%m-%d") if d.expiry_date else None
+            }
+            for d in kyc_docs
         ],
-        "processed_invoices": 47,
-        "pending_issues": 1,
-        "last_update": "2026-03-01",
+        "processed_invoices": 0,
+        "pending_issues": 0,
+        "last_update": client.updated_at.strftime("%Y-%m-%d"),
     }
 
 
-def _execute_update_client_status(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_update_client_status(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Actualiza el estatus de un cliente."""
     client_id = params.get("client_id", "")
     new_status = params.get("new_status", "")
     reason = params.get("reason", "Sin razón especificada")
 
-    # TODO: Actualizar en la tabla real de clientes
+    # Actualizar en la tabla real de clientes
+    result = await db.execute(
+        select(Client).where(
+            Client.id == int(client_id),
+            Client.user_id == user_id
+        )
+    )
+    client = result.scalar_one_or_none()
+    
+    if not client:
+        return {"error": f"Cliente {client_id} no encontrado"}
+    
+    previous_status = client.estado
+    client.estado = new_status
+    client.updated_at = datetime.utcnow()
+    
+    await db.commit()
     return {
         "success": True,
         "client_id": client_id,
-        "previous_status": "Inactivo",
+        "previous_status": previous_status,
         "new_status": new_status,
         "reason": reason,
         "updated_at": datetime.utcnow().isoformat(),
@@ -1117,37 +813,46 @@ def _execute_update_client_status(
     }
 
 
-def _execute_analyze_cfdi(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_analyze_cfdi(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Analiza un CFDI/factura XML."""
     document_id = params.get("document_id", "")
-    file_path = params.get("file_path", "")
 
-    # TODO: Integrar con NIMExtractionService y parseo de XML
+    # Consultar documento en la DB
+    result = await db.execute(
+        select(Document).where(
+            Document.id == int(document_id),
+            Document.user_id == user_id
+        )
+    )
+    doc = result.scalar_one_or_none()
+    
+    if not doc:
+        return {"error": f"Documento {document_id} no encontrado"}
+        
+    extracted = doc.datos_extraidos or {}
     return {
-        "document_id": document_id or "doc-xyz",
-        "folio": "A-1234",
-        "uuid": "6B2A4F8C-1D3E-4A5B-9C7D-2E6F8A0B3C5D",
-        "fecha": "2026-02-15",
-        "rfc_emisor": "SCN210101ABC",
-        "nombre_emisor": "Servicios Contables del Norte SA de CV",
-        "rfc_receptor": "GOLM900215PQ3",
-        "nombre_receptor": "María González López",
-        "subtotal": 15000.00,
-        "iva": 2400.00,
-        "total": 17400.00,
-        "moneda": "MXN",
-        "tipo_comprobante": "Ingreso",
-        "concepto": "Servicios de consultoría contable",
-        "sat_status": "Vigente",
-        "is_deductible": True,
-        "deductibility_notes": "Deducible según Art. 27 LISR - Gastos de servicios profesionales",
+        "document_id": str(doc.id),
+        "folio": extracted.get("folio", ""),
+        "uuid": extracted.get("uuid", ""),
+        "fecha": extracted.get("fecha", ""),
+        "rfc_emisor": extracted.get("rfc_emisor", ""),
+        "nombre_emisor": extracted.get("nombre_emisor", ""),
+        "rfc_receptor": extracted.get("rfc_receptor", ""),
+        "nombre_receptor": extracted.get("nombre_receptor", ""),
+        "subtotal": extracted.get("subtotal", 0.0),
+        "iva": extracted.get("iva", 0.0),
+        "total": extracted.get("total", 0.0),
+        "moneda": extracted.get("moneda", "MXN"),
+        "tipo_comprobante": doc.tipo_documento,
+        "sat_status": doc.estado,
+        "puntuacion_confianza": doc.puntuacion_confianza,
     }
 
 
-def _execute_validate_sat_status(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_validate_sat_status(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Valida el estatus en el SAT."""
     rfc = params.get("rfc", "")
@@ -1169,8 +874,8 @@ def _execute_validate_sat_status(
     }
 
 
-def _execute_search_documents(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_search_documents(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Busca documentos procesados en la base de datos."""
     query = params.get("query", "")
@@ -1178,22 +883,31 @@ def _execute_search_documents(
     limit = params.get("limit", 10)
 
     # Buscar documentos reales en la DB
-    db_query = db.query(Document).filter(Document.user_id == user_id)
-
     if doc_type and doc_type != "all":
-        db_query = db_query.filter(Document.document_type == doc_type)
-
-    documents = db_query.order_by(Document.created_at.desc()).limit(limit).all()
+        result = await db.execute(
+            select(Document).where(
+                Document.user_id == user_id,
+                Document.tipo_documento == doc_type
+            ).order_by(Document.created_at.desc()).limit(limit)
+        )
+    else:
+        result = await db.execute(
+            select(Document).where(
+                Document.user_id == user_id
+            ).order_by(Document.created_at.desc()).limit(limit)
+        )
+ 
+    documents = result.scalars().all()
 
     results = []
     for doc in documents:
         results.append({
             "id": str(doc.id),
-            "type": doc.document_type,
-            "filename": doc.original_filename,
-            "status": doc.status,
-            "confidence": doc.confidence_score,
-            "extracted_data": doc.extracted_data,
+            "type": doc.tipo_documento,
+            "filename": doc.nombre_original,
+            "status": doc.estado,
+            "confidence": doc.puntuacion_confianza,
+            "datos_extraidos": doc.datos_extraidos,
             "created_at": doc.created_at.isoformat() if doc.created_at else None,
         })
 
@@ -1204,10 +918,11 @@ def _execute_search_documents(
     }
 
 
-def _execute_internet_search(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_internet_search(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
-    """Ejecuta una búsqueda en internet usando Tavily."""
+    """Ejecuta una búsqueda en internet usando Tavily (Asíncrono)."""
+    import httpx
     query = params.get("query")
     if not query:
         return {"error": "Falta el parámetro 'query'"}
@@ -1217,16 +932,17 @@ def _execute_internet_search(
         return {"error": "TAVILY_API_KEY no configurado en el servidor."}
 
     try:
-        url = "https://api.tavily.com/search"
-        payload = {
-            "api_key": api_key,
-            "query": query,
-            "search_depth": "smart",
-            "max_results": 5
-        }
-        response = requests.post(url, json=payload, timeout=10)
-        response.raise_for_status()
-        data = response.json()
+        async with httpx.AsyncClient() as client:
+            url = "https://api.tavily.com/search"
+            payload = {
+                "api_key": api_key,
+                "query": query,
+                "search_depth": "smart",
+                "max_results": 5
+            }
+            response = await client.post(url, json=payload, timeout=10.0)
+            response.raise_for_status()
+            data = response.json()
         
         results = []
         for result in data.get("results", []):
@@ -1245,8 +961,8 @@ def _execute_internet_search(
         return {"error": f"Error en la búsqueda: {str(e)}"}
 
 
-def _execute_sync_sat_documents(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_sync_sat_documents(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Inicia sincronía con el SAT."""
     # TODO: Instanciar SATMassiveDownloadClient con credenciales del usuario
@@ -1262,8 +978,8 @@ def _execute_sync_sat_documents(
 # =============================================================================
 
 
-def _execute_get_current_time(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_get_current_time(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Retorna la hora actual."""
     now = datetime.now()
@@ -1274,8 +990,8 @@ def _execute_get_current_time(
     }
 
 
-def _execute_list_directory(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_list_directory(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Lista archivos en un directorio."""
     path = params.get("path", ".")
@@ -1298,8 +1014,8 @@ def _execute_list_directory(
         return {"error": str(e)}
 
 
-def _execute_read_file(
-    db: Session, user_id: int, params: Dict[str, Any]
+async def _execute_read_file(
+    db: AsyncSession, user_id: int, params: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Lee un archivo."""
     path = params.get("path")
@@ -1330,22 +1046,22 @@ TOOL_EXECUTORS: Dict[str, Callable] = {
     "list_directory": _execute_list_directory,
     "read_file": _execute_read_file,
     "sync_sat_documents": _execute_sync_sat_documents,
-    # Calendar tools
-    "create_calendar_event": create_calendar_event_tool,
-    "update_calendar_event": update_calendar_event_tool,
-    "delete_calendar_event": delete_calendar_event_tool,
-    "list_calendar_events": list_calendar_events_tool,
-    # Workflow tools
-    "execute_workflow": execute_workflow_tool,
-    "get_workflow_status": get_workflow_status_tool,
-    "cancel_workflow": cancel_workflow_tool,
-    "list_workflows": list_workflows_tool,
+    # Calendar tools (Standardized)
+    "create_calendar_event": _execute_create_calendar_event,
+    "update_calendar_event": _execute_update_calendar_event,
+    "delete_calendar_event": _execute_delete_calendar_event,
+    "list_calendar_events": _execute_list_calendar_events,
+    # Workflow tools (Standardized)
+    "execute_workflow": _execute_execute_workflow,
+    "get_workflow_status": _execute_get_workflow_status,
+    "cancel_workflow": _execute_cancel_workflow,
+    "list_workflows": _execute_list_workflows,
 }
 
-def execute_tool(
+async def execute_tool(
     tool_name: str,
     params: Dict[str, Any],
-    db: Session,
+    db: AsyncSession,
     user_id: int,
 ) -> Dict[str, Any]:
     """
@@ -1373,7 +1089,7 @@ def execute_tool(
 
     start_time = time.time()
     try:
-        result = executor(db, user_id, params)
+        result = await executor(db, user_id, params)
         result["_meta"] = {
             "tool": tool_name,
             "latency": float(f"{(time.time() - start_time):.3f}"),

@@ -63,7 +63,7 @@ export default function Documents() {
       const lowSearch = searchTerm.toLowerCase()
       filtered = filtered.filter(doc => 
         doc.id.toString().includes(lowSearch) || 
-        (doc.original_filename && doc.original_filename.toLowerCase().includes(lowSearch)) ||
+        (doc.nombre_original && doc.nombre_original.toLowerCase().includes(lowSearch)) ||
         (doc.document_type && doc.document_type.toLowerCase().includes(lowSearch))
       )
     }
@@ -108,8 +108,8 @@ export default function Documents() {
           <div className="flex items-center gap-3">
             <FileText className="h-4 w-4 text-blue-400" />
             <div className="flex flex-col">
-              <h1 className="text-xs font-bold text-foreground leading-none">Documento #{activeDocument.id}</h1>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-tighter mt-1">{activeDocument.original_filename || 'CFDI-NOM-01.pdf'}</span>
+              <h1 className="text-xs font-bold text-foreground leading-none" id="titulo-documento-activo">Documento #{activeDocument.id}</h1>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-tighter mt-1">{activeDocument.nombre_original || 'CFDI-NOM-01.pdf'}</span>
             </div>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/50" onClick={() => setActiveDocument(null)}>
@@ -124,7 +124,7 @@ export default function Documents() {
             <div className="h-full p-6 flex flex-col">
               <div className="h-9 mb-4 flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-widest text-slate-600 flex items-center gap-2">
-                  Visor de PDF <Badge variant="outline" className="border-blue-900/30 text-blue-500 text-[9px]">v1.0</Badge>
+                  Visor de PDF <Badge variant="outline" className="border-blue-900/30 text-blue-500 text-[9px]">V1.0</Badge>
                 </h3>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" className="h-7 w-7 text-slate-500"><Search className="h-3.5 w-3.5" /></Button>
@@ -135,7 +135,7 @@ export default function Documents() {
                 <div className="text-center group-hover:scale-105 transition-transform">
                   <FileText className="h-20 w-20 mx-auto mb-6 text-muted-foreground opacity-20" />
                   <p className="text-sm font-bold text-muted-foreground tracking-tighter uppercase">Previsualización Protegida</p>
-                  <p className="text-[10px] text-muted-foreground/60 mt-2 font-mono italic">SOURCE: {activeDocument.file_path}</p>
+                  <p className="text-[10px] text-muted-foreground/60 mt-2 font-mono italic">ORIGEN: {activeDocument.ruta_archivo}</p>
                 </div>
               </div>
             </div>
@@ -161,8 +161,8 @@ export default function Documents() {
                       <CardContent>
                         <div className="flex justify-between items-center mb-6">
                           <span className="text-[11px] font-bold text-slate-400 uppercase">Confianza RAG</span>
-                          <span className={`text-sm font-black italic ${activeDocument.confidence_score > 80 ? 'text-green-500' : 'text-blue-500'}`}>
-                            {activeDocument.confidence_score > 0 ? `${Math.round(activeDocument.confidence_score)}%` : '98.2%'}
+                          <span className={`text-sm font-black italic ${activeDocument.puntuacion_confianza > 80 ? 'text-green-500' : 'text-blue-500'}`}>
+                            {activeDocument.puntuacion_confianza > 0 ? `${Math.round(activeDocument.puntuacion_confianza)}%` : '98.2%'}
                           </span>
                         </div>
                         <div className="space-y-4 pt-4 border-t border-border">
@@ -191,12 +191,12 @@ export default function Documents() {
                     <Card className="bg-card border-border rounded-sm shadow-xl overflow-hidden">
                       <CardHeader className="pb-3 border-b border-border">
                         <CardTitle className="text-xs font-black uppercase tracking-widest text-muted-foreground text-center flex items-center justify-center gap-2">
-                          <Database className="w-3 h-3 text-slate-700" /> Raw Extraction JSON
+                          <Database className="w-3 h-3 text-slate-700" /> Extracción JSON (Crudo)
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
                         <pre className="bg-background p-6 text-[11px] font-mono overflow-auto max-h-[300px] text-blue-400 custom-scrollbar">
-                          {JSON.stringify(activeDocument.extracted_data || {
+                          {JSON.stringify(activeDocument.datos_extraidos || {
                             document: "CFDI_NOMINA_01.pdf",
                             issuer: "CONTABILIDAD S.A.",
                             recipient: "DIEGO GZZ",
@@ -247,13 +247,14 @@ export default function Documents() {
             <Database className="h-3.3 w-3 text-primary" />
             <span>Repositorio Maestro Conectado</span>
             <span className="h-3 w-px bg-border/50 mx-1" />
-            <span>IDP CORE V2.0</span>
+            <span>CORE IDP V2.0</span>
           </p>
         </div>
         <div className="flex gap-3">
           <Button 
             variant="outline" 
             className="glass-card border-border/50 text-[9px] font-black uppercase tracking-wider h-9 px-6 hover:bg-muted/50 transition-all rounded-full"
+            id="boton-exportar-excel"
             onClick={async () => {
               try {
                 const { idpService } = await import('@/services/api');
@@ -267,6 +268,7 @@ export default function Documents() {
           </Button>
           <Button 
             className="bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 text-[9px] font-black uppercase tracking-widest h-9 px-8 rounded-full transition-all"
+            id="boton-sincronizar-sat"
             onClick={async () => {
               try {
                 const res = await syncSATDocuments('EXT990101NI1', '2026-03-01', '2026-03-31');
@@ -303,6 +305,7 @@ export default function Documents() {
                   <p className="text-[9px] text-muted-foreground mt-2 uppercase font-bold tracking-[0.2em] opacity-40">PDF / XML • Máximo 10MB</p>
                   <input
                     ref={fileInputRef}
+                    id="entrada-archivo"
                     type="file"
                     className="hidden"
                     accept=".pdf"
@@ -316,10 +319,11 @@ export default function Documents() {
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col gap-1">
                         <p className="text-xs font-bold text-foreground truncate max-w-[150px]">{selectedFile.name}</p>
-                        <span className="text-[9px] text-slate-500">READY_FOR_UPLOAD</span>
+                        <span className="text-[9px] text-slate-500">LISTO PARA SUBIR</span>
                       </div>
                       <Button
                         size="sm"
+                        id="boton-subir-archivo"
                         onClick={handleUpload}
                         disabled={isUploading}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 px-4 text-[10px] font-bold uppercase rounded-none"
@@ -353,6 +357,7 @@ export default function Documents() {
                 <div className="w-48 h-9 bg-background/50 border border-border/40 rounded-full flex items-center px-4 focus-within:border-primary/50 transition-all">
                   <Search className="w-3.5 h-3.5 text-muted-foreground mr-2" />
                   <input 
+                    id="campo-busqueda-documentos"
                     className="bg-transparent border-none outline-none text-[10px] text-foreground w-full uppercase font-bold tracking-wider" 
                     placeholder="Buscar..." 
                     value={searchTerm}
@@ -397,7 +402,7 @@ export default function Documents() {
                           </TableCell>
                           <TableCell className="py-4">{getStatusBadge(doc.status)}</TableCell>
                           <TableCell className="py-4 text-[11px] font-mono text-slate-400 italic">
-                            {doc.confidence_score > 0 ? `${Math.round(doc.confidence_score)}%` : '---'}
+                            {doc.puntuacion_confianza > 0 ? `${Math.round(doc.puntuacion_confianza)}%` : '---'}
                           </TableCell>
                           <TableCell className="text-right px-6 py-4">
                             <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>

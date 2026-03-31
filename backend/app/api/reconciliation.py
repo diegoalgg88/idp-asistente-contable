@@ -21,9 +21,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, Integer
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import Document, User
 from app.db.models_reconciliation import (
     BankStatement,
@@ -57,24 +57,30 @@ class BankStatementUploadResponse(BaseModel):
     bank_name: str
     bank_code: str
     total_transactions: int
-    status: str
+    estado: str = Field(alias="status")
     message: str
+
+    class Config:
+        populate_by_name = True
 
 
 class BatchStatusResponse(BaseModel):
     """Estado de procesamiento de lote"""
     batch_id: int
     bank_statement_id: int
-    status: str
-    progress: float
+    estado: str = Field(alias="status")
+    progreso: float = Field(alias="progress")
     total_transactions: int
     total_matches_exact: int
     total_matches_fuzzy: int
     total_matches_llm: int
     total_unmatched: int
-    started_at: Optional[datetime]
-    completed_at: Optional[datetime]
+    iniciado_en: Optional[datetime]
+    completado_en: Optional[datetime]
     error_message: Optional[str]
+
+    class Config:
+        populate_by_name = True
 
 
 class MatchResultResponse(BaseModel):
@@ -82,8 +88,8 @@ class MatchResultResponse(BaseModel):
     match_id: int
     bank_transaction_id: int
     cfdi_id: int
-    match_type: str  # exact, fuzzy, llm_confirmed, llm_review
-    confidence_score: float
+    tipo_match: str = Field(alias="match_type")  # exact, fuzzy, llm_confirmed, llm_review
+    puntuacion_confianza: float = Field(alias="puntuacion_confianza")
     bank_fecha: datetime
     bank_concepto: str
     bank_monto: Decimal
@@ -93,6 +99,9 @@ class MatchResultResponse(BaseModel):
     estado: str  # pending, confirmed, rejected
     llm_reason: Optional[str]
     llm_flags: Optional[List[str]]
+
+    class Config:
+        populate_by_name = True
 
 
 class MatchConfirmRequest(BaseModel):
@@ -128,7 +137,7 @@ async def upload_bank_statement(
     file: UploadFile = File(..., description="Archivo de estado de cuenta (CSV, XLSX)"),
     banco: Optional[str] = Form(None, description="Nombre del banco (opcional, se detecta automáticamente)"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Sube estado de cuenta bancario y procesa transacciones
@@ -170,11 +179,11 @@ async def upload_bank_statement(
         
         with tempfile.NamedTemporaryFile(delete=False, suffix=file_ext) as tmp_file:
             tmp_file.write(content)
-            tmp_file_path = tmp_file.name
+            tmp_ruta_archivo = tmp_file.name
         
         # Parsear estado de cuenta
         parser = BankStatementParser()
-        transactions, banco_code, banco_nombre = parser.parse(tmp_file_path, banco)
+        transactions, banco_code, banco_nombre = parser.parse(tmp_ruta_archivo, banco)
         
         if not transactions:
             raise HTTPException(
@@ -190,7 +199,7 @@ async def upload_bank_statement(
             fecha_fin=max(tx.fecha for tx in transactions),
             saldo_inicial=transactions[0].saldo if transactions[0].saldo else Decimal('0'),
             saldo_final=transactions[-1].saldo if transactions[-1].saldo else Decimal('0'),
-            archivo_path=tmp_file_path,
+            archivo_path=tmp_ruta_archivo,
             archivo_nombre=file.filename,
             archivo_size=file_size,
             estado=BankStatementStatus.PROCESSING,
@@ -216,7 +225,7 @@ async def upload_bank_statement(
                 referencia=tx.referencia,
                 proveedor=tx.proveedor,
                 rfc_proveedor=tx.rfc_proveedor,
-                match_status=tx.match_status
+                estado_match=tx.match_status
             )
             db_transactions.append(db_tx)
         
@@ -282,7 +291,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
         
         # Actualizar estado
         batch.estado = "processing"
-        batch.started_at = datetime.utcnow()
+        batch.iniciado_en = datetime.utcnow()
         await db.commit()
         
         # Obtener transacciones del batch
@@ -313,16 +322,16 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
             db_match = ReconciliationMatch(
                 bank_transaction_id=match_result.bank_transaction.id,
                 cfdi_id=match_result.cfdi.id,
-                match_type=match_result.match_type,
-                confidence_score=match_result.confidence_score,
+                tipo_match=match_result.match_type,
+                puntuacion_confianza=match_result.puntuacion_confianza,
                 match_details=match_result.match_details,
                 estado="confirmed"
             )
             db.add(db_match)
             
             # Actualizar transacción
-            match_result.bank_transaction.match_status = MatchStatus.EXACT
-            match_result.bank_transaction.confidence_score = match_result.confidence_score
+            match_result.bank_transaction.estado_match = MatchStatus.EXACT
+            match_result.bank_transaction.puntuacion_confianza = match_result.puntuacion_confianza
         
         await db.commit()
         
@@ -343,7 +352,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
         
         # Guardar matches fuzzy (alto confianza)
         for match_result in fuzzy_matches:
-            if match_result.confidence_score >= fuzzy_engine.THRESHOLD_FUZZY_HIGH:
+            if match_result.puntuacion_confianza >= fuzzy_engine.THRESHOLD_FUZZY_HIGH:
                 estado = "confirmed"
             else:
                 estado = "pending"  # Requiere LLM o revisión humana
@@ -351,19 +360,19 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
             db_match = ReconciliationMatch(
                 bank_transaction_id=match_result.bank_transaction.id,
                 cfdi_id=match_result.cfdi.id,
-                match_type=match_result.match_type,
-                confidence_score=match_result.confidence_score,
+                tipo_match=match_result.match_type,
+                puntuacion_confianza=match_result.puntuacion_confianza,
                 match_details=match_result.match_details,
                 estado=estado
             )
             db.add(db_match)
             
             # Actualizar transacción
-            match_result.bank_transaction.match_status = (
+            match_result.bank_transaction.estado_match = (
                 MatchStatus.FUZZY if estado == "confirmed"
                 else MatchStatus.LLM
             )
-            match_result.bank_transaction.confidence_score = match_result.confidence_score
+            match_result.bank_transaction.puntuacion_confianza = match_result.puntuacion_confianza
         
         await db.commit()
         
@@ -376,8 +385,8 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
         # CAPA 3: LLM Validation (para fuzzy de confianza media)
         llm_matches_to_validate = [
             m for m in fuzzy_matches
-            if m.confidence_score < fuzzy_engine.THRESHOLD_FUZZY_HIGH
-            and m.confidence_score >= fuzzy_engine.THRESHOLD_FUZZY_MEDIUM
+            if m.puntuacion_confianza < fuzzy_engine.THRESHOLD_FUZZY_HIGH
+            and m.puntuacion_confianza >= fuzzy_engine.THRESHOLD_FUZZY_MEDIUM
         ]
         
         if llm_matches_to_validate:
@@ -395,16 +404,16 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
                 db_match = result.scalar_one_or_none()
                 
                 if db_match:
-                    db_match.match_type = match_result.match_type
-                    db_match.confidence_score = match_result.confidence_score
+                    db_match.tipo_match = match_result.match_type
+                    db_match.puntuacion_confianza = match_result.puntuacion_confianza
                     db_match.match_details.update(match_result.match_details)
                     
                     if match_result.match_type == 'llm_confirmed':
                         db_match.estado = "confirmed"
-                        match_result.bank_transaction.match_status = MatchStatus.LLM
+                        match_result.bank_transaction.estado_match = MatchStatus.LLM
                     else:
                         db_match.estado = "pending"  # Revisión humana
-                        match_result.bank_transaction.match_status = MatchStatus.HUMAN_REVIEW
+                        match_result.bank_transaction.estado_match = MatchStatus.HUMAN_REVIEW
             
             await db.commit()
             
@@ -412,7 +421,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
         
         batch.progreso = 100.0
         batch.estado = "completed"
-        batch.completed_at = datetime.utcnow()
+        batch.completado_en = datetime.utcnow()
         batch.total_unmatched = len(remaining_txs) - len(llm_rejected) if 'llm_rejected' in locals() else len(remaining_txs)
         
         await db.commit()
@@ -426,7 +435,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
         batch = await db.get(ReconciliationBatch, batch_id)
         if batch:
             batch.estado = "failed"
-            batch.error_message = str(e)
+            batch.mensaje_error = str(e)
             await db.commit()
 
 
@@ -438,7 +447,7 @@ async def process_reconciliation_batch(batch_id: int, db: AsyncSession):
 async def get_batch_status(
     batch_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Obtiene estado de procesamiento de lote
@@ -472,9 +481,9 @@ async def get_batch_status(
         total_matches_fuzzy=batch.total_matches_fuzzy,
         total_matches_llm=batch.total_matches_llm,
         total_unmatched=batch.total_unmatched,
-        started_at=batch.started_at,
-        completed_at=batch.completed_at,
-        error_message=batch.error_message
+        iniciado_en=batch.iniciado_en,
+        completado_en=batch.completado_en,
+        error_message=batch.mensaje_error
     )
 
 
@@ -486,7 +495,7 @@ async def get_matches(
     confidence_min: Optional[float] = Query(0.0, description="Confianza mínima"),
     limit: Optional[int] = Query(100, description="Límite de resultados"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Obtiene matches de conciliación con filtros
@@ -517,7 +526,7 @@ async def get_matches(
         BankTransaction,
         ReconciliationMatch.bank_transaction_id == BankTransaction.id
     ).where(
-        BankTransaction.bank_statement_id == batch_id
+        BankTransaction.bank_statement_id == batch.bank_statement_id
     )
     
     # Aplicar filtros
@@ -528,7 +537,7 @@ async def get_matches(
         query = query.where(ReconciliationMatch.estado == estado)
     
     if confidence_min:
-        query = query.where(ReconciliationMatch.confidence_score >= confidence_min)
+        query = query.where(ReconciliationMatch.puntuacion_confianza >= confidence_min)
     
     query = query.limit(limit)
     
@@ -545,14 +554,14 @@ async def get_matches(
             match_id=match.id,
             bank_transaction_id=match.bank_transaction_id,
             cfdi_id=match.cfdi_id,
-            match_type=match.match_type,
-            confidence_score=float(match.confidence_score),
+            match_type=match.tipo_match,
+            puntuacion_confianza=float(match.puntuacion_confianza),
             bank_fecha=bank_tx.fecha,
             bank_concepto=bank_tx.concepto,
             bank_monto=bank_tx.monto,
-            cfdi_fecha=cfdi.extracted_data.get('fecha') if cfdi.extracted_data else None,
-            cfdi_descripcion=cfdi.extracted_data.get('descripcion') if cfdi.extracted_data else None,
-            cfdi_monto=cfdi.extracted_data.get('total') if cfdi.extracted_data else None,
+            cfdi_fecha=cfdi.datos_extraidos.get('fecha') if cfdi.datos_extraidos else None,
+            cfdi_descripcion=cfdi.datos_extraidos.get('descripcion') if cfdi.datos_extraidos else None,
+            cfdi_monto=cfdi.datos_extraidos.get('total') if cfdi.datos_extraidos else None,
             estado=match.estado,
             llm_reason=match.match_details.get('llm_reason') if 'llm_reason' in match.match_details else None,
             llm_flags=match.match_details.get('llm_flags') if 'llm_flags' in match.match_details else None
@@ -569,7 +578,7 @@ async def get_matches(
 async def confirm_match(
     match_id: int,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Confirma match de conciliación (humano en el loop)
@@ -592,7 +601,7 @@ async def confirm_match(
     
     # Actualizar transacción
     bank_tx = match.bank_transaction
-    bank_tx.match_status = MatchStatus.CONFIRMED
+    bank_tx.estado_match = MatchStatus.CONFIRMED
     bank_tx.revisado_por = current_user.id
     bank_tx.revisado_at = datetime.utcnow()
     
@@ -610,7 +619,7 @@ async def reject_match(
     match_id: int,
     reason: str = Form(..., description="Razón del rechazo"),
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Rechaza match de conciliación
@@ -634,7 +643,7 @@ async def reject_match(
     
     # Actualizar transacción
     bank_tx = match.bank_transaction
-    bank_tx.match_status = MatchStatus.REJECTED
+    bank_tx.estado_match = MatchStatus.REJECTED
     bank_tx.revisado_por = current_user.id
     bank_tx.revisado_at = datetime.utcnow()
     
@@ -655,7 +664,7 @@ async def reject_match(
 @router.get("/stats", response_model=ReconciliationStatsResponse)
 async def get_reconciliation_stats(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_db)
 ):
     """
     Obtiene estadísticas de conciliación del usuario
@@ -685,10 +694,10 @@ async def get_reconciliation_stats(
     # Total matches por tipo
     result = await db.execute(
         select(
-            func.sum(func.cast(ReconciliationMatch.match_type == 'exact', Integer)),
-            func.sum(func.cast(ReconciliationMatch.match_type == 'fuzzy', Integer)),
-            func.sum(func.cast(ReconciliationMatch.match_type.like('llm%'), Integer)),
-            func.sum(func.cast(ReconciliationMatch.match_type == 'human_review', Integer))
+            func.sum(func.cast(ReconciliationMatch.tipo_match == 'exact', Integer)),
+            func.sum(func.cast(ReconciliationMatch.tipo_match == 'fuzzy', Integer)),
+            func.sum(func.cast(ReconciliationMatch.tipo_match.like('llm%'), Integer)),
+            func.sum(func.cast(ReconciliationMatch.tipo_match == 'human_review', Integer))
         ).join(
             BankTransaction,
             ReconciliationMatch.bank_transaction_id == BankTransaction.id

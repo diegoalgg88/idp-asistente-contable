@@ -118,24 +118,24 @@ class BankStatementParser:
         self.errors: List[str] = []
         self.warnings: List[str] = []
     
-    def detect_bank_format(self, file_path: str) -> Tuple[str, str]:
+    def detect_bank_format(self, ruta_archivo: str) -> Tuple[str, str]:
         """
         Detecta el banco por formato de columnas y patrones
         
         Args:
-            file_path: Ruta al archivo
+            ruta_archivo: Ruta al archivo
             
         Returns:
             Tuple[str, str]: (banco_detectado, nombre_completo)
         """
         try:
             # Detectar encoding
-            with open(file_path, 'rb') as f:
+            with open(ruta_archivo, 'rb') as f:
                 result = chardet.detect(f.read(10000))
                 encoding = result['encoding'] or 'utf-8'
             
             # Leer primeras líneas para detectar patrones
-            with open(file_path, 'r', encoding=encoding) as f:
+            with open(ruta_archivo, 'r', encoding=encoding) as f:
                 lines = list(f.readlines())[:10]
             
             # Unir líneas y buscar patrones (case-insensitive)
@@ -149,7 +149,7 @@ class BankStatementParser:
                     return bank_code, bank_name
             
             # Si no hay patrón claro, intentar detectar por columnas
-            df = pd.read_csv(file_path, encoding=encoding, nrows=1)
+            df = pd.read_csv(ruta_archivo, encoding=encoding, nrows=1)
             columns = [col.lower().strip() for col in df.columns]
             
             # Verificar columnas mínimas requeridas
@@ -194,14 +194,14 @@ class BankStatementParser:
     
     def parse(
         self,
-        file_path: str,
+        ruta_archivo: str,
         banco: Optional[str] = None
     ) -> Tuple[List[BankTransaction], str, str]:
         """
         Parsea estado de cuenta y retorna lista de transacciones
         
         Args:
-            file_path: Ruta al archivo
+            ruta_archivo: Ruta al archivo
             banco: Nombre del banco (opcional, se detecta automáticamente si no se proporciona)
             
         Returns:
@@ -209,7 +209,7 @@ class BankStatementParser:
         """
         # Detectar banco si no se proporciona
         if banco is None:
-            banco_code, banco_nombre = self.detect_bank_format(file_path)
+            banco_code, banco_nombre = self.detect_bank_format(ruta_archivo)
         else:
             banco_code = banco.lower().replace(' ', '_').replace('á', 'a')
             banco_nombre = banco.title()
@@ -217,7 +217,7 @@ class BankStatementParser:
         logger.info(f"Parseando estado de cuenta: {banco_nombre}")
         
         # Detectar encoding
-        with open(file_path, 'rb') as f:
+        with open(ruta_archivo, 'rb') as f:
             result = chardet.detect(f.read(10000))
             encoding = result['encoding'] or 'utf-8'
         
@@ -227,7 +227,7 @@ class BankStatementParser:
             # Intentar con encodings comunes si el detectado no es estándar
             for enc in common_encodings:
                 try:
-                    with open(file_path, 'r', encoding=enc) as f:
+                    with open(ruta_archivo, 'r', encoding=enc) as f:
                         f.read(1000)
                     encoding = enc
                     break
@@ -235,12 +235,12 @@ class BankStatementParser:
                     continue
         
         # Leer archivo según extensión
-        file_ext = Path(file_path).suffix.lower()
+        file_ext = Path(ruta_archivo).suffix.lower()
         
         if file_ext in ['.csv']:
-            df = pd.read_csv(file_path, encoding=encoding)
+            df = pd.read_csv(ruta_archivo, encoding=encoding)
         elif file_ext in ['.xlsx', '.xls']:
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(ruta_archivo)
         else:
             raise ValueError(f"Formato no soportado: {file_ext}. Use .csv, .xlsx o .xls")
         
@@ -486,61 +486,61 @@ class BankStatementParser:
         
         return text
     
-    def parse_bbva(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_bbva(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para BBVA México"""
-        return self.parse(file_path, banco='bbva')
+        return self.parse(ruta_archivo, banco='bbva')
     
-    def parse_santander(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_santander(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Santander México"""
-        return self.parse(file_path, banco='santander')
+        return self.parse(ruta_archivo, banco='santander')
     
-    def parse_banorte(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_banorte(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banorte"""
-        return self.parse(file_path, banco='banorte')
+        return self.parse(ruta_archivo, banco='banorte')
     
-    def parse_citibanamex(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_citibanamex(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Citibanamex"""
-        return self.parse(file_path, banco='citibanamex')
+        return self.parse(ruta_archivo, banco='citibanamex')
     
-    def parse_scotiabank(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_scotiabank(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Scotiabank"""
-        return self.parse(file_path, banco='scotiabank')
+        return self.parse(ruta_archivo, banco='scotiabank')
     
-    def parse_hsbc(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_hsbc(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para HSBC"""
-        return self.parse(file_path, banco='hsbc')
+        return self.parse(ruta_archivo, banco='hsbc')
     
-    def parse_inbursa(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_inbursa(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Inbursa"""
-        return self.parse(file_path, banco='inbursa')
+        return self.parse(ruta_archivo, banco='inbursa')
     
-    def parse_banregio(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_banregio(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banregio"""
-        return self.parse(file_path, banco='banregio')
+        return self.parse(ruta_archivo, banco='banregio')
     
-    def parse_afirme(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_afirme(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Afirme"""
-        return self.parse(file_path, banco='afirme')
+        return self.parse(ruta_archivo, banco='afirme')
     
-    def parse_bajio(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_bajio(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banco del Bajío"""
-        return self.parse(file_path, banco='bajio')
+        return self.parse(ruta_archivo, banco='bajio')
     
-    def parse_bancoppel(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_bancoppel(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para BanCoppel"""
-        return self.parse(file_path, banco='bancoppel')
+        return self.parse(ruta_archivo, banco='bancoppel')
     
-    def parse_azteca(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_azteca(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Banco Azteca"""
-        return self.parse(file_path, banco='azteca')
+        return self.parse(ruta_archivo, banco='azteca')
     
-    def parse_bancredito(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_bancredito(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para BanCrédito"""
-        return self.parse(file_path, banco='bancredito')
+        return self.parse(ruta_archivo, banco='bancredito')
     
-    def parse_multiva(self, file_path: str) -> Tuple[List[BankTransaction], str, str]:
+    def parse_multiva(self, ruta_archivo: str) -> Tuple[List[BankTransaction], str, str]:
         """Parser específico para Multiva"""
-        return self.parse(file_path, banco='multiva')
+        return self.parse(ruta_archivo, banco='multiva')
     
     def get_errors(self) -> List[str]:
         """Retorna lista de errores"""

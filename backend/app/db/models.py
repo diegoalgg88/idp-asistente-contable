@@ -16,9 +16,9 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
-    full_name = Column(String)
-    is_active = Column(Integer, default=1)
+    contrasena_hash = Column(String, nullable=False)
+    nombre_completo = Column(String)
+    esta_activo = Column(Integer, default=1)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -27,7 +27,7 @@ class User(Base):
     conversations = relationship("Conversation", back_populates="user")
     bank_statements = relationship("BankStatement", back_populates="user")
     clients = relationship("Client", back_populates="user")
-    calendar_events = relationship("CalendarEvent", back_populates="user", order_by="CalendarEvent.date")
+    calendar_events = relationship("CalendarEvent", back_populates="user", order_by="CalendarEvent.fecha")
     workflows = relationship("Workflow", back_populates="user", order_by="Workflow.created_at.desc()")
 
 
@@ -37,12 +37,12 @@ class Document(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    document_type = Column(String, nullable=False)
-    file_path = Column(String, nullable=False)
-    original_filename = Column(String)
-    extracted_data = Column(JSON)
-    confidence_score = Column(Float)
-    status = Column(String, default="pending")  # pending, processing, completed, failed
+    tipo_documento = Column(String, nullable=False)
+    ruta_archivo = Column(String, nullable=False)
+    nombre_original = Column(String)
+    datos_extraidos = Column(JSON)
+    puntuacion_confianza = Column(Float)
+    estado = Column(String, default="pending")  # pending, processing, completed, failed
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -74,7 +74,7 @@ class Message(Base):
     conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
     role = Column(String, nullable=False)  # user, assistant, system
     content = Column(Text, nullable=False)
-    msg_metadata = Column(JSON)
+    metadatos = Column(JSON)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     # Relationships
@@ -88,9 +88,9 @@ class Client(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String, nullable=False)
-    type = Column(String)  # Moral, Física
+    tipo = Column(String)  # Moral, Física
     rfc = Column(String, index=True)
-    status = Column(String)  # Activo, Inactivo, Prospecto
+    estado = Column(String)  # Activo, Inactivo, Prospecto
     email = Column(String)
     phone = Column(String)
     regime = Column(String)
@@ -110,9 +110,9 @@ class KYCDocument(Base):
     id = Column(Integer, primary_key=True, index=True)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=False)
     name = Column(String, nullable=False)
-    status = Column(String)  # Vigente, Pendiente, Sin iniciar, Revisión
-    expiry_date = Column(DateTime)
-    file_path = Column(String)
+    estado = Column(String)  # Vigente, Pendiente, Sin iniciar, Revisión
+    fecha_expiracion = Column(DateTime)
+    ruta_archivo = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -140,14 +140,14 @@ class CalendarEvent(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     title = Column(String, nullable=False)
-    description = Column(Text)
-    date = Column(DateTime, nullable=False)
-    type = Column(String, default="fiscal")  # fiscal, nomina, seguridad_social, cliente
-    status = Column(String, default="pendiente")  # pendiente, completado, en_preparacion, vencido
-    priority = Column(String, default="media")  # alta, media, baja
-    is_recurring = Column(Integer, default=0)  # 1 for True, 0 for False
-    recurring_pattern = Column(String)  # monthly, yearly, weekly
-    metadata_json = Column(JSON)  # Datos adicionales (RFC, periodo, etc)
+    descripcion = Column(Text)
+    fecha = Column(DateTime, nullable=False)
+    tipo = Column(String, default="fiscal")  # fiscal, nomina, seguridad_social, cliente
+    estado = Column(String, default="pendiente")  # pendiente, completado, en_preparacion, vencido
+    prioridad = Column(String, default="media")  # alta, media, baja
+    es_recurrente = Column(Integer, default=0)  # 1 for True, 0 for False
+    patron_recurrencia = Column(String)  # monthly, yearly, weekly
+    metadatos_json = Column(JSON)  # Datos adicionales (RFC, periodo, etc)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -161,16 +161,16 @@ class Workflow(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    name = Column(String, nullable=False)
-    description = Column(Text)
-    type = Column(String, default="general")  # cierre_mensual, validacion_sat, conciliacion
-    status = Column(String, default="pending")  # pending, running, completed, failed
-    progress = Column(Integer, default=0)  # 0-100 porcentaje
+    nombre = Column(String, nullable=False)
+    descripcion = Column(Text)
+    tipo = Column(String, default="general")  # cierre_mensual, validacion_sat, conciliacion
+    estado = Column(String, default="pending")  # pending, running, completed, failed
+    progreso = Column(Integer, default=0)  # 0-100 porcentaje
     steps_total = Column(Integer, default=0)
     steps_completed = Column(Integer, default=0)
-    metadata_json = Column(JSON)  # Datos del workflow
-    started_at = Column(DateTime)
-    completed_at = Column(DateTime)
+    metadatos_json = Column(JSON)  # Datos del workflow
+    iniciado_en = Column(DateTime)
+    completado_en = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -179,5 +179,5 @@ class Workflow(Base):
 
 
 # Add relationship to User model
-User.calendar_events = relationship("CalendarEvent", back_populates="user", order_by="CalendarEvent.date")
+User.calendar_events = relationship("CalendarEvent", back_populates="user", order_by="CalendarEvent.fecha")
 User.workflows = relationship("Workflow", back_populates="user", order_by="Workflow.created_at.desc()")

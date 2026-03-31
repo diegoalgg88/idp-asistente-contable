@@ -77,7 +77,7 @@ export default function DocumentsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {doc.confidence_score ? `${(doc.confidence_score * 100).toFixed(1)}%` : '-'}
+                      {doc.puntuacion_confianza ? `${(doc.puntuacion_confianza * 100).toFixed(1)}%` : '-'}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {new Date(doc.created_at).toLocaleDateString()}

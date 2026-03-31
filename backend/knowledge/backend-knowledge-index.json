@@ -555,9 +555,9 @@
         "fields": [
           {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
           {"name": "email", "type": "String", "constraints": ["unique", "index", "not_null"]},
-          {"name": "hashed_password", "type": "String", "constraints": ["not_null"]},
-          {"name": "full_name", "type": "String", "constraints": []},
-          {"name": "is_active", "type": "Integer", "constraints": ["default:1"]},
+          {"name": "contrasena_hash", "type": "String", "constraints": ["not_null"]},
+          {"name": "nombre_completo", "type": "String", "constraints": []},
+          {"name": "esta_activo", "type": "Integer", "constraints": ["default:1"]},
           {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]},
           {"name": "updated_at", "type": "DateTime", "constraints": ["default:utcnow", "onupdate"]}
         ],
@@ -571,10 +571,10 @@
           {"name": "id", "type": "Integer", "constraints": ["primary_key", "index"]},
           {"name": "user_id", "type": "Integer", "constraints": ["foreign_key:users.id"]},
           {"name": "document_type", "type": "String", "constraints": ["not_null"]},
-          {"name": "file_path", "type": "String", "constraints": ["not_null"]},
-          {"name": "original_filename", "type": "String", "constraints": []},
-          {"name": "extracted_data", "type": "JSON", "constraints": []},
-          {"name": "confidence_score", "type": "Float", "constraints": []},
+          {"name": "ruta_archivo", "type": "String", "constraints": ["not_null"]},
+          {"name": "nombre_original", "type": "String", "constraints": []},
+          {"name": "datos_extraidos", "type": "JSON", "constraints": []},
+          {"name": "puntuacion_confianza", "type": "Float", "constraints": []},
           {"name": "status", "type": "String", "constraints": ["default:pending"]},
           {"name": "created_at", "type": "DateTime", "constraints": ["default:utcnow"]},
           {"name": "updated_at", "type": "DateTime", "constraints": ["default:utcnow", "onupdate"]}

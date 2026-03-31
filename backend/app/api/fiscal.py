@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.core.security import get_current_user
 from app.db.models import User
 from app.domain.fiscal.tax_calculator import TaxCalculator
@@ -33,7 +33,7 @@ def calculate_taxes(payload: Dict[str, Any]):
 async def export_working_paper(
     rfc: str,
     year: int = 2026,
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Genera y descarga el Papel de Trabajo Fiscal en Excel."""

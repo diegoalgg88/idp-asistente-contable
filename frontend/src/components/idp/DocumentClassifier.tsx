@@ -262,10 +262,10 @@ export const DocumentClassifier: React.FC<DocumentClassifierProps> = ({
                       <TooltipTrigger>
                         <Badge
                           variant="secondary"
-                          className={getConfidenceColor(suggestion.confidence_score)}
+                          className={getConfidenceColor(suggestion.puntuacion_confianza)}
                         >
                           <Brain className="h-3 w-3 mr-1" />
-                          {(suggestion.confidence_score * 100).toFixed(0)}%
+                          {(suggestion.puntuacion_confianza * 100).toFixed(0)}%
                         </Badge>
                       </TooltipTrigger>
                       <TooltipContent>

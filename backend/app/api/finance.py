@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 from datetime import datetime, timedelta
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import User, Document
 from app.core.security import get_current_user
 from app.domain.finance.banking_sync import BankingSyncService
@@ -32,20 +32,20 @@ class FinancialStatement(BaseModel):
 
 @router.get("/summary", response_model=FinancialSummary)
 async def get_summary(
-    db: AsyncSession = Depends(get_db), 
+    db: AsyncSession = Depends(get_async_db), 
     current_user: User = Depends(get_current_user)
 ):
     """Resumen financiero basado en facturación real."""
     result = await db.execute(
         select(Document).where(
             Document.user_id == current_user.id,
-            Document.status == "completed"
+            Document.estado == "completed"
         )
     )
     docs = result.scalars().all()
     
-    total_income = sum(float((doc.extracted_data or {}).get("total", 0)) for doc in docs if (doc.extracted_data or {}).get("type") == "ingreso")
-    total_expense = sum(float((doc.extracted_data or {}).get("total", 0)) for doc in docs if (doc.extracted_data or {}).get("type") == "egreso")
+    total_income = sum(float((doc.datos_extraidos or {}).get("total", 0)) for doc in docs if (doc.datos_extraidos or {}).get("type") == "ingreso")
+    total_expense = sum(float((doc.datos_extraidos or {}).get("total", 0)) for doc in docs if (doc.datos_extraidos or {}).get("type") == "egreso")
     
     # Fallback placeholders for demo consistency if no data
     if total_income == 0:
@@ -65,7 +65,7 @@ async def get_summary(
 
 @router.get("/statements", response_model=List[FinancialStatement])
 async def get_statements(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Estados financieros con LÓGICA CORRECTA (P&L != Balance)."""
@@ -105,18 +105,21 @@ async def get_statements(
 
 @router.get("/chart-data")
 async def get_chart_data(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Datos dinámicos para gráficas de flujo y presupuesto."""
     # En producción esto consultaría datos históricos. 
     # Aquí combinamos una base real con una serie temporal de ejemplo.
-    docs = db.query(Document).filter(
-        Document.user_id == current_user.id,
-        Document.status == "completed"
-    ).all()
+    result = await db.execute(
+        select(Document).where(
+            Document.user_id == current_user.id,
+            Document.estado == "completed"
+        )
+    )
+    docs = result.scalars().all()
     
-    total_real = sum(float((doc.extracted_data or {}).get("total", 0)) for doc in docs)
+    total_real = sum(float((doc.datos_extraidos or {}).get("total", 0)) for doc in docs)
     
     return [
         {"name": "Oct", "entradas": 1200000, "salidas": 845000, "budget": 1000000},
@@ -132,7 +135,7 @@ async def get_chart_data(
 async def upload_statement(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user)
 ):
     """Sube y procesa estado de cuenta."""
@@ -178,7 +181,7 @@ class CashFlowProjection(BaseModel):
 
 @router.get("/cash-flow", response_model=CashFlowProjection)
 async def get_cash_flow(
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_async_db),
     current_user: User = Depends(get_current_user),
 ):
     """
@@ -192,11 +195,14 @@ async def get_cash_flow(
     # 1. Obtener histórico de documentos (últimos 12 meses)
     twelve_months_ago = datetime.utcnow() - timedelta(days=365)
     
-    docs = db.query(Document).filter(
-        Document.user_id == current_user.id,
-        Document.status == "completed",
-        Document.created_at >= twelve_months_ago
-    ).all()
+    result = await db.execute(
+        select(Document).where(
+            Document.user_id == current_user.id,
+            Document.estado == "completed",
+            Document.created_at >= twelve_months_ago
+        )
+    )
+    docs = result.scalars().all()
     
     # 2. Agrupar por mes
     monthly_data: Dict[str, Dict[str, float]] = {}
@@ -205,8 +211,8 @@ async def get_cash_flow(
         if month_key not in monthly_data:
             monthly_data[month_key] = {'income': 0.0, 'expenses': 0.0}
         
-        doc_type = (doc.extracted_data or {}).get('type', 'other')
-        amount = float((doc.extracted_data or {}).get('total', 0))
+        doc_type = (doc.datos_extraidos or {}).get('type', 'other')
+        amount = float((doc.datos_extraidos or {}).get('total', 0))
         
         if doc_type == 'ingreso':
             monthly_data[month_key]['income'] += amount

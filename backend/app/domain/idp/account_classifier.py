@@ -70,7 +70,7 @@ INSTRUCCIONES: Responde ÚNICAMENTE con un objeto JSON (sin markdown, sin explic
 {{
     "suggested_account": "601-04-001",
     "account_name": "Servicios Públicos",
-    "confidence_score": 0.92,
+    "puntuacion_confianza": 0.92,
     "top_3": [
         {{"code": "601-04-001", "name": "Servicios Públicos", "confidence": 0.92}},
         {{"code": "601-08-001", "name": "Combustibles", "confidence": 0.05}},
@@ -120,7 +120,7 @@ INSTRUCCIONES: Responde ÚNICAMENTE con un objeto JSON (sin markdown, sin explic
             'monto': tx.get('monto', 0),
             'suggested_account': '601-01-001',
             'account_name': 'Sueldos y Salarios',
-            'confidence_score': 0.95,
+            'puntuacion_confianza': 0.95,
             'top_3': [
                 {'code': '601-01-001', 'name': 'Sueldos y Salarios', 'confidence': 0.95},
                 {'code': '601-10-001', 'name': 'Honorarios Profesionales', 'confidence': 0.80},

@@ -159,7 +159,7 @@ interface BatchClassifyResponse {
     document_id: number;
     suggested_account: string;
     account_name: string;
-    confidence_score: number;
+    puntuacion_confianza: number;
     top_3: Array<{
       rank: number;
       account_code: string;

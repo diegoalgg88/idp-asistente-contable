@@ -1,5 +1,5 @@
 """
-Auth API - Autenticación OAuth2 con JWT
+Auth API - Autenticación OAuth2 con JWT (Asíncrono)
 
 Endpoints disponibles:
 - POST /v1/auth/token - OAuth2 token endpoint
@@ -12,9 +12,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.database import get_db
+from app.db.database import get_async_db
 from app.db.models import User
 from app.core.security import (
     authenticate_user,
@@ -45,23 +46,14 @@ class RefreshTokenRequest(BaseModel):
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
     """
-    OAuth2 token endpoint para obtener access_token y refresh_token.
-
-    - **username**: Email del usuario (OAuth2 usa 'username' para el email)
-    - **password**: Contraseña del usuario
-
-    Returns:
-        Token: Contiene access_token, refresh_token y token_type
-
-    Raises:
-        HTTPException: 401 si las credenciales son inválidas
+    OAuth2 token endpoint para obtener access_token y refresh_token (Asíncrono).
     """
-    # Autenticar usuario
-    user = authenticate_user(db, form_data.username, form_data.password)
+    # Autenticar usuario asíncronamente
+    user = await authenticate_user(db, form_data.username, form_data.password)
 
     if not user:
         raise HTTPException(
@@ -70,7 +62,7 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    if not user.is_active:
+    if not user.esta_activo:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Inactive user",
@@ -100,15 +92,12 @@ async def get_current_user_info(
 ) -> dict:
     """
     Obtiene información del usuario actual autenticado.
-
-    Returns:
-        dict: Información del usuario (id, email, full_name, is_active)
     """
     return {
         "id": current_user.id,
         "email": current_user.email,
-        "full_name": current_user.full_name,
-        "is_active": current_user.is_active,
+        "nombre_completo": current_user.nombre_completo,
+        "esta_activo": current_user.esta_activo,
         "created_at": current_user.created_at,
     }
 
@@ -116,18 +105,10 @@ async def get_current_user_info(
 @router.post("/refresh", response_model=Token)
 async def refresh_access_token(
     request: RefreshTokenRequest,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_async_db)],
 ) -> Token:
     """
-    Refresh access token using refresh_token.
-
-    - **refresh_token**: Refresh token JWT
-
-    Returns:
-        Token: Nuevo access_token y refresh_token
-
-    Raises:
-        HTTPException: 401 si el refresh token es inválido o expiró
+    Refresh access token using refresh_token (Asíncrono).
     """
     # Decodificar refresh token
     payload = decode_access_token(request.refresh_token)
@@ -149,7 +130,7 @@ async def refresh_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Verificar que el usuario existe y está activo
+    # Verificar que el usuario existe y está activo asíncronamente
     try:
         user_id_int = int(user_id)
     except ValueError:
@@ -159,9 +140,10 @@ async def refresh_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    user = db.query(User).filter(User.id == user_id_int).first()
+    result = await db.execute(select(User).where(User.id == user_id_int))
+    user = result.scalar_one_or_none()
 
-    if not user or not user.is_active:
+    if not user or not user.esta_activo:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="User not found or inactive",

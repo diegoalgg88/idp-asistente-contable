@@ -38,7 +38,7 @@ class PapelDeTrabajoService:
         monthly_summary = {m: {"ingresos": Decimal("0.00"), "egresos": Decimal("0.00"), "iva_trasladado": Decimal("0.00"), "iva_acreditable": Decimal("0.00")} for m in range(1, 13)}
 
         for doc in documents:
-            ext = doc.extracted_data or {}
+            ext = doc.datos_extraidos or {}
             try:
                 # Filtrar por fecha (si existe en los datos extraídos)
                 fecha_str = ext.get("fecha_emision") or ext.get("date")

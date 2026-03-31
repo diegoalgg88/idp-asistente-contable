@@ -12,7 +12,7 @@ export interface ClassificationSuggestion {
   document_amount: number;
   suggested_account: string;
   account_name: string;
-  confidence_score: number;
+  puntuacion_confianza: number;
   top_3_suggestions: Array<{
     rank: number;
     account_code: string;
@@ -33,7 +33,7 @@ export interface ClassificationStats {
   total_classified: number;
   correct_classifications: number;
   accuracy_rate: number;
-  avg_confidence_score: number;
+  avg_puntuacion_confianza: number;
   last_30_days_accuracy: number;
   feedback_count: number;
 }
@@ -130,7 +130,7 @@ export const useClassificationStore = create<ClassificationState>()(
           set((state) => ({
             suggestions: state.suggestions.map((s) =>
               s.document_id === documentId
-                ? { ...s, suggested_account: account, confidence_score: 1.0 }
+                ? { ...s, suggested_account: account, puntuacion_confianza: 1.0 }
                 : s
             ),
           })),
